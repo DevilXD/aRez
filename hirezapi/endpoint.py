@@ -13,7 +13,7 @@ class Endpoint:
         self._session_expires = datetime.utcnow()
         self._http_session = aiohttp.ClientSession(raise_for_status=True)
         self.__dev_id = dev_id
-        self.__auth_key = auth_key
+        self.__auth_key = auth_key.upper()
     
     def __del__(self):
         self._http_session.detach()
