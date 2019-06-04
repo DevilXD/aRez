@@ -1,5 +1,6 @@
 from enum import Enum
 from datetime import datetime
+from operator import attrgetter
 from typing import Union, Optional, Iterable, AsyncGenerator
 
 from .enumerations import Activity, Queue
@@ -9,9 +10,17 @@ def convert_timestamp(timestamp: str) -> Optional[datetime]:
         return datetime.strptime(timestamp, "%m/%d/%Y %I:%M:%S %p")
 
 def get(iterable, **attrs):
+    if len(attrs) == 1: # speed up checks for only one test atribute
+        attr, val = attrs.pop()
+        getter = attrgetter(attr.replace('__', '.'))
+        for element in iterable:
+            if getter(element) == val:
+                return element
+        return None
+    getters = [(attrgetter(attr.replace('__', '.')), val) for attr, val in attrs.items()]
     for element in iterable:
-        for attr, val in attrs.items():
-            if getattr(element, attr) != val:
+        for getter, val in getters:
+            if getter(element) != val:
                 break
         else:
             return element
