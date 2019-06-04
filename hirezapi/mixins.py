@@ -41,5 +41,6 @@ class KDAMixin:
     def kda(self) -> int:
         return (self.kills + self.assists / 2) / self.deaths if self.deaths > 0 else nan
 
+    @property
     def kda_text(self) -> str:
         return "{0.kills}/{0.deaths}/{0.assists}".format(self)
