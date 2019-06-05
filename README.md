@@ -13,18 +13,18 @@ This is an alpha version - everything is a subject to change.
 There are plans on expanding the existing framework to incorporate:
 
 1. Main:  
-    [ ] Making PaladinsAPI inherit from BaseAPI  
-        [ ] Support for SmiteAPI (support Smite endpoint URL)  
-            [ ] Support for Teams  
-                [ ] Support for `getteamdetails` endpoint  
-                [ ] Support for `getteamplayers` endpoint  
-                [ ] Support for `searchteams` endpoint  
-        [ ] Support for RealmRoyaleAPI (support Realm Royale endpoint URL)  
-    [ ] Support for Skins (`getgodskins` endpoint)  
-    [ ] Support for `getmatchdetailsbatch` endpoint  
-    [ ] Support for `getqueuestats` endpoint  
-    [ ] Support for `getmatchplayerdetails` endpoint  
+    - [ ] Making PaladinsAPI inherit from BaseAPI  
+        - [ ] Support for SmiteAPI (support Smite endpoint URL)  
+            - [ ] Support for Teams  
+                - [ ] Support for `getteamdetails` endpoint  
+                - [ ] Support for `getteamplayers` endpoint  
+                - [ ] Support for `searchteams` endpoint  
+        - [ ] Support for RealmRoyaleAPI (support Realm Royale endpoint URL)  
+    - [ ] Support for Skins (`getgodskins` endpoint)  
+    - [ ] Support for `getmatchdetailsbatch` endpoint  
+    - [ ] Support for `getqueuestats` endpoint  
+    - [ ] Support for `getmatchplayerdetails` endpoint  
 2. Optional:  
-    [ ] Support for `getplayeridbyportaluserid` endpoint  
-    [ ] Support for `getplayerachievements` endpoint  
-    [ ] Support for `getmatchidsbyqueue` endpoint
+    - [ ] Support for `getplayeridbyportaluserid` endpoint  
+    - [ ] Support for `getplayerachievements` endpoint  
+    - [ ] Support for `getmatchidsbyqueue` endpoint
