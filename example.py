@@ -1,11 +1,18 @@
 import asyncio
 from hirezapi import PaladinsAPI, StatusPage
 
-DEV_ID = "1234"
-DEV_KEY = "8HBMWTCWAIZESURZHZND0IRXOZIOLVM5"
+DEV_ID = "1234" # Your Developer ID (example)
+AUTH_KEY = "8HBMWTCWAIZESURZHZND0IRXOZIOLVM5" # Your Auth Key (example)
 
 async def main():
-    async with PaladinsAPI(DEV_ID, DEV_KEY) as api:
+    # Standard usage:
+    api = PaladinsAPI(DEV_ID, AUTH_KEY)
+    player = await api.get_player("DevilXD")
+    print(player)
+    await api.close() # don't forget to close when you'll finish using the API
+
+    # Async context manager usage (automatically closes the API for you):
+    async with PaladinsAPI(DEV_ID, AUTH_KEY) as api:
         player = await api.get_player("DevilXD")
         status = await player.get_status()
         friends = await player.get_friends()
@@ -13,6 +20,14 @@ async def main():
         history = await player.get_match_history()
         champ_stats = await player.get_champion_stats()
         print(status,friends,loadouts,history,champ_stats,sep='\n')
+    
+    # Standard usage:
+    api = StatusPage("http://status.hirezstudios.com")
+    status = await api.get_status()
+    print(status)
+    api.close() # don't forget to close when you'll finish using the API
+
+    # Async context manager usage (automatically closes the API for you):
     async with StatusPage("http://status.hirezstudios.com") as api:
         status = await api.get_status()
         print(status)
