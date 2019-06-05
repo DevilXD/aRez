@@ -7,7 +7,8 @@ I am aware that [PyRez](https://github.com/luissilva1044894/Pyrez) already exist
 - Uses modern objective programming approach
 - Utilizes a local data cache to return data-rich objects
 
-This library is supposed to be used as a module. **As of right now, only PaladinsAPI is supported.**
+This library is supposed to be used as a module. **As of right now, only PaladinsAPI is supported.** Smite support is planned - read below.
+
 There are plans on expanding the existing framework to incorporate:
  
 - [ ] Adding documentation
@@ -17,7 +18,7 @@ There are plans on expanding the existing framework to incorporate:
             - [ ] Support for `getteamdetails` endpoint  
             - [ ] Support for `getteamplayers` endpoint  
             - [ ] Support for `searchteams` endpoint  
-    - [ ] Support for RealmRoyaleAPI (support Realm Royale endpoint URL)  
+    - [ ] \(Maybe) Support for RealmRoyaleAPI (support Realm Royale endpoint URL)  
 - [ ] Support for Skins (`getgodskins` endpoint)  
 - [ ] Support for `getplayeridbyportaluserid` endpoint  
 - [ ] Support for `getmatchplayerdetails` endpoint  
@@ -38,4 +39,4 @@ There are plans on expanding the existing framework to incorporate:
 ### Notes
 
 This is an alpha version - as of right now, everything is a subject to change.  
-Once all 3 games / APIs are supported, this wrapper is going to have it's v1.0 release, and I will try to manage it the proper way from there.
+Once both Paladins and Smite (and maybe Realm Royale) APIs are supported, this wrapper is going to have it's v1.0 release, and I will try to manage the versioning the proper way from there.
