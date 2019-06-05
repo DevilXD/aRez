@@ -38,6 +38,26 @@ class PaladinsAPI:
         await self.close()
     
     async def get_server_status(self, force_refresh: bool = False) -> Optional[ServerStatus]:
+        """
+        Fetches the server status.
+
+        To preserve requests, the status returned is cached once every minute.
+        Use the `force_refresh` parameter to override this behavior.
+
+        Uses up one request each time the cache is refreshed.
+        
+        Parameters
+        ----------
+        force_refresh : Optional[bool]
+            Bypasses the cache, forcing a fetch and returning a new object.
+            Defaults to False.
+        
+        Returns
+        -------
+        Optional[ServerStatus]
+            The server status object.
+            None is returned if there was no cached status and fetching returned an empty response.
+        """
         now = datetime.utcnow()
 
         if self.server_status is None or now >= self.server_status[1] or force_refresh:
@@ -49,6 +69,29 @@ class PaladinsAPI:
             return self.server_status[0]
     
     async def get_champion_info(self, language: Language = Language["english"], force_refresh: bool = False) -> Optional[ChampionInfo]:
+        """
+        Fetches the champion information.
+
+        To preserve requests, the information returned is cached once every 12 hours.
+        Use the `force_refresh` parameter to override this behavior.
+
+        Uses up two requests each time the cache is refreshed, per language.
+        
+        Parameters
+        ----------
+        language : Optional[Language]
+            The `Language` you want to fetch the information in.
+            Defaults to Language["english"].
+        force_refresh : Optional[bool]
+            Bypasses the cache, forcing a fetch and returning a new object.
+            Defaults to False.
+        
+        Returns
+        -------
+        Optional[ChampionInfo]
+            An object containing all champions, cards, talents and items information in the chosen language.
+            None is returned if there was no cached information and fetching returned an empty response.
+        """
         assert isinstance(language, Language)
 
         if self.cache.needs_refreshing(language) or force_refresh:
@@ -60,16 +103,74 @@ class PaladinsAPI:
         return self.cache[language]
 
     def get_player_from_id(self, player_id: int) -> PartialPlayer:
+        """
+        Wraps a Player ID into a PartialPlayer object.
+
+        Note that there is no input validation, so there's no quarantee
+        a PartialPlayer object created this way will return any meaningful results
+        when it's methods are used.
+        
+        Parameters
+        ----------
+        player_id : int
+            The Player ID you want to get object for.
+        
+        Returns
+        -------
+        PartialPlayer
+            An object with only the ID set.
+        """
         assert isinstance(player_id, int)
         return PartialPlayer(self, {"player_id": player_id})
     
     async def get_player(self, player: Union[int, str]) -> Optional[Player]:
+        """
+        Returns a Player object for the given Player ID or Player Name.
+
+        Only Players with `Platform.HiRez` and `Platform.Steam` platforms will be
+        returned when using this method with Player Name as input.
+        For Player ID inputs, players from all platforms will be returned.
+
+        Uses up a single request.
+        
+        Parameters
+        ----------
+        player : Union[int, str]
+            Player ID or Player Name of the player you want to get object for.
+        
+        Returns
+        -------
+        Optional[Player]
+            An object containing basic information about the player requested.
+            None is returned if a Player for the given ID or Name could not be found.
+        """
         assert isinstance(player, (int, str))
         player_list = await self.request("getplayer", [player])
         if player_list:
             return Player(self, player_list[0])
     
     async def search_players(self, player_name: str, platform: Platform = None) -> List[PartialPlayer]:
+        """
+        Fetches all players whose name matches the name specified.
+
+        The search is fuzzy - Player Name capitalisation doesn't matter.
+
+        Uses up a single request.
+        
+        Parameters
+        ----------
+        player_name : str
+            Player Name you want to search for.
+        platform : Optional[Platform]
+            Platform you want to limit the search to.
+            Specifying None will search on all platforms.
+            Defaults to None.
+        
+        Returns
+        -------
+        List[PartialPlayer]
+            A list of partial players whose name matches the specified name.
+        """
         assert isinstance(player_name, str)
         assert isinstance(platform, (None.__class__, Platform))
         player_name = player_name.lower()
@@ -84,6 +185,24 @@ class PaladinsAPI:
         return [PartialPlayer(self, p) for p in list_response]
     
     async def get_match(self, match_id: int, language: Language = Language["english"]) -> Match:
+        """
+        Fetches a match for the given Match ID.
+
+        Uses up a single request.
+        
+        Parameters
+        ----------
+        match_id : int
+            Match ID you want to get a match for
+        language : Optional[Language]
+            The `Language` you want to fetch the information in.
+            Defaults to Language["english"].
+        
+        Returns
+        -------
+        Match
+            A match for the ID specified.
+        """
         assert isinstance(match_id, int)
         assert isinstance(language, Language)
         # ensure we have champion information first
