@@ -94,7 +94,7 @@ class PaladinsAPI:
         """
         assert isinstance(language, Language)
 
-        if self.cache.needs_refreshing(language) or force_refresh:
+        if self.cache._needs_refreshing(language) or force_refresh:
             champions_response = await self.request("getgods", [language.value])
             items_response = await self.request("getitems", [language.value])
             if champions_response and items_response:

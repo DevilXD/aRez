@@ -8,15 +8,11 @@ from .enumerations import Language, DeviceType
 
 class ChampionInfo:
     def __init__(self, cache, language, champions_data, items_data):
-        self.cache = cache
         self.language = language
         """
         The language of this entry.
         """
-        self.expires_at = datetime.utcnow() + self.cache.refresh_every
-        """
-        A timestamp of when this entry is considered expired.
-        """
+        self._expires_at = datetime.utcnow() + cache.refresh_every
         sorted_devices = {}
         for d in items_data:
             champ_id = d["champion_id"]
@@ -135,20 +131,20 @@ class ChampionInfo:
 
 class DataCache:
     def __init__(self):
-        self.__cache: Mapping[Language, ChampionInfo] = {}
+        self._cache: Mapping[Language, ChampionInfo] = {}
         self.refresh_every = timedelta(hours=12)
 
     def __setitem__(self, language: Language, info_init_tuple):
         if not isinstance(language, Language):
             raise IndexError("Only Language emumeration members are allowed as keys")
-        self.__cache[language] = ChampionInfo(self, language, *info_init_tuple)
+        self._cache[language] = ChampionInfo(self, language, *info_init_tuple)
 
     def __getitem__(self, language: Language):
-        return self.__cache.get(language)
+        return self._cache.get(language)
 
-    def needs_refreshing(self, language: Language = Language["english"]) -> bool:
-        entry = self.__cache.get(language)
-        if entry is None or datetime.utcnow() >= entry.expires_at:
+    def _needs_refreshing(self, language: Language = Language["english"]) -> bool:
+        entry = self._cache.get(language)
+        if entry is None or datetime.utcnow() >= entry._expires_at:
             return True
         return False
 
@@ -174,7 +170,7 @@ class DataCache:
             The champion you requested.
             None is returned if a champion couldn't be found, or the entry for the language specified hasn't been fetched yet.
         """
-        entry = self.__cache.get(language)
+        entry = self._cache.get(language)
         if entry:
             return entry.get_champion(champion)
 
@@ -200,7 +196,7 @@ class DataCache:
             The card you requested.
             None is returned if a card couldn't be found, or the entry for the language specified hasn't been fetched yet.
         """
-        entry = self.__cache.get(language)
+        entry = self._cache.get(language)
         if entry:
             return entry.get_card(card)
 
@@ -226,7 +222,7 @@ class DataCache:
             The talent you requested.
             None is returned if a talent couldn't be found, or the entry for the language specified hasn't been fetched yet.
         """
-        entry = self.__cache.get(language)
+        entry = self._cache.get(language)
         if entry:
             return entry.get_talent(talent)
 
@@ -252,6 +248,6 @@ class DataCache:
             The shop item you requested.
             None is returned if a shop item couldn't be found, or the entry for the language specified hasn't been fetched yet.
         """
-        entry = self.__cache.get(language)
+        entry = self._cache.get(language)
         if entry:
             return entry.get_item(item)
