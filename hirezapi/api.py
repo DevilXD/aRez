@@ -184,7 +184,7 @@ class PaladinsAPI:
             list_response = [r for r in response if r["Name"].lower() == player_name]
         return [PartialPlayer(self, p) for p in list_response]
     
-    async def get_match(self, match_id: int, language: Language = Language["english"]) -> Match:
+    async def get_match(self, match_id: int, language: Language = Language["english"]) -> Optional[Match]:
         """
         Fetches a match for the given Match ID.
 
@@ -208,4 +208,5 @@ class PaladinsAPI:
         # ensure we have champion information first
         await self.get_champion_info(language)
         response = await self.request("getmatchdetails", [match_id])
-        return Match(self, language, response)
+        if response:
+            return Match(self, language, response)
