@@ -5,7 +5,37 @@ from .champion import Champion
 from .enumerations import DeviceType, Language
 
 class Device:
-
+    """
+    Represents a Device - those are usually cards, talents and shop items.
+    
+    Attributes
+    ----------
+    id : int
+        ID of the device.
+    name : str
+        Name of the device.
+    type : DeviceType
+        The type of the device.
+    description : str
+        The device's description.
+    icon_url : str
+        The URL of this device's icon.
+    ability : str
+        The name of the ability this device affects. Applies only to cards and talents.
+        If the affected ability cannot be determined, this will be `-`.
+    champion : Optional[Champion]
+        The champion this device belongs to.
+        None for shop items.
+    cooldown : int
+        The cooldown of this device, in seconds.
+        0 if there is no cooldown.
+    price : int
+        The price of this device.
+        0 if there's no price (it's free).
+    unlocked_at : int
+        The champion's mastery level required to unlock this device. Applies only to talents.
+        0 means it's inlocked by default.
+    """
     _desc_pattern = re.compile(r'\[(.+?)\] (.*)')
 
     def __init__(self, device_data: dict):
@@ -45,6 +75,16 @@ class Device:
         self.champion = champion
 
 class LoadoutCard:
+    """
+    Represents a Loadout Card.
+    
+    Attributes
+    ----------
+    card : Device
+        The actual card that belongs to this loadout.
+    points : int
+        The amount of loadout points that have been assigned to this card.
+    """
     def __init__(self, card: Device, points: int):
         self.card = card
         self.points = points
@@ -53,6 +93,24 @@ class LoadoutCard:
         return "{0.card.name}: {0.points}".format(self)
 
 class Loadout:
+    """
+    Represents a Champion's Loadout.
+    
+    Attributes
+    ----------
+    id : int
+        ID of the loadout.
+    name : str
+        Name of the loadout.
+    player : Union[PartialPlayer, Player]
+        The player this loadout belongs to.
+    champion : Champion
+        The champion this loadout belongs to.
+    language : Language
+        The language of all the cards this loadout has.
+    cards : List[LoadoutCard]
+        A list of loadout cards this lodaout consists of.
+    """
     def __init__(self, player: Union['PartialPlayer', 'Player'], language: Language, loadout_data: dict):
         assert player.id == loadout_data["playerId"]
         self._api = player._api
