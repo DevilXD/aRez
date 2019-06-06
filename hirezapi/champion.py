@@ -1,12 +1,12 @@
 ﻿from typing import Union, List, TYPE_CHECKING
 
 from .utils import get_name_or_id
-from .enumerations import Language, DeviceType
+from .enumerations import Language, DeviceType, AbilityType
 
 class Ability:
     """
     Represents a Champion's Ability.
-
+    
     Attributes
     ----------
     name : str
@@ -22,16 +22,11 @@ class Ability:
     icon_url : str
         A URL of this ability's icon.
     """
-    _type_dict = {
-        "AoE": "Area Damage",
-        "Direct": "Direct Damage",
-    }
-
     def __init__(self, ability_data):
         self.name = ability_data["Summary"]
         self.id = ability_data["Id"]
         self.description = ability_data["Description"].strip().replace('\r', ' ').replace('  ', ' ')
-        self.type = self._type_dict.get(ability_data["damageType"], "-")
+        self.type = AbilityType.get(ability_data["damageType"]) or AbilityType.get(0) #pylint: disable=no-member
         self.cooldown = ability_data["rechargeSeconds"]
         self.icon_url = ability_data["URL"]
 

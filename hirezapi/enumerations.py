@@ -143,6 +143,14 @@ DeviceType = Enum("DeviceType", {
     "Talent":    3,
 })
 
+AbilityType = Enum("AbilityType", {
+    "Undefined":     0,
+    "Direct Damage": 1,
+    "Direct":        1,
+    "Area Damage":   2,
+    "AoE":           2,
+})
+
 Activity = Enum("Activity", {
     "Offline":             0,
     "In Lobby":            1,
