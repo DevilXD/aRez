@@ -83,7 +83,7 @@ class MatchPlayer(KDAMixin):
         player_data.update({"Kills": player_data["Kills_Player"]}) #kills correction for KDAMixin
         super().__init__(player_data)
         self._api = api
-        from player import PartialPlayer # cyclic imports
+        from .player import PartialPlayer # cyclic imports
         player_payload = {
             "name": player_data["playerName"],
             "player_id": int(player_data["playerId"]),
