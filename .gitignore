@@ -5,3 +5,6 @@ __pycache__/
 
 # VSCode stuff
 .vscode
+
+# Temporary docs override
+/docs/_build
