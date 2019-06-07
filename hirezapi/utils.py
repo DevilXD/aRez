@@ -111,6 +111,31 @@ async def expand_partial(iterable: Iterable) -> AsyncGenerator:
         else:
             yield i
 
+class Status:
+    """
+    Represets a single server status.
+
+    Attributes
+    ----------
+    platform : str
+        A string denoting which platform this status is for.
+    environment : str
+        A string denoting which environment this server is running in.
+        This is usually `live` or `pts`.
+    up : bool
+        True if the server is UP, False otherwise.
+    limited_access : bool
+        True if this servers has limited access, False otherwise.
+    version : str
+        The current version of this server.
+    """
+    def __init__(self, status_data: dict):
+        self.platform = status_data["platform"]
+        self.environment = status_data["environment"]
+        self.up = status_data["status"] == "UP"
+        self.limited_access = status_data["limited_access"]
+        self.version = status_data["version"]
+
 class ServerStatus:
     """
     An object representing the current HiRez server's status.
@@ -123,18 +148,36 @@ class ServerStatus:
     limited_access : bool
         True if at least one live server has limited access, False otherwise.
         Note that this doesn't include PTS.
+    all_statuses : List[Status]
+        A list of all available statuses.
+    
+    Attributes below are added dynamically, for the sake of easy access only.
+    Please note that they should (but may not) be available at all times.
+
+    pc : Status
+        Status for the PC platform.
+    ps4 : Status
+        Status for the PS4 platform.
+    xbox : Status
+        Status for the XBOX platform.
+    switch : Status
+        Status for the Nintendo Switch platform.
+    pts : Status
+        Status for the PTS server.
     """
     def __init__(self, status_data: list):
         self.all_up = True
         self.limited_access = False
+        self.all_statuses = []
         for s in status_data:
-            status = {"limited_access": s["limited_access"], "up": s["status"] == "UP", "version": s["version"]}
+            status = Status(s)
+            self.all_statuses.append(status)
             if s["environment"] != "live":
                 setattr(self, s["environment"], status)
             else:
-                if not status["up"]:
+                if not status.up:
                     self.all_up = False
-                if status["limited_access"]:
+                if status.limited_access:
                     self.limited_access = True
                 setattr(self, s["platform"], status)
 
