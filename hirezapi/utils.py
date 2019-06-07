@@ -43,7 +43,7 @@ def get(iterable: Iterable, **attrs):
         None is returned if the desired object couldn't be found in the iterable.
     """
     if len(attrs) == 1: # speed up checks for only one test atribute
-        attr, val = attrs.pop()
+        attr, val = attrs.popitem()
         getter = attrgetter(attr.replace('__', '.'))
         for element in iterable:
             if getter(element) == val:
