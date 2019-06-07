@@ -182,6 +182,22 @@ class ServerStatus:
                 setattr(self, s["platform"], status)
 
 class PlayerStatus:
+    """
+    Represents the Player status.
+    
+    Attributes
+    ----------
+    player : Union[PartialPlayer, Player]
+        The player this status is for.
+    match_id : Optional[int]
+        ID of the live match the player is currently in.
+        None if the player isn't in a match.
+    queue : Optional[Queue]
+        The queue the player is currently playing in.
+        None if the player isn't in a match.
+    status : Activity
+        An enumeration representing the current player status.
+    """
     def __init__(self, player, status_data: dict):
         self.player = player
         self.match_id = status_data["Match"] or None
