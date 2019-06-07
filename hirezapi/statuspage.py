@@ -6,6 +6,22 @@ def convert_timestamp(stamp: str):
     return datetime.strptime(stamp[:-3] + stamp[-2:], "%Y-%m-%dT%H:%M:%S.%f%z").astimezone(timezone.utc).replace(tzinfo=None).replace(microsecond=0)
 
 class BaseComponent:
+    """
+    Component's base.
+    
+    Attributes
+    ----------
+    id : str
+        The ID of a component.
+    name : str
+        The name of the component.
+    status : str
+        The current component's status.
+    created_at : datetime
+        The time when this component was created.
+    updated_at : datetime
+        The last time this component was updated.
+    """
     def __init__(self, comp_data: dict):
         self.id = comp_data["id"]
         self.name = comp_data["name"]
@@ -17,11 +33,27 @@ class BaseComponent:
         return "{0.__class__.__name__}: {0.name}".format(self)
 
 class Component(BaseComponent):
+    """
+    Represents a status component.
+    
+    Attributes
+    ----------
+    group : ComponentGroup
+        The group this component belongs to.
+    """
     def __init__(self, group: 'ComponentGroup', comp_data: dict):
         super().__init__(comp_data)
         self.group = group
 
 class ComponentGroup(BaseComponent):
+    """
+    Represents a component's group.
+    
+    Attributes
+    ----------
+    components : List[Component]
+        A list of components this group has.
+    """
     def __init__(self, group_data: dict):
         super().__init__(group_data)
         self.components = []
@@ -30,6 +62,22 @@ class ComponentGroup(BaseComponent):
         self.components.append(comp)
 
 class Update:
+    """
+    Represents an incident or scheduled maintenance status update.
+    
+    Attributes
+    ----------
+    id : str
+        The ID of the update.
+    description : str
+        Description explaining what this update is about.
+    status : str
+        The component's status of this update.
+    created_at : datetime
+        The time when this update was created.
+    updated_at : datetime
+        The last time this update was updated.
+    """
     def __init__(self, upd_data: dict):
         self.id = upd_data["id"]
         self.description = upd_data["body"]
@@ -41,12 +89,36 @@ class Update:
         return "{}: {}".format(self.status.replace('_', ' ').title(), self.description)
 
 class Incident(BaseComponent):
+    """
+    Represents an incident.
+    
+    Attributes
+    ----------
+    impact : str
+        The impact of this incident.
+    updates : List[Update]
+        A list of updates this incident has.
+    """
     def __init__(self, inc_data: dict):
         super().__init__(inc_data)
         self.impact = inc_data["impact"]
         self.updates = [Update(u) for u in inc_data["incident_updates"]]
 
 class ScheduledMaintenance(BaseComponent):
+    """
+    Represents a scheduled maintenance.
+    
+    Attributes
+    ----------
+    impact : str
+        The impact of this incident.
+    scheduled_for : datetime
+        The planned time this maintenance is scheduled to start.
+    scheduled_until : datetime
+        The planned time this maintenance is scheduled to end.
+    updates : List[Update]
+        A list of updates this incident has.
+    """
     def __init__(self, main_data: dict):
         super().__init__(main_data)
         self.impact = main_data["impact"]
@@ -55,7 +127,32 @@ class ScheduledMaintenance(BaseComponent):
         self.updates = [Update(u) for u in main_data["incident_updates"]]
 
 class Status:
+    """
+    Represents the current server's status.
 
+    Attributes
+    ----------
+    name : str
+        The name of the status page.
+    id : str
+        The ID of the status page.
+    url : str
+        The URL of the status page.
+    timezone : str
+        The timezone of the status page.
+    updated_at : datetime
+        The timestamp of when the current status was updated last.
+    components : List[Component]
+        A list of components this status page contains.
+        This doesn't include groups.
+    groups : List[ComponentGroup]
+        A list of component groups this status page contains.
+        This includes groups only.
+    incidents : List[Incident]
+        A list of current incidents.
+    scheduled_maintenances : List[ScheduledMaintenance]
+        A list of scheduled maintenances.
+    """
     def __init__(self, page_data):
         page = page_data["page"]
         self.name = page["name"]
@@ -101,5 +198,13 @@ class StatusPage:
             return await response.json()
     
     async def get_status(self):
+        """
+        Returns the current statuspage's status.
+        
+        Returns
+        -------
+        Status
+            The requested status.
+        """
         response = await self.request()
         return Status(response)
