@@ -112,6 +112,18 @@ async def expand_partial(iterable: Iterable) -> AsyncGenerator:
             yield i
 
 class ServerStatus:
+    """
+    An object representing the current HiRez server's status.
+
+    Attributes
+    ----------
+    all_up : bool
+        True if all live servers are UP, False otherwise.
+        Note that this doesn't include PTS.
+    limited_access : bool
+        True if at least one live server has limited access, False otherwise.
+        Note that this doesn't include PTS.
+    """
     def __init__(self, status_data: list):
         self.all_up = True
         self.limited_access = False
