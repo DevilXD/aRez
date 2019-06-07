@@ -9,23 +9,34 @@ I am aware that [PyRez](https://github.com/luissilva1044894/Pyrez) already exist
 
 This library is supposed to be used as a module. **As of right now, only PaladinsAPI is supported.** Smite support is planned - read below.
 
-There are plans on expanding the existing framework to incorporate:
+Currently supported:
+
+- [x] `getgods / getchampions` and `getitems` regarding god / champion and card / talent / shop item information  
+- [x] `getplayer` (Player stats)  
+- [x] `getplayeridbyname`, `getplayeridsbygamertag` and `searchplayers` under a single, intuitive method (Finding the players)  
+- [x] `getfriends` (Player friends)  
+- [x] `getgodranks / getchampionranks` (God / Champion stats)  
+- [x] `getplayerloadouts` (Player loadouts for each god / champion)  
+- [x] `getplayerstatus` (Player status)  
+- [x] `getmatchhistory` (Player's recent matches)  
+- [x] `getmatchdetails` (Match details, by the ID or from player's recent matches)  
+- [ ] `getplayeridbyportaluserid` (Finding the player by their Portal ID)  
+- [ ] `getmatchplayerdetails` (Information about the current player's match)  
+- [ ] `getplayerachievements` (Player's achievements)  
+- [ ] `getmatchdetailsbatch` (Fetching multiple matches at once)  
+- [ ] `getmatchidsbyqueue` (Fetching all matches by queue)  
+- [ ] `getqueuestats` (Player match stats by queue)  
+
+There are plans on expanding the existing framework to incorporate the above and below:
  
 - [ ] Adding documentation
-- [ ] Creating and making PaladinsAPI inherit from BaseAPI  
+- [ ] Making PaladinsAPI inherit from BaseAPI  
     - [ ] Support for SmiteAPI (support Smite endpoint URL)  
         - [ ] Support for Teams  
             - [ ] Support for `getteamdetails` endpoint  
             - [ ] Support for `getteamplayers` endpoint  
             - [ ] Support for `searchteams` endpoint  
     - [ ] \(Maybe) Support for RealmRoyaleAPI (support Realm Royale endpoint URL)  
-- [ ] Support for Skins (`getgodskins` endpoint)  
-- [ ] Support for `getplayeridbyportaluserid` endpoint  
-- [ ] Support for `getmatchplayerdetails` endpoint  
-- [ ] Support for `getplayerachievements` endpoint  
-- [ ] Support for `getmatchdetailsbatch` endpoint  
-- [ ] Support for `getmatchidsbyqueue` endpoint
-- [ ] Support for `getqueuestats` endpoint  
 
 ### Requirements
 
