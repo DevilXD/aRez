@@ -18,12 +18,13 @@ class PaladinsAPI:
     Queue = Queue
     
     def __init__(self, dev_id, api_key):
-        self.endpoint = Endpoint("http://api.paladins.com/paladinsapi.svc", dev_id, api_key)
+        # don't store the endpoint - the API should have no access to it's instance other than the request and close methods
+        endpoint = Endpoint("http://api.paladins.com/paladinsapi.svc", dev_id, api_key)
         self.server_status = None
         self.cache = DataCache()
         # forward endpoint request and close methods
-        self.request = self.endpoint.request
-        self.close = self.endpoint.close
+        self.request = endpoint.request
+        self.close = endpoint.close
         # forward cache get methods
         self.get_champion = self.cache.get_champion
         self.get_card     = self.cache.get_card
