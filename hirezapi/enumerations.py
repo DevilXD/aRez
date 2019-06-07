@@ -1,8 +1,19 @@
 ﻿from enum import Enum
+from typing import Optional
 
-from .mixins import EnumMixin
+class EnumGet(Enum):
+    @classmethod
+    def get(cls, key_or_value) -> Optional[Enum]:
+        if isinstance(key_or_value, str):
+            return cls.__members__.get(key_or_value.lower())
+        elif isinstance(key_or_value, int):
+            try:
+                return cls(key_or_value)
+            except ValueError:
+                pass
+        return None
 
-Platform = Enum("Platform", {
+Platform = EnumGet("Platform", {
     #"Unknown":         0,
     "PC":               1,
     "pc":               1,
@@ -22,9 +33,9 @@ Platform = Enum("Platform", {
     "Switch":           22,
     "switch":           22,
     "nintendo switch":  22,
-}, type = EnumMixin)
+})
 
-Region = Enum("Region", {
+Region = EnumGet("Region", {
     "Unknown":              0,
     "North America":        1,
     "north america":        1,
@@ -46,9 +57,9 @@ Region = Enum("Region", {
     "Southeast Asia":       6,
     "southeast asia":       6,
     "sea":                  6,
-}, type = EnumMixin)
+})
 
-Language = Enum("Language", {
+Language = EnumGet("Language", {
     #"Unknown":      0,
     "English":       1,
     "english":       1,
@@ -70,9 +81,9 @@ Language = Enum("Language", {
     "polish":        12,
     "Turkish":       13,
     "turkish":       13,
-}, type = EnumMixin)
+})
 
-Queue = Enum("Queue", {
+Queue = EnumGet("Queue", {
     #"Unknown":                 0,
     "Casual Siege":             424,
     "casual":                   424,
@@ -103,9 +114,9 @@ Queue = Enum("Queue", {
     "bot team deathmatch":      470,
     "Test Maps":                445,
     "test maps":                445,
-}, type = EnumMixin)
+})
 
-Rank = Enum("Rank", {
+Rank = EnumGet("Rank", {
     "Qualifying":   0,
     "Bronze V":     1,
     "Bronze IV":    2,
@@ -136,14 +147,14 @@ Rank = Enum("Rank", {
     "Grandmaster":  27,
 })
 
-DeviceType = Enum("DeviceType", {
+DeviceType = EnumGet("DeviceType", {
     "Undefined": 0,
     "Item":      1,
     "Card":      2,
     "Talent":    3,
 })
 
-AbilityType = Enum("AbilityType", {
+AbilityType = EnumGet("AbilityType", {
     "Undefined":     0,
     "Direct Damage": 1,
     "Direct":        1,
@@ -151,7 +162,7 @@ AbilityType = Enum("AbilityType", {
     "AoE":           2,
 })
 
-Activity = Enum("Activity", {
+Activity = EnumGet("Activity", {
     "Offline":             0,
     "In Lobby":            1,
     "Character Selection": 2,

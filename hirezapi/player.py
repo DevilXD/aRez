@@ -35,7 +35,7 @@ class PartialPlayer:
         platform = player_data.get("Platform") or player_data.get("portal_id") or player_data.get("portalId")
         if type(platform) == str and platform.isdigit():
             platform = int(platform)
-        self.platform = Platform.get(platform) #pylint: disable=no-member
+        self.platform = Platform.get(platform)
     
     def __eq__(self, other) -> bool:
         assert isinstance(other, self.__class__)
@@ -275,7 +275,7 @@ class Player(PartialPlayer):
         self.level = player_data["Level"]
         self.hours_played = timedelta(hours=player_data["HoursPlayed"])
         self.champions_count = player_data["MasteryLevel"]
-        self.region = Region.get(player_data["Region"]) or Region.get(0) #pylint: disable=no-member
+        self.region = Region.get(player_data["Region"]) or Region(0)
         self.total_achievements = player_data["Total_Achievements"]
         self.total_exp = player_data["Total_Worshippers"]
         self.hz_gamer_tag = player_data["hz_gamer_tag"]

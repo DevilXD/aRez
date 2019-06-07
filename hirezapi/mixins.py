@@ -1,18 +1,6 @@
 from math import nan
 from enum import Enum
-from typing import Union, Optional
-
-class EnumMixin:
-    @classmethod
-    def get(cls, key_or_value) -> Optional[Enum]:
-        if isinstance(key_or_value, str):
-            return cls.__members__.get(key_or_value.lower())
-        elif isinstance(key_or_value, int):
-            try:
-                return cls(key_or_value)
-            except ValueError:
-                pass
-        return None
+from typing import Union
 
 class WinLoseMixin:
     def __init__(self, stats_data: dict):

@@ -26,7 +26,7 @@ class Ability:
         self.name = ability_data["Summary"]
         self.id = ability_data["Id"]
         self.description = ability_data["Description"].strip().replace('\r', ' ').replace('  ', ' ')
-        self.type = AbilityType.get(ability_data["damageType"]) or AbilityType.get(0) #pylint: disable=no-member
+        self.type = AbilityType.get(ability_data["damageType"]) or AbilityType(0)
         self.cooldown = ability_data["rechargeSeconds"]
         self.icon_url = ability_data["URL"]
 

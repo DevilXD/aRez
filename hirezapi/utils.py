@@ -201,8 +201,8 @@ class PlayerStatus:
     def __init__(self, player, status_data: dict):
         self.player = player
         self.match_id = status_data["Match"] or None
-        self.queue = Queue.get(status_data["match_queue_id"]) # pylint: disable=no-member
-        self.status = Activity(status_data["status"])
+        self.queue = Queue.get(status_data["match_queue_id"])
+        self.status = Activity.get(status_data["status"])
     
     # TODO: implement this
     # async def get_live_match(self) -> Match:
