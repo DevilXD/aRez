@@ -59,6 +59,25 @@ def get(iterable: Iterable, **attrs):
     return None
 
 def get_name_or_id(iterable: Iterable, name_or_id: Union[str, int]):
+    """
+    A helper function that uses searches for an object in an iterable based on it's
+    `name` or `id` attributes. The attribute to search with is determined by the
+    type of the input (int or str).
+    
+    Parameters
+    ----------
+    iterable : Iterable
+        The iterable to search in.
+    name_or_id : Union[str, int]
+        The Name or ID of the obecjt you're searching for.
+        Case sensitive.
+    
+    Returns
+    -------
+    Any
+        The first object with matching Name or ID passed.
+        None is returned if such object couldn't be found. 
+    """
     if isinstance(name_or_id, int):
         return get(iterable, id = name_or_id)
     elif isinstance(name_or_id, str):
