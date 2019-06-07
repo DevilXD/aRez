@@ -6,10 +6,42 @@ from typing import Union, Optional, Iterable, AsyncGenerator
 from .enumerations import Activity, Queue
 
 def convert_timestamp(timestamp: str) -> Optional[datetime]:
+    """
+    Converts the timestamp format returned by the API
+    
+    Parameters
+    ----------
+    timestamp : str
+        The string containing the timestamp.
+    
+    Returns
+    -------
+    Optional[datetime]
+        A converted datetime object.
+        None is returned if an empty string was passed.
+    """
     if timestamp:
         return datetime.strptime(timestamp, "%m/%d/%Y %I:%M:%S %p")
 
-def get(iterable, **attrs):
+def get(iterable: Iterable, **attrs):
+    """
+    Returns the first object from the `iterable` which attributes match the keyword arguments passed.
+
+    You can use `__` to search in nested attributes.
+    
+    Parameters
+    ----------
+    iterable : Iterable
+        The iterable to search in.
+    **attrs
+        The attributes to search for.
+    
+    Returns
+    -------
+    Any
+        The first object from the iterable with attributes matching the keyword arguments passed.
+        None is returned if the desired object couldn't be found in the iterable.
+    """
     if len(attrs) == 1: # speed up checks for only one test atribute
         attr, val = attrs.pop()
         getter = attrgetter(attr.replace('__', '.'))
@@ -33,6 +65,24 @@ def get_name_or_id(iterable: Iterable, name_or_id: Union[str, int]):
         return get(iterable, name = name_or_id)
 
 async def expand_partial(iterable: Iterable) -> AsyncGenerator:
+    """
+    A helper async generator that can be used to automatically expand PartialPlayer and PartialMatch objects for you.
+    Any other object found in the `iterable` is passed unchanged.
+
+    The following classes are converted:
+        PartialPlayer -> Player
+        PartialMatch -> Match
+    
+    Parameters
+    ----------
+    iterable : Iterable
+        The iterable containing partial objects.
+    
+    Returns
+    -------
+    AsyncGenerator
+        An async generator yielding expanded versions of each partial object.
+    """
     from .player import PartialPlayer # cyclic imports
     from .match import PartialMatch # cyclic imports
     for i in iterable:
