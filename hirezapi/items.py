@@ -69,7 +69,7 @@ class Device:
         return self.id == other.id
 
     def __repr__(self) -> str:
-        return "{}: {}".format(self.type.name, self.name)
+        return "{0.type.name}: {0.name}".format(self)
     
     def _attach_champion(self, champion: Champion):
         self.champion = champion
