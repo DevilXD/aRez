@@ -141,7 +141,7 @@ class PartialMatch(KDAMixin):
         self.loadout = MatchLoadout(self._api, language, match_data)
     
     def __repr__(self) -> str:
-        return "{0.queue.name}: {0.champion.name}: {0.kills}/{0.deaths}/{0.assists}".format(self)
+        return "{0.queue.name}: {0.champion.name}: {0.kda_text}".format(self)
 
     @property
     def disconnected(self) -> bool:
@@ -231,9 +231,9 @@ class MatchPlayer(KDAMixin):
 
     def __repr__(self) -> str:
         if self.player.id != 0:
-            return "{0.player.name}({0.player.id}): ({0.kills}/{0.deaths}/{0.assists}, {0.damage_dealt}, {0.healing_done})".format(self)
+            return "{0.player.name}({0.player.id}): ({0.kda_text}, {0.damage_dealt}, {0.healing_done})".format(self)
         else:
-            return "({0.kills}/{0.deaths}/{0.assists}, {0.damage_dealt}, {0.healing_done})".format(self)
+            return "({0.kda_text}, {0.damage_dealt}, {0.healing_done})".format(self)
 
 class Match:
     """
@@ -300,3 +300,6 @@ class Match:
             yield p
         for p in self.team_2:
             yield p
+
+    def __repr__(self) -> str:
+        return "{0.queue.name}({0.id}): {0.score}".format(self)
