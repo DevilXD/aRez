@@ -41,7 +41,7 @@ There are plans on expanding the existing framework to incorporate the above and
 ### Requirements
 
 - Python 3.6+ (might work on lower versions too; untested)
-- Aiohttp 3.5+ (lower versions should be fine as well; untested)
+- aiohttp 2.0+
 
 ### Resources
 
