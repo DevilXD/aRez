@@ -12,7 +12,18 @@ from .utils import convert_timestamp, ServerStatus
 from .enumerations import Language, Platform, Queue
 
 class PaladinsAPI:
+    """
+    The main Paladins API.
     
+    Attributes
+    ----------
+    Platform : Enum
+        Platform enumeration. Provided for easy access.
+    Language : Enum
+        Language enumeration. Provided for easy access.
+    Queue : Enum
+        Queue enumeration. Provided for easy access.
+    """
     Platform = Platform
     Language = Language
     Queue = Queue
