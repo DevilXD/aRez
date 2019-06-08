@@ -19,6 +19,11 @@ class Endpoint:
         self._http_session.detach()
     
     async def close(self):
+        """
+        Closes the underlying API connection.
+
+        Attempting to make a request after the connection is closed will result in a RuntimeError.
+        """
         await self._http_session.close()
 
     async def __aenter__(self):
@@ -31,7 +36,25 @@ class Endpoint:
         return md5("".join([self.__dev_id, method_name, self.__auth_key, timestamp]).encode()).hexdigest()
 
     async def request(self, method_name: str, data: list = None):
+        """
+        Makes a direct request to the HiRez API.
         
+        For methods available, see docs: https://docs.google.com/document/d/1OFS-3ocSx-1Rvg4afAnEHlT3917MAK_6eJTR6rzr-BM
+
+        Parameters
+        ----------
+        method_name : str
+            The name of the method requested. This shouldn't include the reponse type as it's
+            added for you.
+        data : Optional[List[Union[int, str]]]
+            A list of method parameters requested to add at the end of the request, if applicable.
+            Those should be either integers or strings.
+        
+        Returns
+        -------
+        Union[list, dict]
+            A raw server's response as a list or a dictionary.
+        """
         method_name = method_name.lower()
         req_stack = [self.endpoint, "{}json".format(method_name)]
         
