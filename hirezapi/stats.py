@@ -57,7 +57,7 @@ class RankedStats(Stats):
 
 class ChampionStats(WinLoseMixin, KDAMixin):
     """
-    [summary]
+    Represents player's champion stats.
     
     Attributes
     ----------
