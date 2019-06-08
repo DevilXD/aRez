@@ -6,8 +6,8 @@ from .match import Match
 from .items import Device
 from .endpoint import Endpoint
 from .champion import Champion
-from .cache import DataCache, ChampionInfo
 from .player import Player, PartialPlayer
+from .cache import DataCache, ChampionInfo
 from .utils import convert_timestamp, ServerStatus
 from .enumerations import Language, Platform, Queue
 
