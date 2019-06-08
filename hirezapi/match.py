@@ -231,7 +231,7 @@ class MatchPlayer(KDAMixin):
         if self.player.id != 0:
             return "{0.player.name}({0.player.id}): ({0.kda_text}, {0.damage_dealt}, {0.healing_done})".format(self)
         else:
-            return "({0.kda_text}, {0.damage_dealt}, {0.healing_done})".format(self)
+            return "Unknown(0): ({0.kda_text}, {0.damage_dealt}, {0.healing_done})".format(self)
 
 class Match:
     """
