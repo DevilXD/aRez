@@ -7,6 +7,16 @@ from .utils import convert_timestamp
 from .enumerations import Queue, Language, Region
 
 class MatchItem:
+    """
+    Represents an item shop's purchase.
+    
+    Attributes
+    ----------
+    item : Device
+        The purchased item.
+    level : int
+        The level of the item purchased.
+    """
     def __init__(self, item, level):
         self.item = item
         self.level = level
@@ -15,6 +25,16 @@ class MatchItem:
         return "{0.item.name}: {0.level}".format(self)
 
 class MatchLoadout:
+    """
+    Represents a loadout used in a match.
+
+    Attributes
+    ----------
+    cards : List[LoadoutCard]
+        A list of loadout cards used.
+    talent : Device
+        The talent used.
+    """
     def __init__(self, api, language: Language, match_data: dict):
         self.cards = []
         for i in range(1,6):
@@ -25,6 +45,59 @@ class MatchLoadout:
         self.talent = api.get_talent(match_data["ItemId6"], language)
 
 class PartialMatch(KDAMixin):
+    """
+    Represents a match from a single player's perspective only.
+    
+    This partial object is returned by the `get_match_history` player's method.
+    To obtain a full object, try using `expand`.
+    
+    Attributes
+    ----------
+    id : int
+        The match ID.
+    player : Union[PartialPlayer, Player]
+        The player this match is for.
+    language : Language
+        The language of cards, talents and items this match has.
+    champion : Champion
+        The champion used by the player in this match.
+    queue : Queue
+        The queue this match was played in.
+    region : Region
+        The region this match was played in.
+    timestamp : datetime
+        A timestamp of when this match happened.
+    duration : timedelta
+        The duration of the match.
+    map_name : str
+        The name of the map played.
+    loadout : MatchLoadout
+        The loadout used by the player in this match.
+    items : List[MatchItem]
+        A list of items bought by the player during this match.
+    credits : int
+        The amount of credits earned this match.
+    damage_dealt : int
+        The amount of damage dealt.
+    damage_taken : int
+        The amount of damage taken.
+    damage_bot : int
+        The amount of damage done by the player's bot after they disconnected.
+    healing_done : int
+        The amount of healing done to other players.
+    healing_self : int
+        The amount of healing done to self.
+    healing_bot : int
+        The amount of healing done by the player's bot after they disconnected.
+    objective_time : int
+        The amount of objective time the player got, in seconds.
+    multikill_max : int
+        The maximum multikill player did during the match.
+    score : Tuple[int, int]
+        The match's ending score. The first value is always the allied-team score, while the second one - enemy team score.
+    win_status : bool
+        True if the player won this match, False otherwise.
+    """
     def __init__(self, player: Union['PartialPlayer', 'Player'], language: Language, match_data: dict):
         super().__init__(match_data)
         self._api = player._api
@@ -79,6 +152,40 @@ class PartialMatch(KDAMixin):
         return Match(self._api, self.language, response)
 
 class MatchPlayer(KDAMixin):
+    """
+    Represents a full match's player.
+    
+    Attributes
+    ----------
+    player : PartialPlayer
+        The player who participated in this match.
+        This is always a new, partial object, regardless of which way the match was fetched.
+        All attributes, Name, ID and Platform, should be present.
+    champion : Champion
+        The champion used by the player in this match.
+    loadout : MatchLoadout
+        The loadout used by the player in this match.
+    items : List[MatchItem]
+        A list of items bought by the player during this match.
+    credits : int
+        The amount of credits earned this match.
+    damage_dealt : int
+        The amount of damage dealt.
+    damage_taken : int
+        The amount of damage taken.
+    damage_bot : int
+        The amount of damage done by the player's bot after they disconnected.
+    healing_done : int
+        The amount of healing done to other players.
+    healing_self : int
+        The amount of healing done to self.
+    healing_bot : int
+        The amount of healing done by the player's bot after they disconnected.
+    objective_time : int
+        The amount of objective time the player got, in seconds.
+    multikill_max : int
+        The maximum multikill player did during the match.
+    """
     def __init__(self, api, language: Language, player_data: dict):
         player_data.update({"Kills": player_data["Kills_Player"]}) #kills correction for KDAMixin
         super().__init__(player_data)
@@ -129,6 +236,40 @@ class MatchPlayer(KDAMixin):
             return "({0.kills}/{0.deaths}/{0.assists}, {0.damage_dealt}, {0.healing_done})".format(self)
 
 class Match:
+    """
+    Represents an entire, full match.
+
+    Attributes
+    ----------
+    id : int
+        The match ID.
+    language : Language
+        The language of cards, talents and items this match has.
+    queue : Queue
+        The queue this match was played in.
+    region : Region
+        The region this match was played in.
+    timestamp : datetime
+        A timestamp of when this match happened.
+    duration : timedelta
+        The duration of the match.
+    bans : List[Champion]
+        A list of champions banned this match.
+        This is an empty list for non-ranked matches.
+    map_name : str
+        The name of the map played.
+    score : Tuple[int, int]
+        The match's ending score. The first value is the `team_1` score, while the second value - `team_2` score.
+    winning_team : int
+        The winning team of this match.
+        This can be either `1` or `2`.
+    team_1 : List[MatchPlayer]
+        A list of players in the first team.
+    team_2 : List[MatchPlayer]
+        A list of players in the second team.
+    players : Generator[MatchPlayer]
+        A generator that iterates over all match players in the match.
+    """
     def __init__(self, api, language: Language, match_data: List[dict]):
         self._api = api
         self.language = language
