@@ -103,8 +103,6 @@ class MatchPlayer(KDAMixin):
         self.objective_time = player_data["Objective_Assists"]
         self.multikill_max  = player_data["Multi_kill_Max"]
 
-        self.win_status = player_data["TaskForce"] == player_data["Winning_TaskForce"]
-
         self.kills_bot    = player_data["Kills_Bot"]
         self.double_kills = player_data["Kills_Double"]
         self.triple_kills = player_data["Kills_Triple"]
