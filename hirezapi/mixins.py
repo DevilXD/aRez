@@ -12,7 +12,7 @@ class WinLoseMixin:
         return self.wins + self.losses
     
     @property
-    def winrate(self) -> Union[str, float]:
+    def winrate(self) -> float:
         return self.wins / self.matches_played if self.matches_played > 0 else nan
     
     @property
