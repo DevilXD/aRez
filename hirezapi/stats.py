@@ -19,7 +19,7 @@ class Stats(WinLoseMixin):
         self.leaves = stats_data["Leaves"]
     
     def __repr__(self) -> str:
-        return "{self.__class__.__name__}: {self.wins}/{self.losses} ({0.winrate_text})".format(self)
+        return "{0.__class__.__name__}: {0.wins}/{0.losses} ({0.winrate_text})".format(self)
 
 class RankedStats(Stats):
     """
