@@ -207,7 +207,7 @@ class PaladinsAPI:
             Match ID you want to get a match for
         language : Optional[Language]
             The `Language` you want to fetch the information in.
-            Defaults to Language["english"].
+            Defaults to Language.English
         
         Returns
         -------
