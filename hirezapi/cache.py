@@ -7,11 +7,22 @@ from .utils import get_name_or_id
 from .enumerations import Language, DeviceType
 
 class ChampionInfo:
+    """
+    Represents a collection of champions, cards, telants and shop items.
+    
+    Attributes
+    ----------
+    language : Language
+        The language of this entry.
+    devices : List[Device]
+        Returns a list of all cards, talents and shop items.
+        This list also contains other devices that are returned from the API,
+        but are considered invalid.
+    champions : List[Champion]
+        Returns a list of all champions.
+    """
     def __init__(self, cache, language, champions_data, items_data):
         self.language = language
-        """
-        The language of this entry.
-        """
         self._expires_at = datetime.utcnow() + cache.refresh_every
         sorted_devices = {}
         for d in items_data:
@@ -20,20 +31,12 @@ class ChampionInfo:
                 sorted_devices[champ_id] = []
             sorted_devices[champ_id].append(Device(d))
         self.devices = [d for c in sorted_devices for d in sorted_devices[c]]
-        """
-        Returns a list of all cards, talents and shop items.
-        This list also contains other devices that are returned from the API,
-        but are considered invalid.
-        """
         self.champions = [Champion(sorted_devices.get(c["id"], []), c) for c in champions_data]
-        """
-        Returns a list of all champions.
-        """
 
     @property
     def cards(self) -> Iterator[Device]:
         """
-        Returns a filtered iterator that lets iterate over all cards.
+        A filtered iterator that lets iterate over all cards.
 
         Use `list()` to get a list instead.
         """
@@ -42,7 +45,7 @@ class ChampionInfo:
     @property
     def talents(self) -> Iterator[Device]:
         """
-        Returns a filtered iterator that lets iterate over all talents.
+        A filtered iterator that lets iterate over all talents.
 
         Use `list()` to get a list instead.
         """
@@ -51,7 +54,7 @@ class ChampionInfo:
     @property
     def items(self) -> Iterator[Device]:
         """
-        Returns a filtered iterator that lets iterate over all shop items.
+        A filtered iterator that lets iterate over all shop items.
 
         Use `list()` to get a list instead.
         """
