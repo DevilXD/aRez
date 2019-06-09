@@ -1,5 +1,5 @@
 from typing import Union
-from datetime import timedelta
+from .utils import Duration
 
 from .utils import convert_timestamp
 from .enumerations import Rank, Language
@@ -75,7 +75,7 @@ class ChampionStats(WinLoseMixin, KDAMixin):
         The amount of experience this champion has.
     credits : int
         The amount of credits earned by playing this champion.
-    playtime : timedelta
+    playtime : Duration
         The amount of time spent playing this champion.
     """
     def __init__(self, player: Union['PartialPlayer', 'Player'], language: Language, stats_data: dict):
@@ -88,7 +88,7 @@ class ChampionStats(WinLoseMixin, KDAMixin):
         self.level = stats_data["Rank"]
         self.experience = stats_data["Worshippers"]
         self.credits_earned = stats_data["Gold"]
-        self.playtime = timedelta(minutes=stats_data["Minutes"])
+        self.playtime = Duration(minutes=stats_data["Minutes"])
         #"MinionKills"
     
     def __repr__(self) -> str:

@@ -4,7 +4,7 @@ from typing import Union, List, Optional
 from .items import Loadout
 from .exceptions import Private
 from .match import PartialMatch
-from .utils import convert_timestamp, PlayerStatus
+from .utils import convert_timestamp, PlayerStatus, Duration
 from .enumerations import Language, Platform, Region
 from .stats import Stats, RankedStats, ChampionStats
 
@@ -245,8 +245,8 @@ class Player(PartialPlayer):
         A timestamp of the profile's last successful in-game login.
     level : int
         The in-game level of this profile.
-    hours_played : int
-        The amount of hours spent playing on this profile.
+    playtime : Duration
+        The amount of time spent playing on this profile.
     champions_count : int
         The amount of champions this player unlocked.
     region : Region
@@ -269,7 +269,7 @@ class Player(PartialPlayer):
         self.created_at = convert_timestamp(player_data["Created_Datetime"])
         self.last_login = convert_timestamp(player_data["Last_Login_Datetime"])
         self.level = player_data["Level"]
-        self.hours_played = timedelta(hours=player_data["HoursPlayed"])
+        self.playtime = Duration(hours=player_data["HoursPlayed"])
         self.champions_count = player_data["MasteryLevel"]
         self.region = Region.get(player_data["Region"]) or Region(0)
         self.total_achievements = player_data["Total_Achievements"]

@@ -1,5 +1,5 @@
 from enum import Enum
-from datetime import datetime
+from datetime import datetime, timedelta
 from operator import attrgetter
 from typing import Union, Optional, Iterable, AsyncGenerator
 
@@ -110,6 +110,37 @@ async def expand_partial(iterable: Iterable) -> AsyncGenerator:
             yield p
         else:
             yield i
+
+class Duration(timedelta):
+    """
+    Represents a duration. Allows for easy conversion between time units.
+    
+    Attributes
+    ----------
+    days : float
+        The total amount of days within the duration.
+    hours : float
+        The total amount of hours within the duration.
+    minutes : float
+        The total amount of minutes within the duration.
+    seconds : float
+        The total amount of seconds within the duration.
+    """
+    @property
+    def days(self) -> float:
+        return self.total_seconds() / 86400
+
+    @property
+    def hours(self) -> float:
+        return self.total_seconds() / 3600
+    
+    @property
+    def minutes(self) -> float:
+        return self.total_seconds() / 60
+    
+    @property
+    def seconds(self) -> float:
+        return self.total_seconds()
 
 class Status:
     """

@@ -3,7 +3,7 @@ from typing import Union, List, Generator
 
 from .mixins import KDAMixin
 from .items import LoadoutCard
-from .utils import convert_timestamp
+from .utils import convert_timestamp, Duration
 from .enumerations import Queue, Language, Region
 
 class MatchItem:
@@ -67,7 +67,7 @@ class PartialMatch(KDAMixin):
         The region this match was played in.
     timestamp : datetime
         A timestamp of when this match happened.
-    duration : timedelta
+    duration : Duration
         The duration of the match.
     map_name : str
         The name of the map played.
@@ -107,7 +107,7 @@ class PartialMatch(KDAMixin):
         self.champion = self._api.get_champion(match_data["ChampionId"])
         self.queue = Queue.get(match_data["Match_Queue_Id"])
         self.region = Region.get(match_data["Region"])
-        self.duration = timedelta(seconds=match_data["Time_In_Match_Seconds"])
+        self.duration = Duration(seconds=match_data["Time_In_Match_Seconds"])
         self.timestamp = convert_timestamp(match_data["Match_Time"])
         self.map_name = match_data["Map_Game"]
 
@@ -279,7 +279,7 @@ class Match:
         The region this match was played in.
     timestamp : datetime
         A timestamp of when this match happened.
-    duration : timedelta
+    duration : Duration
         The duration of the match.
     bans : List[Champion]
         A list of champions banned this match.
@@ -306,7 +306,7 @@ class Match:
         self.region = Region.get(first_player["Region"])
         self.queue = Queue.get(first_player["match_queue_id"])
         self.map_name = first_player["Map_Game"]
-        self.duration = timedelta(seconds=first_player["Time_In_Match_Seconds"])
+        self.duration = Duration(seconds=first_player["Time_In_Match_Seconds"])
         self.score = (first_player["Team1Score"], first_player["Team2Score"])
         self.winning_team = first_player["Winning_TaskForce"]
         self.bans = []
