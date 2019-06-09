@@ -145,6 +145,15 @@ class PartialMatch(KDAMixin):
 
     @property
     def disconnected(self) -> bool:
+        """
+        Checks if the player has disconnected during the match.
+        This is done by checking if either `damage_bot` or `healing_bot` are non zero.
+        
+        Returns
+        -------
+        bool
+            True if the player got disconnected, False otherwise.
+        """
         return self.damage_bot > 0 or self.healing_bot > 0
 
     async def expand(self) -> 'Match':
@@ -234,6 +243,19 @@ class MatchPlayer(KDAMixin):
                 level = player_data["ActiveLevel{}".format(i)] + 1
                 self.items.append(MatchItem(item, level))
         self.loadout = MatchLoadout(self._api, language, player_data)
+    
+    @property
+    def disconnected(self) -> bool:
+        """
+        Checks if the player has disconnected during the match.
+        This is done by checking if either `damage_bot` or `healing_bot` are non zero.
+        
+        Returns
+        -------
+        bool
+            True if the player got disconnected, False otherwise.
+        """
+        return self.damage_bot > 0 or self.healing_bot > 0
 
     def __repr__(self) -> str:
         if self.player.id != 0:
