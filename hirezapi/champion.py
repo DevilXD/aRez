@@ -89,7 +89,7 @@ class Champion:
         return self.id == other.id
     
     def __repr__(self) -> str:
-        return "{0.__class__.__name__}({0.name}:{0.id})".format(self)
+        return "{0.__class__.__name__}: {0.name}({0.id})".format(self)
     
     def __bool__(self) -> bool:
         return len(self.cards) == 16 and len(self.talents) == 3
