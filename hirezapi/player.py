@@ -102,7 +102,7 @@ class PartialPlayer:
         if self.private:
             raise Private
         response = await self._api.request("getplayerstatus", [self.id])
-        if response:
+        if response and response[0]["status"] != 5:
             return PlayerStatus(self, response[0])
     
     async def get_friends(self) -> List['PartialPlayer']:
@@ -124,8 +124,6 @@ class PartialPlayer:
         if self.private:
             raise Private
         response = await self._api.request("getfriends", [self.id])
-        if not response:
-            return []
         return [PartialPlayer(self._api, p) for p in response]
 
     async def get_loadouts(self, language: Language = Language["english"]) -> List[Loadout]:
@@ -156,7 +154,7 @@ class PartialPlayer:
         # ensure we have champion information first
         await self._api.get_champion_info(language)
         response = await self._api.request("getplayerloadouts", [self.id, language.value])
-        if not response or response and response[0]["ret_msg"]:
+        if not response or response and not response[0]["playerId"]:
             return []
         return [Loadout(self, language, l) for l in response]
     
@@ -188,8 +186,6 @@ class PartialPlayer:
         # ensure we have champion information first
         await self._api.get_champion_info(language)
         response = await self._api.request("getgodranks", [self.id])
-        if not response or response and response[0]["ret_msg"]:
-            return []
         return [ChampionStats(self, language, s) for s in response]
     
     async def get_match_history(self, language: Language = Language["english"]) -> List[PartialMatch]:
