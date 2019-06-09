@@ -148,6 +148,14 @@ class PartialMatch(KDAMixin):
         return self.damage_bot > 0 or self.healing_bot > 0
 
     async def expand(self) -> 'Match':
+        """
+        Expands this object into a full Match, containing all match players and information.
+        
+        Returns
+        -------
+        Match
+            The expanded match object.
+        """
         response = await self._api.request("getmatchdetails", [self.id])
         return Match(self._api, self.language, response)
 
