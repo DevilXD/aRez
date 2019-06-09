@@ -44,6 +44,9 @@ class MatchLoadout:
             self.cards.append(LoadoutCard(api.get_card(card_id, language), match_data["ItemLevel{}".format(i)]))
         self.talent = api.get_talent(match_data["ItemId6"], language)
 
+    def __repr__(self) -> str:
+        return "{}: {}/{}/{}/{}/{}".format(self.talent.name, *(c.points for c in self.cards))
+
 class PartialMatch(KDAMixin):
     """
     Represents a match from a single player's perspective only.
