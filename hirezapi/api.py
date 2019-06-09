@@ -116,11 +116,10 @@ class PaladinsAPI:
 
     def get_player_from_id(self, player_id: int) -> PartialPlayer:
         """
-        Wraps a Player ID into a PartialPlayer object.
+        Wraps a player ID into a PartialPlayer object.
 
-        Note that there is no input validation, so there's no quarantee
-        a PartialPlayer object created this way will return any meaningful results
-        when it's methods are used.
+        Note that since there is no input validation, so there's no guarantee an object created this way
+        will return any meaningful results when it's methods are used.
         
         Parameters
         ----------
@@ -137,18 +136,18 @@ class PaladinsAPI:
     
     async def get_player(self, player: Union[int, str]) -> Optional[Player]:
         """
-        Returns a Player object for the given Player ID or Player Name.
+        Returns a Player object for the given player ID or player name.
 
-        Only Players with `Platform.HiRez` and `Platform.Steam` platforms will be
-        returned when using this method with Player Name as input.
-        For Player ID inputs, players from all platforms will be returned.
+        Only players with `Platform.Steam` and `Platform.HiRez` platforms will be
+        returned when using this method with player name as input.
+        For player ID inputs, players from all platforms will be returned.
 
         Uses up a single request.
         
         Parameters
         ----------
         player : Union[int, str]
-            Player ID or Player Name of the player you want to get object for.
+            Player ID or player name of the player you want to get object for.
         
         Returns
         -------
@@ -165,14 +164,14 @@ class PaladinsAPI:
         """
         Fetches all players whose name matches the name specified.
 
-        The search is fuzzy - Player Name capitalisation doesn't matter.
+        The search is fuzzy - player name capitalisation doesn't matter.
 
         Uses up a single request.
         
         Parameters
         ----------
         player_name : str
-            Player Name you want to search for.
+            Player name you want to search for.
         platform : Optional[Platform]
             Platform you want to limit the search to.
             Specifying None will search on all platforms.
