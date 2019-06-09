@@ -71,7 +71,8 @@ class Endpoint:
                     if not session_id:
                         raise Unauthorized
                     self._session_key = session_id
-                self._session_expires = now + timedelta(minutes=15)
+                # off by 1s because of a rare race condition
+                self._session_expires = now + timedelta(minutes=14, seconds=59)
                 req_stack.extend([self._session_key, timestamp])
         if data:
             req_stack.extend(map(str, data))
