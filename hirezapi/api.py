@@ -138,8 +138,8 @@ class PaladinsAPI:
         """
         Returns a Player object for the given player ID or player name.
 
-        Only players with `Platform.Steam` and `Platform.HiRez` platforms will be
-        returned when using this method with player name as input.
+        Only players with `Platform.Steam`, `Platform.HiRez` and `Platform.Discord`
+        platforms will be returned when using this method with player name as input.
         For player ID inputs, players from all platforms will be returned.
 
         Uses up a single request.
@@ -186,7 +186,7 @@ class PaladinsAPI:
         assert isinstance(platform, (None.__class__, Platform))
         player_name = player_name.lower()
         if platform:
-            if platform.value <= 5: # hirez, pc and steam only
+            if platform.value <= 5 or platform.value == 25: # hirez, pc, steam and discord only
                 list_response = await self.request("getplayeridbyname", [player_name])
             else:
                 list_response = await self.request("getplayeridsbygamertag", [platform.value, player_name])

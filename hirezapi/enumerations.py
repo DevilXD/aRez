@@ -33,6 +33,8 @@ Platform = EnumGet("Platform", {
     "Switch":           22,
     "switch":           22,
     "nintendo switch":  22,
+    "Discord":          25,
+    "discord":          25,
 })
 
 Region = EnumGet("Region", {
