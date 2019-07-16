@@ -5,7 +5,10 @@ class EnumGet(Enum):
     @classmethod
     def get(cls, key_or_value) -> Optional[Enum]:
         if isinstance(key_or_value, str):
-            return cls.__members__.get(key_or_value.lower())
+            get = cls.__members__.get(key_or_value)
+            if not get:
+                return cls.__members__.get(key_or_value.lower())
+            return get
         elif isinstance(key_or_value, int):
             try:
                 return cls(key_or_value)
