@@ -29,6 +29,9 @@ class Ability:
         self.type = AbilityType.get(ability_data["damageType"]) or AbilityType(0)
         self.cooldown = ability_data["rechargeSeconds"]
         self.icon_url = ability_data["URL"]
+    
+    def __repr__(self) -> str:
+        return "{0.__class__.__name__}: {0.name}({0.id})".format(self)
 
 class Champion:
     """
