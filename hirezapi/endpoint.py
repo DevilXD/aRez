@@ -3,7 +3,9 @@ import asyncio
 from hashlib import md5
 from datetime import datetime, timedelta
 
-from .exceptions import Unauthorized
+from .exceptions import HTTPException, Unauthorized
+
+session_lifetime = timedelta(minutes=14, seconds=59)
 
 class Endpoint:
     
@@ -54,40 +56,57 @@ class Endpoint:
         -------
         Union[list, dict]
             A raw server's response as a list or a dictionary.
+        
+        Raises
+        ------
+        HTTPException
+            Whenever it was impossible to fetch the data in a reliable manner.
+            Check the `cause` attribute for the original exception that lead to this.
         """
         method_name = method_name.lower()
         req_stack = [self.endpoint, "{}json".format(method_name)]
         
-        if method_name != "ping":
-            now = datetime.utcnow()
-            timestamp = now.strftime("%Y%m%d%H%M%S")
-            req_stack.extend([self.__dev_id, self._get_signature(method_name, timestamp)])
-            if method_name == "createsession":
-                req_stack.append(timestamp)
-            else:
-                if now >= self._session_expires:
-                    session_response = await self.request("createsession") # recursion
-                    session_id = session_response.get("session_id")
-                    if not session_id:
-                        raise Unauthorized
-                    self._session_key = session_id
-                # off by 1s because of a rare race condition
-                self._session_expires = now + timedelta(minutes=14, seconds=59)
-                req_stack.extend([self._session_key, timestamp])
-        if data:
-            req_stack.extend(map(str, data))
-        
-        req_url = '/'.join(req_stack)
         tries = 3
         for tries_left in reversed(range(tries)):
             try:
+                if method_name != "ping":
+                    now = datetime.utcnow()
+                    timestamp = now.strftime("%Y%m%d%H%M%S")
+                    req_stack.extend([self.__dev_id, self._get_signature(method_name, timestamp)])
+                    if method_name == "createsession":
+                        req_stack.append(timestamp)
+                    else:
+                        if now >= self._session_expires:
+                            session_response = await self.request("createsession") # recursion
+                            session_id = session_response.get("session_id")
+                            if not session_id:
+                                raise Unauthorized
+                            self._session_key = session_id
+                        # off by 1s because of a rare race condition
+                        self._session_expires = now + session_lifetime
+                        req_stack.extend([self._session_key, timestamp])
+                if data:
+                    req_stack.extend(map(str, data))
+                
+                req_url = '/'.join(req_stack)
+        
                 async with self._http_session.get(req_url, timeout = 5) as response:
+                    # if response and "ret_msg" in response[0] and response[0]["ret_msg"]:
+                    #     # we've got some Hi-Rez API error
+                    #     pass # TODO: Maybe process this here?
                     return await response.json()
+            
             # For some reason, sometimes we get disconnected or timed out here.
             # If this happens, just give the api a short break and try again.
             except (aiohttp.ServerDisconnectedError, asyncio.TimeoutError) as exc:
-                if not tries_left:
-                    raise
+                if not tries_left: # no more breaks ¯\_(ツ)_/¯
+                    raise HTTPException(exc)
                 print("Got {}, retrying...".format(exc))
                 await asyncio.sleep((tries - tries_left) * 0.5)
-
+            # Some other exception happened, so just wrap it and propagate along
+            except Exception as exc:
+                raise HTTPException(exc)
+        
+        # we've run out of tries, so ¯\_(ツ)_/¯
+        # we shouldn't ever end up here, this is a fail-safe
+        raise HTTPException
