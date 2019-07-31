@@ -33,7 +33,7 @@ class PartialPlayer:
         self.id = int(player_data.get("Id") or player_data.get("player_id") or player_data.get("playerId") or 0) 
         self.name = player_data.get("Name") or player_data.get("name") or player_data.get("playerName") or ''
         platform = player_data.get("Platform") or player_data.get("portal_id") or player_data.get("portalId")
-        if type(platform) == str and platform.isdigit():
+        if type(platform) == str and platform.isdecimal():
             platform = int(platform)
         self.platform = Platform.get(platform) or Platform(0)
     
