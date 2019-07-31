@@ -127,7 +127,7 @@ class PaladinsAPI:
             if champions_response and items_response:
                 self.cache[language] = (champions_response, items_response)
 
-        return self.cache[language]
+        return self.cache[language] # DataCache uses `.get()` on the internal dict, so this won't cause a KeyError
 
     def get_player_from_id(self, player_id: int) -> PartialPlayer:
         """
