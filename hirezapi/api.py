@@ -4,12 +4,12 @@ from typing import Union, List, Optional
 
 from .match import Match
 from .items import Device
+from .enumerations import *
 from .endpoint import Endpoint
 from .champion import Champion
 from .player import Player, PartialPlayer
 from .cache import DataCache, ChampionInfo
 from .utils import convert_timestamp, ServerStatus
-from .enumerations import Language, Platform, Queue
 
 class PaladinsAPI:
     """
@@ -17,16 +17,31 @@ class PaladinsAPI:
     
     Attributes
     ----------
-    Platform : Enum
-        Platform enumeration. Provided for easy access.
+    AbilityType : Enum
+        AbilityType enumeration. Represents a type of an ability.
+    Activity : Enum
+        Activity enumeration. Represents player's in-game status.
+    DeviceType : Enum
+        DeviceType enumeration. Represents a type of device: talent, card, shop item, etc.
+    Rank : Enum
+        Rank enumeration. Represents player's rank.
+    Region : Enum
+        Region enumeration. Represents player's region.
     Language : Enum
-        Language enumeration. Provided for easy access.
+        Language enumeration. Represents the response language.
+    Platform : Enum
+        Platform enumeration. Represents player's platform.
     Queue : Enum
-        Queue enumeration. Provided for easy access.
+        Queue enumeration. Represents a match queue.
     """
-    Platform = Platform
-    Language = Language
-    Queue = Queue
+    Rank        = Rank
+    Queue       = Queue
+    Region      = Region
+    Activity    = Activity
+    Language    = Language
+    Platform    = Platform
+    DeviceType  = DeviceType
+    AbilityType = AbilityType
     
     def __init__(self, dev_id, api_key):
         # don't store the endpoint - the API should have no access to it's instance other than the request and close methods

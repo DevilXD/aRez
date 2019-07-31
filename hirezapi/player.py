@@ -35,7 +35,7 @@ class PartialPlayer:
         platform = player_data.get("Platform") or player_data.get("portal_id") or player_data.get("portalId")
         if type(platform) == str and platform.isdigit():
             platform = int(platform)
-        self.platform = Platform.get(platform)
+        self.platform = Platform.get(platform) or Platform(0)
     
     def __eq__(self, other) -> bool:
         assert isinstance(other, self.__class__)

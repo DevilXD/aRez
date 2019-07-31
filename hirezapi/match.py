@@ -108,7 +108,7 @@ class PartialMatch(KDAMixin):
         self.language = language
         self.id = match_data["Match"]
         self.champion = self._api.get_champion(match_data["ChampionId"])
-        self.queue = Queue.get(match_data["Match_Queue_Id"])
+        self.queue = Queue.get(match_data["Match_Queue_Id"]) or Queue(0)
         self.region = Region.get(match_data["Region"])
         self.duration = Duration(seconds=match_data["Time_In_Match_Seconds"])
         self.timestamp = convert_timestamp(match_data["Match_Time"])
@@ -307,7 +307,7 @@ class Match:
         first_player = match_data[0]
         self.id = first_player["Match"]
         self.region = Region.get(first_player["Region"])
-        self.queue = Queue.get(first_player["match_queue_id"])
+        self.queue = Queue.get(first_player["match_queue_id"]) or Queue(0)
         self.map_name = first_player["Map_Game"]
         self.duration = Duration(seconds=first_player["Time_In_Match_Seconds"])
         self.score = (first_player["Team1Score"], first_player["Team2Score"])

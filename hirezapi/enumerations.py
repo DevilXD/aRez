@@ -1,6 +1,17 @@
 ﻿from enum import Enum
 from typing import Optional
 
+__all__ = [
+    'Rank',
+    'Queue',
+    'Region',
+    'Activity',
+    'Language',
+    'Platform',
+    'DeviceType',
+    'AbilityType',
+]
+
 class EnumGet(Enum):
     @classmethod
     def get(cls, key_or_value) -> Optional[Enum]:
@@ -17,7 +28,8 @@ class EnumGet(Enum):
         return None
 
 Platform = EnumGet("Platform", {
-    #"Unknown":         0,
+    "Unknown":          0,
+    "unknown":          0,
     "PC":               1,
     "pc":               1,
     "HiRez":            1,
@@ -42,6 +54,7 @@ Platform = EnumGet("Platform", {
 
 Region = EnumGet("Region", {
     "Unknown":              0,
+    "unknown":              0,
     "North America":        1,
     "north america":        1,
     "north_america":        1,
@@ -89,7 +102,8 @@ Language = EnumGet("Language", {
 })
 
 Queue = EnumGet("Queue", {
-    #"Unknown":                 0,
+    "Unknown":                  0,
+    "unknown":                  0,
     "Casual Siege":             424,
     "casual":                   424,
     "siege":                    424,
@@ -154,24 +168,33 @@ Rank = EnumGet("Rank", {
 
 DeviceType = EnumGet("DeviceType", {
     "Undefined": 0,
+    "undefined": 0,
     "Item":      1,
+    "item":      1,
     "Card":      2,
+    "card":      2,
     "Talent":    3,
+    "talent":    3,
 })
 
 AbilityType = EnumGet("AbilityType", {
     "Undefined":     0,
     "Direct Damage": 1,
     "Direct":        1,
+    "direct":        1,
     "Area Damage":   2,
     "AoE":           2,
+    "area":          2,
+    "aoe":           2,
 })
 
 Activity = EnumGet("Activity", {
     "Offline":             0,
+    "offline":             0,
     "In Lobby":            1,
     "Character Selection": 2,
     "In Match":            3,
     "Online":              4,
+    "online":              4,
     "Unknown":             5,
 })
