@@ -20,7 +20,7 @@ Currently supported:
 - [x] `getplayerstatus` (Player status)  
 - [x] `getmatchhistory` (Player's recent matches)  
 - [x] `getmatchdetails` (Match details, by the ID or from player's recent matches)  
-- [ ] `getplayeridbyportaluserid` (Finding the player by their Portal ID)  
+- [x] `getplayeridbyportaluserid` (Finding the player by their Portal ID)  
 - [ ] `getmatchplayerdetails` (Information about the current player's match)  
 - [ ] `getplayerachievements` (Player's achievements)  
 - [ ] `getmatchdetailsbatch` (Fetching multiple matches at once)  

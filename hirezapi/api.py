@@ -210,6 +210,30 @@ class PaladinsAPI:
             list_response = [r for r in response if r["Name"].lower() == player_name]
         return [PartialPlayer(self, p) for p in list_response]
     
+    async def get_from_platform(self, platform_id: int, platform: Platform) -> Optional[PartialPlayer]:
+        """
+        Fetches a PartialPlayer linked with the platform ID specified.
+        
+        Parameters
+        ----------
+        platform_id : int
+            The platform-specific ID of the linked player.
+            This is usually SteamID64, Discord User ID, etc.
+        platform : Platform
+            The platform this ID is for.
+        
+        Returns
+        -------
+        Optional[PartialPlayer]
+            The player this platform ID is linked to.
+            None is returned if the player couldn't be found.
+        """
+        assert isinstance(platform_id, int)
+        assert isinstance(platform, Platform)
+        response = await self.request("getplayeridbyportaluserid", [platform.value, platform_id])
+        if response:
+            return PartialPlayer(self, response[0])
+    
     async def get_match(self, match_id: int, language: Language = Language["english"]) -> Optional[Match]:
         """
         Fetches a match for the given Match ID.
