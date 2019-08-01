@@ -151,7 +151,7 @@ class PaladinsAPI:
     
     async def get_player(self, player: Union[int, str]) -> Optional[Player]:
         """
-        Returns a Player object for the given player ID or player name.
+        Fetches a Player object for the given player ID or player name.
 
         Only players with `Platform.Steam`, `Platform.HiRez` and `Platform.Discord`
         platforms will be returned when using this method with player name as input.
@@ -213,6 +213,8 @@ class PaladinsAPI:
     async def get_from_platform(self, platform_id: int, platform: Platform) -> Optional[PartialPlayer]:
         """
         Fetches a PartialPlayer linked with the platform ID specified.
+
+        Uses up a single request.
         
         Parameters
         ----------
