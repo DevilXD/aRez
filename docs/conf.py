@@ -28,10 +28,10 @@ author = 'DevilXD'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    "sphinxcontrib_trio",
     "sphinx.ext.autodoc",
     "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",
-    "sphinxcontrib.asyncio",
     "sphinx.ext.intersphinx",
 ]
 

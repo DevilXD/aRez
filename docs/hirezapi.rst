@@ -1,7 +1,7 @@
 .. currentmodule:: hirezapi
 
-API Reference
-=============
+PaladinsAPI
+===========
 
 .. autoclass:: PaladinsAPI
     :members:

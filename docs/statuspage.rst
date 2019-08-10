@@ -1,7 +1,7 @@
 .. currentmodule:: hirezapi.statuspage
 
-API Reference
-=============
+Status Page
+===========
 
 .. autoclass:: StatusPage
     :members:
