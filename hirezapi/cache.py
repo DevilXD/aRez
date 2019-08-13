@@ -36,7 +36,7 @@ class ChampionInfo:
     @property
     def cards(self) -> Iterator[Device]:
         """
-        A filtered iterator that lets iterate over all cards.
+        A filtered iterator that lets you iterate over all cards.
 
         Use `list()` to get a list instead.
         """
@@ -45,7 +45,7 @@ class ChampionInfo:
     @property
     def talents(self) -> Iterator[Device]:
         """
-        A filtered iterator that lets iterate over all talents.
+        A filtered iterator that lets you iterate over all talents.
 
         Use `list()` to get a list instead.
         """
@@ -54,7 +54,7 @@ class ChampionInfo:
     @property
     def items(self) -> Iterator[Device]:
         """
-        A filtered iterator that lets iterate over all shop items.
+        A filtered iterator that lets you iterate over all shop items.
 
         Use `list()` to get a list instead.
         """
