@@ -79,7 +79,7 @@ class ChampionInfo:
             The champion you requested.
             None is returned if a champion with the requested Name or ID couldn't be found.
         """
-        return get_name_or_id(self.champions, champion)
+        return get_name_or_id(self.champions, champion, fuzzy=fuzzy)
 
     def get_card(self, card: Union[str, int], *, fuzzy: bool = False) -> Optional[Device]:
         """
@@ -100,7 +100,7 @@ class ChampionInfo:
             The card you requested.
             None is returned if a card with the requested Name or ID couldn't be found.
         """
-        return get_name_or_id(self.cards, card)
+        return get_name_or_id(self.cards, card, fuzzy=fuzzy)
 
     def get_talent(self, talent: Union[str, int], *, fuzzy: bool = False) -> Optional[Device]:
         """
@@ -121,7 +121,7 @@ class ChampionInfo:
             The talent you requested.
             None is returned if a talent with the requested Name or ID couldn't be found.
         """
-        return get_name_or_id(self.talents, talent)
+        return get_name_or_id(self.talents, talent, fuzzy=fuzzy)
 
     def get_item(self, item: Union[str, int], *, fuzzy: bool = False) -> Optional[Device]:
         """
@@ -142,7 +142,7 @@ class ChampionInfo:
             The shop item you requested.
             None is returned if a shop item with the requested Name or ID couldn't be found.
         """
-        return get_name_or_id(self.items, item)
+        return get_name_or_id(self.items, item, fuzzy=fuzzy)
 
 class DataCache:
     def __init__(self):
@@ -190,7 +190,7 @@ class DataCache:
         """
         entry = self._cache.get(language)
         if entry:
-            return entry.get_champion(champion)
+            return entry.get_champion(champion, fuzzy=fuzzy)
 
     def get_card(self, card: Union[str, int], language: Language = Language["english"], *, fuzzy: bool = False) -> Optional[Device]:
         """
@@ -219,7 +219,7 @@ class DataCache:
         """
         entry = self._cache.get(language)
         if entry:
-            return entry.get_card(card)
+            return entry.get_card(card, fuzzy=fuzzy)
 
     def get_talent(self, talent: Union[str, int], language: Language = Language["english"], *, fuzzy: bool = False) -> Optional[Device]:
         """
@@ -248,7 +248,7 @@ class DataCache:
         """
         entry = self._cache.get(language)
         if entry:
-            return entry.get_talent(talent)
+            return entry.get_talent(talent, fuzzy=fuzzy)
 
     def get_item(self, item: Union[str, int], language: Language = Language["english"], *, fuzzy: bool = False) -> Optional[Device]:
         """
@@ -277,4 +277,4 @@ class DataCache:
         """
         entry = self._cache.get(language)
         if entry:
-            return entry.get_item(item)
+            return entry.get_item(item, fuzzy=fuzzy)
