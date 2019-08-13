@@ -108,7 +108,7 @@ class PaladinsAPI:
         ----------
         language : Optional[Language]
             The `Language` you want to fetch the information in.
-            Defaults to Language["english"].
+            Defaults to Language.English
         force_refresh : Optional[bool]
             Bypasses the cache, forcing a fetch and returning a new object.
             Defaults to False.

@@ -60,7 +60,7 @@ def get(iterable: Iterable, **attrs):
 
 def get_name_or_id(iterable: Iterable, name_or_id: Union[str, int], *, fuzzy: bool = False):
     """
-    A helper function that uses searches for an object in an iterable based on it's
+    A helper function that searches for an object in an iterable based on it's
     `name` or `id` attributes. The attribute to search with is determined by the
     type of the input (int or str).
     
