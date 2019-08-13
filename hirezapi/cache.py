@@ -60,7 +60,7 @@ class ChampionInfo:
         """
         return filter(lambda d: d.type == DeviceType["Item"], self.devices)
 
-    def get_champion(self, champion: Union[str, int]) -> Optional[Champion]:
+    def get_champion(self, champion: Union[str, int], *, fuzzy: bool = False) -> Optional[Champion]:
         """
         Returns a champion for the given Name or ID.
         Case sensitive.
@@ -69,6 +69,9 @@ class ChampionInfo:
         ----------
         champion : Union[str, int]
             The Name or ID of the champion you want to get.
+        fuzzy : bool
+            When set to True, makes the Name search case insensitive.
+            Defaults to False.
         
         Returns
         -------
@@ -78,7 +81,7 @@ class ChampionInfo:
         """
         return get_name_or_id(self.champions, champion)
 
-    def get_card(self, card: Union[str, int]) -> Optional[Device]:
+    def get_card(self, card: Union[str, int], *, fuzzy: bool = False) -> Optional[Device]:
         """
         Returns a champion's card for the given Name or ID.
         Case sensitive.
@@ -87,6 +90,9 @@ class ChampionInfo:
         ----------
         card : Union[str, int]
             The Name or ID of the card you want to get.
+        fuzzy : bool
+            When set to True, makes the Name search case insensitive.
+            Defaults to False.
         
         Returns
         -------
@@ -96,7 +102,7 @@ class ChampionInfo:
         """
         return get_name_or_id(self.cards, card)
 
-    def get_talent(self, talent: Union[str, int]) -> Optional[Device]:
+    def get_talent(self, talent: Union[str, int], *, fuzzy: bool = False) -> Optional[Device]:
         """
         Returns a champion's talent for the given Name or ID.
         Case sensitive.
@@ -105,6 +111,9 @@ class ChampionInfo:
         ----------
         talent : Union[str, int]
             The Name or ID of the talent you want to get.
+        fuzzy : bool
+            When set to True, makes the Name search case insensitive.
+            Defaults to False.
         
         Returns
         -------
@@ -114,7 +123,7 @@ class ChampionInfo:
         """
         return get_name_or_id(self.talents, talent)
 
-    def get_item(self, item: Union[str, int]) -> Optional[Device]:
+    def get_item(self, item: Union[str, int], *, fuzzy: bool = False) -> Optional[Device]:
         """
         Returns a shop item for the given Name or ID.
         Case sensitive.
@@ -123,6 +132,9 @@ class ChampionInfo:
         ----------
         item : Union[str, int]
             The Name or ID of the shop item you want to get.
+        fuzzy : bool
+            When set to True, makes the Name search case insensitive.
+            Defaults to False.
         
         Returns
         -------
@@ -151,7 +163,7 @@ class DataCache:
             return True
         return False
 
-    def get_champion(self, champion: Union[str, int], language: Language = Language["english"]) -> Optional[Champion]:
+    def get_champion(self, champion: Union[str, int], language: Language = Language["english"], *, fuzzy: bool = False) -> Optional[Champion]:
         """
         Returns a champion for the given Name or ID, and Language specified.
         Case sensitive.
@@ -166,6 +178,9 @@ class DataCache:
         language : Language, optional
             The Language you want to get the champion in.
             Defaults to Language["english"].
+        fuzzy : bool
+            When set to True, makes the Name search case insensitive.
+            Defaults to False.
         
         Returns
         -------
@@ -177,7 +192,7 @@ class DataCache:
         if entry:
             return entry.get_champion(champion)
 
-    def get_card(self, card: Union[str, int], language: Language = Language["english"]) -> Optional[Device]:
+    def get_card(self, card: Union[str, int], language: Language = Language["english"], *, fuzzy: bool = False) -> Optional[Device]:
         """
         Returns a card for the given Name or ID, and Language specified.
         Case sensitive.
@@ -192,6 +207,9 @@ class DataCache:
         language : Language, optional
             The Language you want to get the card in.
             Defaults to Language["english"].
+        fuzzy : bool
+            When set to True, makes the Name search case insensitive.
+            Defaults to False.
         
         Returns
         -------
@@ -203,7 +221,7 @@ class DataCache:
         if entry:
             return entry.get_card(card)
 
-    def get_talent(self, talent: Union[str, int], language: Language = Language["english"]) -> Optional[Device]:
+    def get_talent(self, talent: Union[str, int], language: Language = Language["english"], *, fuzzy: bool = False) -> Optional[Device]:
         """
         Returns a talent for the given Name or ID, and Language specified.
         Case sensitive.
@@ -218,6 +236,9 @@ class DataCache:
         language : Language, optional
             The Language you want to get the talent in.
             Defaults to Language["english"].
+        fuzzy : bool
+            When set to True, makes the Name search case insensitive.
+            Defaults to False.
         
         Returns
         -------
@@ -229,7 +250,7 @@ class DataCache:
         if entry:
             return entry.get_talent(talent)
 
-    def get_item(self, item: Union[str, int], language: Language = Language["english"]) -> Optional[Device]:
+    def get_item(self, item: Union[str, int], language: Language = Language["english"], *, fuzzy: bool = False) -> Optional[Device]:
         """
         Returns a shop item for the given Name or ID, and Language specified.
         Case sensitive.
@@ -244,6 +265,9 @@ class DataCache:
         language : Language, optional
             The Language you want to get the shop item in.
             Defaults to Language["english"].
+        fuzzy : bool
+            When set to True, makes the Name search case insensitive.
+            Defaults to False.
         
         Returns
         -------

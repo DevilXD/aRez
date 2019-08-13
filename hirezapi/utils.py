@@ -58,7 +58,7 @@ def get(iterable: Iterable, **attrs):
             return element
     return None
 
-def get_name_or_id(iterable: Iterable, name_or_id: Union[str, int]):
+def get_name_or_id(iterable: Iterable, name_or_id: Union[str, int], *, fuzzy: bool = False):
     """
     A helper function that uses searches for an object in an iterable based on it's
     `name` or `id` attributes. The attribute to search with is determined by the
@@ -69,8 +69,10 @@ def get_name_or_id(iterable: Iterable, name_or_id: Union[str, int]):
     iterable : Iterable
         The iterable to search in.
     name_or_id : Union[str, int]
-        The Name or ID of the obecjt you're searching for.
-        Case sensitive.
+        The Name or ID of the object you're searching for.
+    fuzzy : bool
+        When set to True, makes the Name search case insensitive.
+        Defaults to False.
     
     Returns
     -------
@@ -79,9 +81,14 @@ def get_name_or_id(iterable: Iterable, name_or_id: Union[str, int]):
         None is returned if such object couldn't be found. 
     """
     if isinstance(name_or_id, int):
-        return get(iterable, id = name_or_id)
+        return get(iterable, id=name_or_id)
     elif isinstance(name_or_id, str):
-        return get(iterable, name = name_or_id)
+        if fuzzy:
+            # we have to do it manually here
+            matches = [i for i in iterable if i.name.lower() == name_or_id.lower()]
+            return matches[0] if matches else None
+        else:
+            return get(iterable, name=name_or_id)
 
 async def expand_partial(iterable: Iterable) -> AsyncGenerator:
     """
