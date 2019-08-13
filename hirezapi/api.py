@@ -4,25 +4,17 @@ from typing import Union, List, Optional
 
 from .match import Match
 from .items import Device
-from .enumerations import *
 from .endpoint import Endpoint
 from .champion import Champion
 from .player import Player, PartialPlayer
 from .cache import DataCache, ChampionInfo
+from .enumerations import Language, Platform
 from .utils import convert_timestamp, ServerStatus
 
 class PaladinsAPI:
     """
     The main Paladins API.
     """
-    Rank        = Rank
-    Queue       = Queue
-    Region      = Region
-    Activity    = Activity
-    Language    = Language
-    Platform    = Platform
-    DeviceType  = DeviceType
-    AbilityType = AbilityType
     
     def __init__(self, dev_id, api_key):
         # don't store the endpoint - the API should have no access to it's instance other than the request and close methods
