@@ -53,6 +53,7 @@ Platform = EnumGet("Platform", {
     "Discord":          25,
     "discord":          25,
 })
+Platform.__doc__ = "Platform enumeration. Represents player's platform."
 
 Region = EnumGet("Region", {
     "Unknown":              0,
@@ -78,6 +79,7 @@ Region = EnumGet("Region", {
     "southeast asia":       6,
     "sea":                  6,
 })
+Region.__doc__ = "Region enumeration. Represents player's region."
 
 Language = EnumGet("Language", {
     #"Unknown":      0,
@@ -102,6 +104,7 @@ Language = EnumGet("Language", {
     "Turkish":       13,
     "turkish":       13,
 })
+Language.__doc__ = "Language enumeration. Represents the response language."
 
 Queue = EnumGet("Queue", {
     "Unknown":                  0,
@@ -136,6 +139,7 @@ Queue = EnumGet("Queue", {
     "Test Maps":                445,
     "test maps":                445,
 })
+Queue.__doc__ = "Queue enumeration. Represents a match queue."
 
 Rank = EnumGet("Rank", {
     "Qualifying":   0,
@@ -167,6 +171,7 @@ Rank = EnumGet("Rank", {
     "Master":       26,
     "Grandmaster":  27,
 })
+Rank.__doc__ = "Rank enumeration. Represents player's rank."
 
 DeviceType = EnumGet("DeviceType", {
     "Undefined": 0,
@@ -178,6 +183,7 @@ DeviceType = EnumGet("DeviceType", {
     "Talent":    3,
     "talent":    3,
 })
+DeviceType.__doc__ = "DeviceType enumeration. Represents a type of device: talent, card, shop item, etc."
 
 AbilityType = EnumGet("AbilityType", {
     "Undefined":     0,
@@ -189,6 +195,7 @@ AbilityType = EnumGet("AbilityType", {
     "area":          2,
     "aoe":           2,
 })
+AbilityType.__doc__ = "AbilityType enumeration. Represents a type of an ability."
 
 Activity = EnumGet("Activity", {
     "Offline":             0,
@@ -200,3 +207,4 @@ Activity = EnumGet("Activity", {
     "online":              4,
     "Unknown":             5,
 })
+Activity.__doc__ = "Activity enumeration. Represents player's in-game status."

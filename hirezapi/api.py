@@ -14,25 +14,6 @@ from .utils import convert_timestamp, ServerStatus
 class PaladinsAPI:
     """
     The main Paladins API.
-    
-    Attributes
-    ----------
-    AbilityType : Enum
-        AbilityType enumeration. Represents a type of an ability.
-    Activity : Enum
-        Activity enumeration. Represents player's in-game status.
-    DeviceType : Enum
-        DeviceType enumeration. Represents a type of device: talent, card, shop item, etc.
-    Rank : Enum
-        Rank enumeration. Represents player's rank.
-    Region : Enum
-        Region enumeration. Represents player's region.
-    Language : Enum
-        Language enumeration. Represents the response language.
-    Platform : Enum
-        Platform enumeration. Represents player's platform.
-    Queue : Enum
-        Queue enumeration. Represents a match queue.
     """
     Rank        = Rank
     Queue       = Queue
