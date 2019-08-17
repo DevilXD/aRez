@@ -32,35 +32,6 @@ class BaseComponent:
     def __repr__(self) -> str:
         return "{0.__class__.__name__}: {0.name}".format(self)
 
-class Component(BaseComponent):
-    """
-    Represents a status component.
-    
-    Attributes
-    ----------
-    group : ComponentGroup
-        The group this component belongs to.
-    """
-    def __init__(self, group: 'ComponentGroup', comp_data: dict):
-        super().__init__(comp_data)
-        self.group = group
-
-class ComponentGroup(BaseComponent):
-    """
-    Represents a component's group.
-    
-    Attributes
-    ----------
-    components : List[Component]
-        A list of components this group has.
-    """
-    def __init__(self, group_data: dict):
-        super().__init__(group_data)
-        self.components = []
-    
-    def _add_component(self, comp: Component):
-        self.components.append(comp)
-
 class Update:
     """
     Represents an incident or scheduled maintenance status update.
@@ -126,6 +97,65 @@ class ScheduledMaintenance(BaseComponent):
         self.scheduled_until = convert_timestamp(main_data["scheduled_until"])
         self.updates = [Update(u) for u in main_data["incident_updates"]]
 
+class Component(BaseComponent):
+    """
+    Represents a status component.
+    
+    Attributes
+    ----------
+    group : ComponentGroup
+        The group this component belongs to.
+    incidents : List[Incident]
+        A list of incidents referring to this component.
+    scheduled_maintenances : List[ScheduledMaintenance]
+        A list of scheduled maintenances referring to this component.
+    """
+    def __init__(self, group: 'ComponentGroup', comp_data: dict):
+        super().__init__(comp_data)
+        self.group = group
+        self.incidents = []
+        self.scheduled_maintenances = []
+    
+    def _add_incident(self, incident: Incident):
+        self.incidents.append(incident)
+        if self.group:
+            self.group._add_incident(incident)
+    
+    def _add_scheduled_mainenance(self, scheduled_maintenance: ScheduledMaintenance):
+        self.scheduled_maintenances.append(scheduled_maintenance)
+        if self.group:
+            self.group._add_scheduled_mainenance(scheduled_maintenance)
+
+class ComponentGroup(BaseComponent):
+    """
+    Represents a component's group.
+    
+    Attributes
+    ----------
+    components : List[Component]
+        A list of components this group has.
+    incidents : List[Incident]
+        A list of incidents referring to components of this group.
+    scheduled_maintenances : List[ScheduledMaintenance]
+        A list of scheduled maintenances referring to components of this group.
+    """
+    def __init__(self, group_data: dict):
+        super().__init__(group_data)
+        self.components = []
+        self.incidents = []
+        self.scheduled_maintenances = []
+    
+    def _add_component(self, comp: Component):
+        self.components.append(comp)
+    
+    def _add_incident(self, incident: Incident):
+        if incident not in self.incidents:
+            self.incidents.append(incident)
+    
+    def _add_scheduled_mainenance(self, scheduled_maintenance: ScheduledMaintenance):
+        if scheduled_maintenance not in self.scheduled_maintenances:
+            self.scheduled_maintenances.append(scheduled_maintenance)
+
 class Status:
     """
     Represents the current server's status.
@@ -172,8 +202,24 @@ class Status:
             self.components.append(comp)
         self.groups = list(groups.values())
         
-        self.incidents = [Incident(i) for i in page_data["incidents"]]
-        self.scheduled_maintenances = [ScheduledMaintenance(s) for s in page_data["scheduled_maintenances"]]
+        components_mapping = {c.id: c for c in self.components}
+
+        self.incidents = []
+        self.scheduled_maintenances = []
+        for incident_data in page_data["incidents"]:
+            i = Incident(incident_data)
+            self.incidents.append(i)
+            for comp_data in incident_data["components"]:
+                comp = components_mapping.get(comp_data["id"])
+                if comp:
+                    comp._add_incident(i)
+        for sm_data in page_data["scheduled_maintenances"]:
+            sm = ScheduledMaintenance(sm_data)
+            self.scheduled_maintenances.append(sm)
+            for comp_data in sm_data["components"]:
+                comp = components_mapping.get(comp_data["id"])
+                if comp:
+                    comp._add_scheduled_mainenance(sm)
 
 class StatusPage:
     def __init__(self, url: str):
