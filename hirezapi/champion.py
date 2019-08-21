@@ -100,6 +100,18 @@ class Champion:
     def __bool__(self) -> bool:
         return len(self.cards) == 16 and len(self.talents) == 3
     
+    def get_ability(self, ability: Union[str, int]) -> Ability:
+        """
+        Returns an ability for this champion with the given Name or ID.
+        
+        Returns
+        -------
+        Optional[Ability]
+            The ability you requested.
+            None is returned if the ability couldn't be found.
+        """
+        return get_name_or_id(self.abilities, ability)
+    
     def get_card(self, card: Union[str, int]) -> 'Device':
         """
         Returns a card for this champion with the given Name or ID.
