@@ -44,7 +44,7 @@ class Champion:
     ----------
     name : str
         The name of the champion.
-    id : :obj:`int`, optional
+    id : Optional[int]
         The ID of the champion.
     title : str
         The champion's title.
@@ -111,7 +111,7 @@ class Champion:
             None is returned if the ability couldn't be found.
         """
         return get_name_or_id(self.abilities, ability)
-    
+
     def get_card(self, card: Union[str, int]) -> 'Device':
         """
         Returns a card for this champion with the given Name or ID.
