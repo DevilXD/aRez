@@ -3,6 +3,9 @@
 from .utils import get_name_or_id
 from .enumerations import Language, DeviceType, AbilityType
 
+if TYPE_CHECKING:
+    from .items import Device
+
 class Ability:
     """
     Represents a Champion's Ability.
