@@ -13,6 +13,8 @@ class Ability:
         The name of the ability.
     id : int, optional
         The ID of the ability.
+    champion : Champion
+        The champion this ability belongs to.
     description : str
         The description of the ability.
     type : AbilityType
@@ -22,9 +24,10 @@ class Ability:
     icon_url : str
         A URL of this ability's icon.
     """
-    def __init__(self, ability_data):
+    def __init__(self, champion: 'Champion', ability_data: dict):
         self.name = ability_data["Summary"]
         self.id = ability_data["Id"]
+        self.champion = champion
         self.description = ability_data["Description"].strip().replace('\r', ' ').replace('  ', ' ')
         self.type = AbilityType.get(ability_data["damageType"]) or AbilityType(0)
         self.cooldown = ability_data["rechargeSeconds"]
@@ -72,7 +75,7 @@ class Champion:
         self.health = champion_data["Health"]
         self.speed = champion_data["Speed"]
 
-        self.abilities = [Ability(champion_data[a]) for a in champion_data if a.startswith("Ability_")]
+        self.abilities = [Ability(self, champion_data[a]) for a in champion_data if a.startswith("Ability_")]
         self.talents: List['Device'] = []
         self.cards: List['Device'] = []
 
