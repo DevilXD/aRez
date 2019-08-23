@@ -126,25 +126,25 @@ class Duration(timedelta):
         """
         The total amount of days within the duration as a float.
         """
-        return self.total_seconds() / 86400
+        return super().total_seconds() / 86400
 
     def total_hours(self) -> float:
         """
         The total amount of hours within the duration as a float.
         """
-        return self.total_seconds() / 3600
+        return super().total_seconds() / 3600
     
     def total_minutes(self) -> float:
         """
         The total amount of minutes within the duration as a float.
         """
-        return self.total_seconds() / 60
+        return super().total_seconds() / 60
     
     def total_seconds(self) -> float:
         """
         The total amount of seconds within the duration as a float.
         """
-        return self.total_seconds()
+        return super().total_seconds()
 
 class Status:
     """
