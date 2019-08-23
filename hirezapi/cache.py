@@ -159,9 +159,7 @@ class DataCache:
 
     def _needs_refreshing(self, language: Language = Language["english"]) -> bool:
         entry = self._cache.get(language)
-        if entry is None or datetime.utcnow() >= entry._expires_at:
-            return True
-        return False
+        return entry is None or datetime.utcnow() >= entry._expires_at
 
     def get_champion(self, champion: Union[str, int], language: Language = Language["english"], *, fuzzy: bool = False) -> Optional[Champion]:
         """
