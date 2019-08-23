@@ -26,6 +26,12 @@ class Device:
     champion : Optional[Champion]
         The champion this device belongs to.
         None for shop items.
+    base : Optional[float]
+        The base value of the card's scaling.
+        None for talents.
+    scale : Optional[float]
+        The scale value of the card's scaling.
+        None for Talents.
     cooldown : int
         The cooldown of this device, in seconds.
         0 if there is no cooldown.
@@ -37,15 +43,27 @@ class Device:
         0 means it's inlocked by default.
     """
     _desc_pattern = re.compile(r'\[(.+?)\] (.*)')
+    _card_pattern = re.compile(r'{scale=(\d+|0\.\d+)\|(\d+|0\.\d+)}|{(\d+)}')
 
     def __init__(self, device_data: dict):
-        desc = device_data["Description"].strip()
-        match = self._desc_pattern.match(desc)
+        self.description = device_data["Description"].strip()
+        match = self._desc_pattern.match(self.description)
         if match:
-            ability = match.group(1)
-            desc = match.group(2)
+            self.ability = match.group(1)
+            self.description = match.group(2)
         else:
-            ability = None
+            self.ability = None
+        match = self._card_pattern.search(self.description)
+        if match:
+            if match.group(3):
+                self.base = float(match.group(3))
+                self.scale = float(match.group(3))
+            else:
+                self.base = float(match.group(1))
+                self.scale = float(match.group(2))
+        else:
+            self.base = None
+            self.scale = None
         if device_data["item_type"] == "Inventory Vendor - Talents":
             self.type = DeviceType["Talent"]
         elif device_data["item_type"].startswith("Card Vendor Rank"):
@@ -56,8 +74,6 @@ class Device:
             self.type = DeviceType["Undefined"]
         self.champion = None # later overwritten when the device is added to a champion
         self.name = device_data["DeviceName"]
-        self.ability = ability
-        self.description = desc
         self.id = device_data["ItemId"]
         self.icon_url = device_data["itemIcon_URL"]
         self.cooldown = device_data["recharge_seconds"]
