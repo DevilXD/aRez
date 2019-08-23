@@ -27,10 +27,9 @@ class ChampionInfo:
         sorted_devices = {}
         for d in items_data:
             champ_id = d["champion_id"]
-            if champ_id not in sorted_devices:
-                sorted_devices[champ_id] = []
+            sorted_devices.setdefault(champ_id, [])
             sorted_devices[champ_id].append(Device(d))
-        self.devices = [d for c in sorted_devices for d in sorted_devices[c]]
+        self.devices = [d for dl in sorted_devices.values() for d in dl]
         self.champions = [Champion(sorted_devices.get(c["id"], []), c) for c in champions_data]
 
     @property
@@ -40,7 +39,8 @@ class ChampionInfo:
 
         Use `list()` to get a list instead.
         """
-        return filter(lambda d: d.type == DeviceType["Card"], self.devices)
+        dt = DeviceType["Card"]
+        return filter(lambda d: d.type == dt, self.devices)
 
     @property
     def talents(self) -> Iterator[Device]:
@@ -49,7 +49,8 @@ class ChampionInfo:
 
         Use `list()` to get a list instead.
         """
-        return filter(lambda d: d.type == DeviceType["Talent"], self.devices)
+        dt = DeviceType["Talent"]
+        return filter(lambda d: d.type == dt, self.devices)
 
     @property
     def items(self) -> Iterator[Device]:
@@ -58,7 +59,8 @@ class ChampionInfo:
 
         Use `list()` to get a list instead.
         """
-        return filter(lambda d: d.type == DeviceType["Item"], self.devices)
+        dt = DeviceType["Item"]
+        return filter(lambda d: d.type == dt, self.devices)
 
     def get_champion(self, champion: Union[str, int], *, fuzzy: bool = False) -> Optional[Champion]:
         """
