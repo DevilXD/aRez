@@ -6,6 +6,12 @@ from .enumerations import Language, DeviceType, AbilityType
 if TYPE_CHECKING:
     from .items import Device
 
+def card_ability_sort(card: Union['Device', str]):
+    try:
+        return card.ability.name
+    except AttributeError:
+        return "z{}".format(card.ability)
+
 class Ability:
     """
     Represents a Champion's Ability.
@@ -91,7 +97,8 @@ class Champion:
                 self.talents.append(d)
             d._attach_champion(self)
         self.talents.sort(key=lambda d: d.unlocked_at)
-        self.cards.sort(key=lambda d: d.ability)
+        self.cards.sort(key=lambda d: d.name)
+        self.cards.sort(key=card_ability_sort)
     
     def __eq__(self, other) -> bool:
         assert isinstance(other, self.__class__)

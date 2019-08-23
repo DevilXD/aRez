@@ -1,7 +1,7 @@
 ﻿import re
-from typing import Union
+from typing import Optional, Union
 
-from .champion import Champion
+from .champion import Champion, Ability
 from .enumerations import DeviceType, Language
 
 class Device:
@@ -20,9 +20,9 @@ class Device:
         The device's description.
     icon_url : str
         The URL of this device's icon.
-    ability : str
-        The name of the ability this device affects. Applies only to cards and talents.
-        If the affected ability cannot be determined, this will be `-`.
+    ability : Optional[Union[Ability, str]]
+        The ability this device affects, or a string denoting the affected part of the champion.
+        None for shop items.
     champion : Optional[Champion]
         The champion this device belongs to.
         None for shop items.
@@ -45,7 +45,7 @@ class Device:
             ability = match.group(1)
             desc = match.group(2)
         else:
-            ability = '-'
+            ability = None
         if device_data["item_type"] == "Inventory Vendor - Talents":
             self.type = DeviceType["Talent"]
         elif device_data["item_type"].startswith("Card Vendor Rank"):
@@ -73,6 +73,9 @@ class Device:
     
     def _attach_champion(self, champion: Champion):
         self.champion = champion
+        ability = champion.get_ability(self.ability)
+        if ability:
+            self.ability = ability
 
 class LoadoutCard:
     """
