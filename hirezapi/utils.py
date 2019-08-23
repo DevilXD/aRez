@@ -121,32 +121,29 @@ async def expand_partial(iterable: Iterable) -> AsyncGenerator:
 class Duration(timedelta):
     """
     Represents a duration. Allows for easy conversion between time units.
-    
-    Attributes
-    ----------
-    days : float
-        The total amount of days within the duration.
-    hours : float
-        The total amount of hours within the duration.
-    minutes : float
-        The total amount of minutes within the duration.
-    seconds : float
-        The total amount of seconds within the duration.
     """
-    @property
-    def days(self) -> float:
+    def total_days(self) -> float:
+        """
+        The total amount of days within the duration as a float.
+        """
         return self.total_seconds() / 86400
 
-    @property
-    def hours(self) -> float:
+    def total_hours(self) -> float:
+        """
+        The total amount of hours within the duration as a float.
+        """
         return self.total_seconds() / 3600
     
-    @property
-    def minutes(self) -> float:
+    def total_minutes(self) -> float:
+        """
+        The total amount of minutes within the duration as a float.
+        """
         return self.total_seconds() / 60
     
-    @property
-    def seconds(self) -> float:
+    def total_seconds(self) -> float:
+        """
+        The total amount of seconds within the duration as a float.
+        """
         return self.total_seconds()
 
 class Status:
