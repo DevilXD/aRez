@@ -5,6 +5,52 @@ from typing import Union, Optional, Iterable, AsyncGenerator
 
 from .enumerations import Activity, Queue
 
+# A decorator responsible for making sure a timedelta subclass survives arthmetic operations. We have to do this since timedelta is normally immutable.
+def preserve_timedelta_subclass(subclass: timedelta):
+    @classmethod
+    def from_timedelta(cls, delta):
+        return cls(days=delta.days, seconds=delta.seconds, microseconds=delta.microseconds) #pylint: disable=no-value-for-parameter,unexpected-keyword-arg
+    subclass.from_timedelta = from_timedelta
+
+    result_list = [
+        "__add__",  "__sub__",  "__mul__",  "__mod__", 
+        "__radd__", "__rsub__", "__rmul__", "__rmod__",
+    ]
+    for method_name in result_list:
+        inherited_method = getattr(super(subclass, subclass), method_name) #pylint: disable=unused-variable
+        def new_method(self, other, *, inherited_method=inherited_method): #pylint: disable=function-redefined
+            return self.from_timedelta(inherited_method(self, other))
+        setattr(subclass, method_name, new_method)
+
+    conditional_result_list = ["__truediv__", "__floordiv__", "__rtruediv__",]
+    for method_name in conditional_result_list:
+        inherited_method = getattr(super(subclass, subclass), method_name) #pylint: disable=unused-variable
+        def new_method(self, other, *, inherited_method=inherited_method): #pylint: disable=function-redefined
+            result = inherited_method(self, other)
+            if type(result) == timedelta:
+                return self.from_timedelta(result)
+            return result
+        setattr(subclass, method_name, new_method)
+    
+    divmod_list = ["__divmod__", "__rdivmod__"]
+    for method_name in divmod_list:
+        inherited_method = getattr(super(subclass, subclass), method_name) #pylint: disable=unused-variable
+        def new_method(self, other, *, inherited_method=inherited_method): #pylint: disable=function-redefined
+            q, r = inherited_method(self, other)
+            if type(r) == timedelta:
+                r = self.from_timedelta(r)
+            return q, r
+        setattr(subclass, method_name, new_method)
+    
+    self_list = ["__pos__", "__neg__", "__abs__"]
+    for method_name in self_list:
+        inherited_method = getattr(super(subclass, subclass), method_name) #pylint: disable=unused-variable
+        def new_method(self, *, inherited_method=inherited_method): #pylint: disable=function-redefined
+            return self.from_timedelta(inherited_method(self))
+        setattr(subclass, method_name, new_method)
+    
+    return subclass
+
 def convert_timestamp(timestamp: str) -> Optional[datetime]:
     """
     Converts the timestamp format returned by the API
@@ -118,6 +164,7 @@ async def expand_partial(iterable: Iterable) -> AsyncGenerator:
         else:
             yield i
 
+@preserve_timedelta_subclass
 class Duration(timedelta):
     """
     Represents a duration. Allows for easy conversion between time units.
