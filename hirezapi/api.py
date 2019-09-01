@@ -68,7 +68,7 @@ class PaladinsAPI:
         if self.server_status:
             return self.server_status[0]
     
-    async def get_champion_info(self, language: Language = Language["english"], force_refresh: bool = False) -> Optional[ChampionInfo]:
+    async def get_champion_info(self, language: Language = Language.English, force_refresh: bool = False) -> Optional[ChampionInfo]:
         """
         Fetches the champion information.
 
@@ -209,7 +209,7 @@ class PaladinsAPI:
         if response:
             return PartialPlayer(self, response[0])
     
-    async def get_match(self, match_id: int, language: Language = Language["english"]) -> Optional[Match]:
+    async def get_match(self, match_id: int, language: Language = Language.English) -> Optional[Match]:
         """
         Fetches a match for the given Match ID.
 

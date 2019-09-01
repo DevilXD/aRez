@@ -126,7 +126,7 @@ class PartialPlayer:
         response = await self._api.request("getfriends", [self.id])
         return [PartialPlayer(self._api, p) for p in response]
 
-    async def get_loadouts(self, language: Language = Language["english"]) -> List[Loadout]:
+    async def get_loadouts(self, language: Language = Language.English) -> List[Loadout]:
         """
         Fetches the player's loadouts.
 
@@ -158,7 +158,7 @@ class PartialPlayer:
             return []
         return [Loadout(self, language, l) for l in response]
     
-    async def get_champion_stats(self, language: Language = Language["english"]) -> List[ChampionStats]:
+    async def get_champion_stats(self, language: Language = Language.English) -> List[ChampionStats]:
         """
         Fetches the player's champion statistics.
 
@@ -188,7 +188,7 @@ class PartialPlayer:
         response = await self._api.request("getgodranks", [self.id])
         return [ChampionStats(self, language, s) for s in response]
     
-    async def get_match_history(self, language: Language = Language["english"]) -> List[PartialMatch]:
+    async def get_match_history(self, language: Language = Language.English) -> List[PartialMatch]:
         """
         Fetches player's match history.
 
