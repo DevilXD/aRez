@@ -283,7 +283,7 @@ class PlayerStatus:
     def __init__(self, player, status_data: dict):
         self.player = player
         self.match_id = status_data["Match"] or None
-        self.queue = Queue.get(status_data["match_queue_id"])
+        self.queue = status_data["match_queue_id"] and Queue.get(status_data["match_queue_id"]) or None
         self.status = Activity.get(status_data["status"])
     
     # TODO: implement this
