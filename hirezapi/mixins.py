@@ -64,7 +64,7 @@ class KDAMixin:
         self.assists = stats_data["Assists"]
     
     @property
-    def kda(self) -> int:
+    def kda(self) -> float:
         return (self.kills + self.assists / 2) / self.deaths if self.deaths > 0 else nan
 
     @property
