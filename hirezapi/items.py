@@ -22,7 +22,7 @@ class Device:
         The URL of this device's icon.
     ability : Optional[Union[Ability, str]]
         The ability this device affects, or a string denoting the affected part of the champion.
-        None for shop items.
+        Can be None in cases where this information couldn't be parsed.
     champion : Optional[Champion]
         The champion this device belongs to.
         None for shop items.
@@ -31,7 +31,7 @@ class Device:
         None for talents.
     scale : Optional[float]
         The scale value of the card's scaling.
-        None for Talents.
+        None for talents.
     cooldown : int
         The cooldown of this device, in seconds.
         0 if there is no cooldown.
