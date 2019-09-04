@@ -84,7 +84,7 @@ class Champion:
         self.health = champion_data["Health"]
         self.speed = champion_data["Speed"]
 
-        self.abilities = [Ability(self, champion_data[a]) for a in champion_data if a.startswith("Ability_")]
+        self.abilities = [Ability(self, champion_data["Ability_{}".format(i)]) for i in range(1,6)]
         self.talents: List['Device'] = []
         self.cards: List['Device'] = []
 
