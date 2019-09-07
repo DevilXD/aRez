@@ -6,10 +6,11 @@ from .match import Match
 from .items import Device
 from .endpoint import Endpoint
 from .champion import Champion
+from .status import ServerStatus
+from .utils import convert_timestamp
 from .player import Player, PartialPlayer
 from .cache import DataCache, ChampionInfo
 from .enumerations import Language, Platform
-from .utils import convert_timestamp, ServerStatus
 
 class PaladinsAPI:
     """
