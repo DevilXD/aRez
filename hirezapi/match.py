@@ -203,6 +203,8 @@ class MatchPlayer(KDAMixin):
         The amount of healing done by the player's bot after they disconnected.
     objective_time : int
         The amount of objective time the player got, in seconds.
+    multikills : Tuple[int]
+        The amount of (double, tripple, quadra, penta) kills the player did during the match.
     multikill_max : int
         The maximum multikill player did during the match.
     """
@@ -227,14 +229,15 @@ class MatchPlayer(KDAMixin):
         self.healing_self = player_data["Healing_Player_Self"]
         self.healing_bot  = player_data["Healing_Bot"]
 
+        self.kills_bot  = player_data["Kills_Bot"]
         self.objective_time = player_data["Objective_Assists"]
         self.multikill_max  = player_data["Multi_kill_Max"]
-
-        self.kills_bot    = player_data["Kills_Bot"]
-        self.double_kills = player_data["Kills_Double"]
-        self.triple_kills = player_data["Kills_Triple"]
-        self.quadra_kills = player_data["Kills_Quadra"]
-        self.penta_kills  = player_data["Kills_Penta"]
+        self.multikills = (
+            player_data["Kills_Double"],
+            player_data["Kills_Triple"],
+            player_data["Kills_Quadra"],
+            player_data["Kills_Penta"],
+        )
 
         self.items = []
         for i in range(1,5):
