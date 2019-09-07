@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta
 from typing import Union, List, Generator
 
-from .mixins import KDAMixin
 from .items import LoadoutCard
+from .mixins import KDAMixin, WinLoseMixin
 from .utils import convert_timestamp, Duration
-from .enumerations import Queue, Language, Region
+from .enumerations import Queue, Language, Region, Rank
 
 class MatchItem:
     """
@@ -337,3 +337,52 @@ class Match:
 
     def __repr__(self) -> str:
         return "{0.queue.name}({0.id}): {0.score}".format(self)
+
+class LivePlayer(WinLoseMixin):
+    def __init__(self, api, language: Language, player_data: dict):
+        player_data.update({"Wins": player_data["tierWins"], "Losses": player_data["tierLosses"]}) # win/loss correction for WinLoseMixin
+        super().__init__(player_data)
+        self._api = api
+        self.language = language
+        from .player import PartialPlayer # cyclic imports
+        self.player = PartialPlayer(api, player_data)
+        self.champion = self._api.get_champion(player_data["ChampionId"], language)
+        self.rank = Rank.get(player_data["Tier"])
+        self.account_level = player_data["Account_Level"]
+        self.mastery_level = player_data["Mastery_Level"]
+    
+    def __repr__(self) -> str:
+        if self.player.id != 0:
+            name = self.player.name
+            id = self.player.id
+        else:
+            name = "Unknown"
+            id = 0
+        if self.champion:
+            champion_name = self.champion.name
+        else:
+            champion_name = "Unknown"
+        return "{1}({2}): {0.account_level} level: {3}({0.mastery_level})".format(self, name, id, champion_name)
+
+class LiveMatch:
+    def __init__(self, api, language: Language, match_data: List[dict]):
+        self._api = api
+        self.language = language
+        first_player = match_data[0]
+        self.id = first_player["Match"]
+        self.map = first_player["mapGame"]
+        self.queue = Queue.get(int(first_player["Queue"]))
+        self.team_1 = []
+        self.team_2 = []
+        for p in match_data:
+            getattr(self, "team_{}".format(p["taskForce"])).append(LivePlayer(self._api, language, p))
+    
+    def __repr__(self) -> str:
+        return "{0.__class__.__name__}({0.queue.name}): {0.map}".format(self)
+    
+    @property
+    def players(self) -> Generator[LivePlayer, None, None]:
+        for p in self.team_1:
+            yield p
+        for p in self.team_2:
+            yield p

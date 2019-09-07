@@ -4,7 +4,8 @@ from typing import Union, List, Optional
 from .items import Loadout
 from .exceptions import Private
 from .match import PartialMatch
-from .utils import convert_timestamp, PlayerStatus, Duration
+from .status import PlayerStatus
+from .utils import convert_timestamp, Duration
 from .enumerations import Language, Platform, Region
 from .stats import Stats, RankedStats, ChampionStats
 
@@ -279,5 +280,3 @@ class Player(PartialPlayer):
         self.casual = Stats(player_data)
         self.ranked_keyboard = RankedStats(player_data["RankedKBM"])
         self.ranked_controller = RankedStats(player_data["RankedController"])
-    
-    
