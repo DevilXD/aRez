@@ -107,7 +107,7 @@ class PartialMatch(KDAMixin):
         self.player = player
         self.language = language
         self.id = match_data["Match"]
-        self.champion = self._api.get_champion(match_data["ChampionId"])
+        self.champion = self._api.get_champion(match_data["ChampionId"], language)
         self.queue = Queue.get(match_data["Match_Queue_Id"]) or Queue(0)
         self.region = Region.get(match_data["Region"])
         self.duration = Duration(seconds=match_data["Time_In_Match_Seconds"])
@@ -207,7 +207,7 @@ class MatchPlayer(KDAMixin):
         The maximum multikill player did during the match.
     """
     def __init__(self, api, language: Language, player_data: dict):
-        player_data.update({"Kills": player_data["Kills_Player"]}) #kills correction for KDAMixin
+        player_data.update({"Kills": player_data["Kills_Player"]}) # kills correction for KDAMixin
         super().__init__(player_data)
         self._api = api
         from .player import PartialPlayer # cyclic imports
@@ -217,7 +217,7 @@ class MatchPlayer(KDAMixin):
             "portal_id": int(player_data["playerPortalId"]) if player_data["playerPortalId"] else None
         }
         self.player = PartialPlayer(self._api, player_payload)
-        self.champion = self._api.get_champion(player_data["ChampionId"])
+        self.champion = self._api.get_champion(player_data["ChampionId"], language)
 
         self.credits      = player_data["Gold_Earned"]
         self.damage_dealt = player_data["Damage_Done_Physical"]
