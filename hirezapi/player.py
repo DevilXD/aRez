@@ -25,8 +25,6 @@ class PartialPlayer:
         Name of the player.
     platform : Platform
         The player's platform.
-    private : bool
-        Whether or not this profile is considered Private.
     """
     # Nice consistency, HiRez
     def __init__(self, api, player_data: dict):
