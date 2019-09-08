@@ -20,7 +20,7 @@ class WinLoseMixin:
     winrate_text : str
         The calculated winrate as a percentage string.
         The format is: `48.213%`
-        `N/A` is returned if there was no matches played.
+        `"N/A"` is returned if there was no matches played.
     """
     def __init__(self, stats_data: dict):
         self.wins = stats_data["Wins"]
