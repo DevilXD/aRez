@@ -1,4 +1,5 @@
 from typing import Optional
+from datetime import datetime
 
 from .match import LiveMatch
 from .enumerations import Activity, Queue, Language
@@ -34,6 +35,8 @@ class ServerStatus:
 
     Attributes
     ----------
+    timestamp : datetime
+        A UTC timestamp denoting when this status was fetched.
     all_up : bool
         True if all live servers are UP, False otherwise.
         Note that this doesn't include PTS.
@@ -58,6 +61,7 @@ class ServerStatus:
         Status for the PTS server.
     """
     def __init__(self, status_data: list):
+        self.timestamp = datetime.utcnow()
         self.all_up = True
         self.limited_access = False
         self.all_statuses = []
