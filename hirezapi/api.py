@@ -21,15 +21,15 @@ class PaladinsAPI:
         # don't store the endpoint - the API should have no access to it's instance other than the request and close methods
         endpoint = Endpoint("http://api.paladins.com/paladinsapi.svc", dev_id, api_key)
         self._server_status = None
-        self.cache = DataCache()
+        self._cache = DataCache()
         # forward endpoint request and close methods
         self.request = endpoint.request
         self.close = endpoint.close
         # forward cache get methods
-        self.get_champion = self.cache.get_champion
-        self.get_card     = self.cache.get_card
-        self.get_talent   = self.cache.get_talent
-        self.get_item     = self.cache.get_item
+        self.get_champion = self._cache.get_champion
+        self.get_card     = self._cache.get_card
+        self.get_talent   = self._cache.get_talent
+        self.get_item     = self._cache.get_item
     
     # async with integration
     async def __aenter__(self):
@@ -92,13 +92,13 @@ class PaladinsAPI:
         """
         assert isinstance(language, Language)
 
-        if self.cache._needs_refreshing(language) or force_refresh:
+        if self._cache._needs_refreshing(language) or force_refresh:
             champions_response = await self.request("getgods", [language.value])
             items_response = await self.request("getitems", [language.value])
             if champions_response and items_response:
-                self.cache[language] = (champions_response, items_response)
+                self._cache[language] = (champions_response, items_response)
 
-        return self.cache[language] # DataCache uses `.get()` on the internal dict, so this won't cause a KeyError
+        return self._cache[language] # DataCache uses `.get()` on the internal dict, so this won't cause a KeyError
 
     def get_player_from_id(self, player_id: int) -> PartialPlayer:
         """
