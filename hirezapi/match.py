@@ -342,11 +342,27 @@ class Match:
         return "{0.queue.name}({0.id}): {0.score}".format(self)
 
 class LivePlayer(WinLoseMixin):
+    """
+    Represents a liva match player.
+    
+    Attributes
+    ----------
+    player : PartialPlayer
+        The actual player playing in this match.
+    champion : Optional[Champion]
+        The champion the player is using in this match.
+        None with incomplete cache.
+    rank : Rank
+        The player's rank.
+    account_level : int
+        The player's account level.
+    mastery_level : int
+        The player's champion mastery level.
+    """
     def __init__(self, api, language: Language, player_data: dict):
         player_data.update({"Wins": player_data["tierWins"], "Losses": player_data["tierLosses"]}) # win/loss correction for WinLoseMixin
         super().__init__(player_data)
         self._api = api
-        self.language = language
         from .player import PartialPlayer # cyclic imports
         self.player = PartialPlayer(api, player_data)
         self.champion = self._api.get_champion(player_data["ChampionId"], language)
@@ -360,12 +376,29 @@ class LivePlayer(WinLoseMixin):
         return "{1}({0.player.id}): {0.account_level} level: {2}({0.mastery_level})".format(self, player_name, champion_name)
 
 class LiveMatch:
+    """
+    Represents a live match.
+    
+    Attributes
+    ----------
+    id : int
+        The match ID.
+    map_name : str
+        The name of the map played.
+    queue : Queue
+        The queue the match is being played in.
+    team_1 : List[LivePlayer]
+        A list of live players in the first team.
+    team_2 : List[LivePlayer]
+        A list of live players in the second team.
+    players : Generator[LivePlayer]
+        A generator that iterates over all live match players in the match.
+    """
     def __init__(self, api, language: Language, match_data: List[dict]):
         self._api = api
-        self.language = language
         first_player = match_data[0]
         self.id = first_player["Match"]
-        self.map = first_player["mapGame"]
+        self.map_name = first_player["mapGame"]
         self.queue = Queue.get(int(first_player["Queue"])) or Queue(0)
         self.team_1 = []
         self.team_2 = []
