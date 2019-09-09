@@ -65,8 +65,9 @@ class ChampionStats(WinLoseMixin, KDAMixin):
         The player the stats are for.
     langage : Language
         The langauge the stats are in.
-    champion : Champion
+    champion : Optional[Champion]
         The champion the stats are for.
+        None for incomplete cache.
     level : int
         The champion's mastery level.
     last_played : datetime
@@ -92,4 +93,5 @@ class ChampionStats(WinLoseMixin, KDAMixin):
         #"MinionKills"
     
     def __repr__(self) -> str:
-        return "{0.champion.name}({0.level}): ({0.wins}/{0.losses}) {0.kda_text}".format(self)
+        champion_name = self.champion.name if self.champion else "Unknown"
+        return "{1}({0.level}): ({0.wins}/{0.losses}) {0.kda_text}".format(self, champion_name)

@@ -99,17 +99,19 @@ class LoadoutCard:
     
     Attributes
     ----------
-    card : Device
+    card : Optional[Device]
         The actual card that belongs to this loadout.
+        None with incomplete cache.
     points : int
         The amount of loadout points that have been assigned to this card.
     """
-    def __init__(self, card: Device, points: int):
+    def __init__(self, card: Optional[Device], points: int):
         self.card = card
         self.points = points
     
     def __repr__(self) -> str:
-        return "{0.card.name}: {0.points}".format(self)
+        card_name = self.card.name if self.card else "Unknown"
+        return "{1}: {0.points}".format(self, card_name)
 
 class Loadout:
     """
@@ -141,4 +143,5 @@ class Loadout:
         self.cards = [LoadoutCard(self._api.get_card(c["ItemId"], language), c["Points"]) for c in loadout_data["LoadoutItems"]]
     
     def __repr__(self) -> str:
-        return "{0.champion.name}: {0.name}".format(self)
+        champion_name = self.champion.name if self.champion else "Unknown"
+        return "{1}: {0.name}".format(self, champion_name)

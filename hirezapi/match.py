@@ -12,8 +12,9 @@ class MatchItem:
     
     Attributes
     ----------
-    item : Device
+    item : Optional[Device]
         The purchased item.
+        None with incomplete cache.
     level : int
         The level of the item purchased.
     """
@@ -22,7 +23,8 @@ class MatchItem:
         self.level = level
     
     def __repr__(self) -> str:
-        return "{0.item.name}: {0.level}".format(self)
+        item_name = self.item.name if self.item else "Unknown"
+        return "{1}: {0.level}".format(self, item_name)
 
 class MatchLoadout:
     """
@@ -32,8 +34,9 @@ class MatchLoadout:
     ----------
     cards : List[LoadoutCard]
         A list of loadout cards used.
-    talent : Device
+    talent : Optional[Device]
         The talent used.
+        None with incomplete cache.
     """
     def __init__(self, api, language: Language, match_data: dict):
         self.cards = []
@@ -45,7 +48,8 @@ class MatchLoadout:
         self.talent = api.get_talent(match_data["ItemId6"], language)
 
     def __repr__(self) -> str:
-        return "{}: {}/{}/{}/{}/{}".format(self.talent.name, *(c.points for c in self.cards))
+        talent_name = self.talent.name if self.talent else "Unknown"
+        return "{}: {}/{}/{}/{}/{}".format(talent_name, *(c.points for c in self.cards))
 
 class PartialMatch(KDAMixin):
     """
@@ -62,8 +66,9 @@ class PartialMatch(KDAMixin):
         The player this match is for.
     language : Language
         The language of cards, talents and items this match has.
-    champion : Champion
+    champion : Optional[Champion]
         The champion used by the player in this match.
+        None with incomplete cache.
     queue : Queue
         The queue this match was played in.
     region : Region
@@ -138,13 +143,13 @@ class PartialMatch(KDAMixin):
             if not item_id:
                 continue
             item = self._api.get_item(item_id, language)
-            if item:
-                level = match_data["ActiveLevel{}".format(i)] // 4 + 1
-                self.items.append(MatchItem(item, level))
+            level = match_data["ActiveLevel{}".format(i)] // 4 + 1
+            self.items.append(MatchItem(item, level))
         self.loadout = MatchLoadout(self._api, language, match_data)
     
     def __repr__(self) -> str:
-        return "{0.queue.name}: {0.champion.name}: {0.kda_text}".format(self)
+        champion_name = self.champion.name if self.champion else "Unknown"
+        return "{0.queue.name}: {1}: {0.kda_text}".format(self, champion_name)
 
     @property
     def disconnected(self) -> bool:
@@ -181,8 +186,9 @@ class MatchPlayer(KDAMixin):
         The player who participated in this match.
         This is always a new, partial object, regardless of which way the match was fetched.
         All attributes, Name, ID and Platform, should be present.
-    champion : Champion
+    champion : Optional[Champion]
         The champion used by the player in this match.
+        None with incomplete cache.
     loadout : MatchLoadout
         The loadout used by the player in this match.
     items : List[MatchItem]
@@ -245,9 +251,8 @@ class MatchPlayer(KDAMixin):
             if not item_id:
                 continue
             item = self._api.get_item(item_id, language)
-            if item:
-                level = player_data["ActiveLevel{}".format(i)] + 1
-                self.items.append(MatchItem(item, level))
+            level = player_data["ActiveLevel{}".format(i)] + 1
+            self.items.append(MatchItem(item, level))
         self.loadout = MatchLoadout(self._api, language, player_data)
     
     @property
@@ -264,10 +269,8 @@ class MatchPlayer(KDAMixin):
         return self.damage_bot > 0 or self.healing_bot > 0
 
     def __repr__(self) -> str:
-        if self.player.id != 0:
-            return "{0.player.name}({0.player.id}): ({0.kda_text}, {0.damage_dealt}, {0.healing_done})".format(self)
-        else:
-            return "Unknown(0): ({0.kda_text}, {0.damage_dealt}, {0.healing_done})".format(self)
+        player_name = self.player.name if self.player.id else "Unknown"
+        return "{1}({0.player.id}): ({0.kda_text}, {0.damage_dealt}, {0.healing_done})".format(self, player_name)
 
 class Match:
     """
@@ -289,7 +292,7 @@ class Match:
         The duration of the match.
     bans : List[Champion]
         A list of champions banned this match.
-        This is an empty list for non-ranked matches.
+        This is an empty list for non-ranked matches, or with incomplete cache.
     map_name : str
         The name of the map played.
     score : Tuple[int, int]
@@ -352,17 +355,9 @@ class LivePlayer(WinLoseMixin):
         self.mastery_level = player_data["Mastery_Level"]
     
     def __repr__(self) -> str:
-        if self.player.id != 0:
-            name = self.player.name
-            id = self.player.id
-        else:
-            name = "Unknown"
-            id = 0
-        if self.champion:
-            champion_name = self.champion.name
-        else:
-            champion_name = "Unknown"
-        return "{1}({2}): {0.account_level} level: {3}({0.mastery_level})".format(self, name, id, champion_name)
+        player_name = self.player.name if self.player.id else "Unknown"
+        champion_name = self.champion.name if self.champion else "Unknown"
+        return "{1}({0.player.id}): {0.account_level} level: {2}({0.mastery_level})".format(self, player_name, champion_name)
 
 class LiveMatch:
     def __init__(self, api, language: Language, match_data: List[dict]):
