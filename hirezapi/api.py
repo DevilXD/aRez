@@ -1,4 +1,4 @@
-﻿import asyncio
+import asyncio
 from datetime import datetime, timedelta
 from typing import Union, List, Optional
 
@@ -20,7 +20,7 @@ class PaladinsAPI:
     def __init__(self, dev_id, api_key):
         # don't store the endpoint - the API should have no access to it's instance other than the request and close methods
         endpoint = Endpoint("http://api.paladins.com/paladinsapi.svc", dev_id, api_key)
-        self.server_status = None
+        self._server_status = None
         self.cache = DataCache()
         # forward endpoint request and close methods
         self.request = endpoint.request
@@ -57,17 +57,14 @@ class PaladinsAPI:
         -------
         Optional[ServerStatus]
             The server status object.
-            None is returned if there was no cached status and fetching returned an empty response.
+            None is returned if there is no cached status and fetching returned an empty response.
         """
-        now = datetime.utcnow()
-
-        if self.server_status is None or now >= self.server_status[1] or force_refresh:
+        if self._server_status is None or datetime.utcnow() - timedelta(minutes=1) >= self._server_status.timestamp or force_refresh:
             response = await self.request("gethirezserverstatus")
             if response:
-                self.server_status = (ServerStatus(response), now + timedelta(minutes=1))
+                self._server_status = ServerStatus(response)
         
-        if self.server_status:
-            return self.server_status[0]
+        return self._server_status
     
     async def get_champion_info(self, language: Language = Language.English, force_refresh: bool = False) -> Optional[ChampionInfo]:
         """
