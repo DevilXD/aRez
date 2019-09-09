@@ -366,7 +366,7 @@ class LiveMatch:
         first_player = match_data[0]
         self.id = first_player["Match"]
         self.map = first_player["mapGame"]
-        self.queue = Queue.get(int(first_player["Queue"]))
+        self.queue = Queue.get(int(first_player["Queue"])) or Queue(0)
         self.team_1 = []
         self.team_2 = []
         for p in match_data:
