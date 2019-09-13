@@ -15,7 +15,7 @@ class PartialPlayer:
     Depending on the way it was created, only the Player ID is quaranteed to exist - both name and platform
     can be an empty string and `Platform.Unknown` respectively.
 
-    To ensure all attributes are filled up correctly before processing, us the `expand` method.
+    To ensure all attributes are filled up correctly before processing, use the `expand` method.
     
     Attributes
     ----------
