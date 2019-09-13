@@ -49,6 +49,7 @@ Platform = EnumGet("Platform", {
     "mixer":            14,
     "Switch":           22,
     "switch":           22,
+    "nintendo switch":  22,
     "nintendo_switch":  22,
     "Discord":          25,
     "discord":          25,
