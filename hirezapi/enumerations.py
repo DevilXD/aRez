@@ -41,6 +41,7 @@ Platform = EnumGet("Platform", {
     "psn":              9,
     "Xbox":             10,
     "xbox":             10,
+    "xb":               10,
     "xboxlive":         10,
     "xboxone":          10,
     "xbox_one":         10,
