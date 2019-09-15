@@ -54,7 +54,7 @@ class PaladinsAPI:
         Fetches the server status.
 
         To preserve requests, the status returned is cached once every minute.
-        Use the `force_refresh` parameter to override this behavior.
+        Use the ``force_refresh`` parameter to override this behavior.
 
         Uses up one request each time the cache is refreshed.
         
@@ -82,14 +82,14 @@ class PaladinsAPI:
         Fetches the champion information.
 
         To preserve requests, the information returned is cached once every 12 hours.
-        Use the `force_refresh` parameter to override this behavior.
+        Use the ``force_refresh`` parameter to override this behavior.
 
         Uses up two requests each time the cache is refreshed, per language.
         
         Parameters
         ----------
         language : Optional[Language]
-            The `Language` you want to fetch the information in.
+            The ``Language`` you want to fetch the information in.
             Defaults to Language.English
         force_refresh : Optional[bool]
             Bypasses the cache, forcing a fetch and returning a new object.
@@ -135,7 +135,7 @@ class PaladinsAPI:
         """
         Fetches a Player object for the given player ID or player name.
 
-        Only players with `Platform.Steam`, `Platform.HiRez` and `Platform.Discord`
+        Only players with ``Platform.Steam``, ``Platform.HiRez`` and ``Platform.Discord``
         platforms will be returned when using this method with player name as input.
         For player ID inputs, players from all platforms will be returned.
 
@@ -229,7 +229,7 @@ class PaladinsAPI:
         match_id : int
             Match ID you want to get a match for
         language : Optional[Language]
-            The `Language` you want to fetch the information in.
+            The ``Language`` you want to fetch the information in.
             Defaults to Language.English
         
         Returns
@@ -260,7 +260,7 @@ class PaladinsAPI:
         match_ids : List[int]
             The list of Match IDs you want to fetch.
         language : Optional[Language]
-            The `Language` you want to fetch the information in.
+            The ``Language`` you want to fetch the information in.
             Defaults to Language.English
         
         Returns
