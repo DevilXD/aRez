@@ -23,7 +23,7 @@ Currently supported:
 - [x] `getplayeridbyportaluserid` (Finding the player by their Portal ID)  
 - [x] `getmatchplayerdetails` (Information about the current player's match)  
 - [ ] `getplayerachievements` (Player's achievements)  
-- [ ] `getmatchdetailsbatch` (Fetching multiple matches at once)  
+- [x] `getmatchdetailsbatch` (Fetching multiple matches at once)  
 - [ ] `getmatchidsbyqueue` (Fetching all matches by queue)  
 - [ ] `getqueuestats` (Player match stats by queue)  
 

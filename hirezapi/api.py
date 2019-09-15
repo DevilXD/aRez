@@ -1,13 +1,13 @@
-import asyncio
+﻿import asyncio
 from datetime import datetime, timedelta
-from typing import Union, List, Optional
+from typing import Union, Optional, List, Dict
 
 from .match import Match
 from .items import Device
 from .endpoint import Endpoint
 from .champion import Champion
 from .status import ServerStatus
-from .utils import convert_timestamp
+from .utils import get, convert_timestamp
 from .player import Player, PartialPlayer
 from .cache import DataCache, ChampionInfo
 from .enumerations import Language, Platform
@@ -244,3 +244,40 @@ class PaladinsAPI:
         response = await self.request("getmatchdetails", [match_id])
         if response:
             return Match(self, language, response)
+
+    async def get_matches(self, match_ids: List[int], language: Language = Language.English) -> Dict[int, Optional[Match]]:
+        """
+        Fetches multiple matches in a batch, for the given Match IDs.
+
+        Uses up a single request.
+
+        .. note:: Due to API limitations, things might break if you will try requesting more than
+            10 matches at a time. Proceed at your own risk.
+        
+        Parameters
+        ----------
+        match_ids : List[int]
+            The list of Match IDs you want to fetch.
+        language : Optional[Language]
+            The `Language` you want to fetch the information in.
+            Defaults to Language.English
+        
+        Returns
+        -------
+        Dict[int, Optional[Match]]
+            A mapping of the requested IDs to their corresponding Match objects.
+            The match can be None if it wasn't available on the server.
+        """
+        assert isinstance(match_ids, list)
+        assert all(isinstance(mid, int) for mid in match_ids)
+        assert isinstance(language, Language)
+        if not match_ids:
+            # passed in an empty list you dummy
+            return {}
+        await self.get_champion_info(language)
+        response = await self.request("getmatchdetailsbatch", [','.join(map(str, match_ids))])
+        matches = {}
+        for p in response:
+            matches.setdefault(p["Match"], []).append(p)
+        matches = [Match(self, language, match_list) for match_list in matches.values()]
+        return {mid: get(matches, id=mid) for mid in match_ids}
