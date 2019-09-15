@@ -26,13 +26,13 @@ class Endpoint:
     .. note:: You can request your developer ID and authorization key here:
         https://fs12.formsite.com/HiRez/form48/secure_index.html
     """
-    def __init__(self, url: str, dev_id: str, auth_key: str, *, loop: asyncio.BaseEventLoop = None):
+    def __init__(self, url: str, dev_id: Union[int, str], auth_key: str, *, loop: asyncio.BaseEventLoop = None):
         loop = loop if loop else asyncio.get_event_loop()
         self.url = url.rstrip('/')
         self._session_key = ""
         self._session_expires = datetime.utcnow()
         self._http_session = aiohttp.ClientSession(raise_for_status=True, loop=loop)
-        self.__dev_id = dev_id
+        self.__dev_id = str(dev_id)
         self.__auth_key = auth_key.upper()
     
     def __del__(self):
