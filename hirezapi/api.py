@@ -22,12 +22,13 @@ class PaladinsAPI:
         Your developer's ID (devId).
     auth_key : str
         Your developer's authentication key (authKey).
-    loop : Optional[asyncio.BaseEventLoop]
-        The loop you want to use for this Endpoint.
+    loop : Optional[asyncio.AbstractEventLoop]
+        The loop you want to use for this API.
         Default loop is used when not provided.
     """
-    def __init__(self, dev_id: Union[int, str], auth_key: str, *, loop: Optional[asyncio.BaseEventLoop] = None):
-        loop = loop if loop else asyncio.get_event_loop()
+    def __init__(self, dev_id: Union[int, str], auth_key: str, *, loop: Optional[asyncio.AbstractEventLoop] = None):
+        if loop is None:
+            loop = asyncio.get_event_loop()
         # don't store the endpoint - the API should have no access to it's instance other than the request and close methods
         endpoint = Endpoint("http://api.paladins.com/paladinsapi.svc", dev_id, auth_key, loop=loop)
         self._server_status = None

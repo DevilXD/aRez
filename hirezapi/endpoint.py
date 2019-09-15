@@ -21,15 +21,16 @@ class Endpoint:
         Your developer's ID (devId).
     auth_key : str
         Your developer's authentication key (authKey).
-    loop : Optional[asyncio.BaseEventLoop]
+    loop : Optional[asyncio.AbstractEventLoop]
         The loop you want to use for this Endpoint.
         Default loop is used when not provided.
 
     .. note:: You can request your developer ID and authorization key here:
         https://fs12.formsite.com/HiRez/form48/secure_index.html
     """
-    def __init__(self, url: str, dev_id: Union[int, str], auth_key: str, *, loop: asyncio.BaseEventLoop = None):
-        loop = loop if loop else asyncio.get_event_loop()
+    def __init__(self, url: str, dev_id: Union[int, str], auth_key: str, *, loop: asyncio.AbstractEventLoop = None):
+        if loop is None:
+            loop = asyncio.get_event_loop()
         self.url = url.rstrip('/')
         self._session_key = ''
         self._session_expires = datetime.utcnow()
@@ -55,7 +56,7 @@ class Endpoint:
         await self._http_session.close()
     
     def _get_signature(self, method_name: str, timestamp: str):
-        return md5("".join([self.__dev_id, method_name, self.__auth_key, timestamp]).encode()).hexdigest()
+        return md5(''.join([self.__dev_id, method_name, self.__auth_key, timestamp]).encode()).hexdigest()
 
     async def request(self, method_name: str, data: list = None):
         """
