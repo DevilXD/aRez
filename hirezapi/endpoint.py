@@ -5,7 +5,8 @@ from datetime import datetime, timedelta
 
 from .exceptions import HTTPException, Unauthorized
 
-session_lifetime = timedelta(minutes=14, seconds=59)
+# off by 10s because of a rare race condition
+session_lifetime = timedelta(minutes=14, seconds=50)
 
 class Endpoint:
     """
@@ -15,7 +16,7 @@ class Endpoint:
     ----------
     url : str
         The endpoint's base URL.
-    dev_id : str
+    dev_id : Union[int, str]
         Your developer's ID (devId).
     auth_key : str
         Your developer's authentication key (authKey).
@@ -29,7 +30,7 @@ class Endpoint:
     def __init__(self, url: str, dev_id: Union[int, str], auth_key: str, *, loop: asyncio.BaseEventLoop = None):
         loop = loop if loop else asyncio.get_event_loop()
         self.url = url.rstrip('/')
-        self._session_key = ""
+        self._session_key = ''
         self._session_expires = datetime.utcnow()
         self._http_session = aiohttp.ClientSession(raise_for_status=True, loop=loop)
         self.__dev_id = str(dev_id)
@@ -100,7 +101,6 @@ class Endpoint:
                             if not session_id:
                                 raise Unauthorized
                             self._session_key = session_id
-                        # off by 1s because of a rare race condition
                         self._session_expires = now + session_lifetime
                         req_stack.extend([self._session_key, timestamp])
                 if data:
@@ -119,7 +119,7 @@ class Endpoint:
             except (aiohttp.ServerDisconnectedError, asyncio.TimeoutError) as exc:
                 if not tries_left: # no more breaks ¯\_(ツ)_/¯
                     raise HTTPException(exc)
-                print("Got {}, retrying...".format(exc))
+                print("Got {}, retrying...".format(exc.__class__))
                 await asyncio.sleep((tries - tries_left) * 0.5)
             # Some other exception happened, so just wrap it and propagate along
             except Exception as exc:
