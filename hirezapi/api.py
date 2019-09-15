@@ -15,6 +15,16 @@ from .enumerations import Language, Platform
 class PaladinsAPI:
     """
     The main Paladins API.
+
+    Parameters
+    ----------
+    dev_id : str
+        Your developer's ID (devId).
+    auth_key : str
+        Your developer's authentication key (authKey).
+    loop : Optional[asyncio.BaseEventLoop]
+        The loop you want to use for this Endpoint.
+        Default loop is used when not provided.
     """
     def __init__(self, dev_id: str, auth_key: str, *, loop=None):
         loop = loop if loop else asyncio.get_event_loop()

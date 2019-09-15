@@ -8,7 +8,24 @@ from .exceptions import HTTPException, Unauthorized
 session_lifetime = timedelta(minutes=14, seconds=59)
 
 class Endpoint:
+    """
+    Represents a basic Hi-Rez endpoint URL wrapper, for handling response types and session creation.
     
+    Parameters
+    ----------
+    url : str
+        The endpoint's base URL.
+    dev_id : str
+        Your developer's ID (devId).
+    auth_key : str
+        Your developer's authentication key (authKey).
+    loop : Optional[asyncio.BaseEventLoop]
+        The loop you want to use for this Endpoint.
+        Default loop is used when not provided.
+
+    .. note:: You can request your developer ID and authorization key here:
+        https://fs12.formsite.com/HiRez/form48/secure_index.html
+    """
     def __init__(self, url: str, dev_id: str, auth_key: str, *, loop: asyncio.BaseEventLoop = None):
         loop = loop if loop else asyncio.get_event_loop()
         self.url = url.rstrip('/')
