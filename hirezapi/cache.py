@@ -26,9 +26,7 @@ class ChampionInfo:
         self._expires_at = datetime.utcnow() + cache.refresh_every
         sorted_devices = {}
         for d in items_data:
-            champ_id = d["champion_id"]
-            sorted_devices.setdefault(champ_id, [])
-            sorted_devices[champ_id].append(Device(d))
+            sorted_devices.setdefault(d["champion_id"], []).append(Device(d))
         self.devices = [d for dl in sorted_devices.values() for d in dl]
         self.champions = [Champion(sorted_devices.get(c["id"], []), c) for c in champions_data]
 
