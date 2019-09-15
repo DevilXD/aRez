@@ -233,8 +233,9 @@ class PaladinsAPI:
         
         Returns
         -------
-        Match
+        Optional[Match]
             A match for the ID specified.
+            None is returned if the match wasn't available on the server.
         """
         assert isinstance(match_id, int)
         assert isinstance(language, Language)
