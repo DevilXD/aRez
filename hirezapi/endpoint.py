@@ -1,6 +1,7 @@
 import aiohttp
 import asyncio
 from hashlib import md5
+from typing import Union
 from datetime import datetime, timedelta
 
 from .exceptions import HTTPException, Unauthorized
