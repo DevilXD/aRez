@@ -9,11 +9,12 @@ session_lifetime = timedelta(minutes=14, seconds=59)
 
 class Endpoint:
     
-    def __init__(self, endpoint: str, dev_id: str, auth_key: str):
-        self.endpoint = endpoint.rstrip('/')
+    def __init__(self, url: str, dev_id: str, auth_key: str, *, loop: asyncio.BaseEventLoop = None):
+        loop = loop if loop else asyncio.get_event_loop()
+        self.url = url.rstrip('/')
         self._session_key = ""
         self._session_expires = datetime.utcnow()
-        self._http_session = aiohttp.ClientSession(raise_for_status=True)
+        self._http_session = aiohttp.ClientSession(raise_for_status=True, loop=loop)
         self.__dev_id = dev_id
         self.__auth_key = auth_key.upper()
     
@@ -64,7 +65,7 @@ class Endpoint:
             Check the `cause` attribute for the original exception that lead to this.
         """
         method_name = method_name.lower()
-        req_stack = [self.endpoint, "{}json".format(method_name)]
+        req_stack = [self.url, "{}json".format(method_name)]
         
         tries = 3
         for tries_left in reversed(range(tries)):

@@ -1,4 +1,4 @@
-﻿import asyncio
+import asyncio
 from datetime import datetime, timedelta
 from typing import Union, List, Optional
 
@@ -16,9 +16,10 @@ class PaladinsAPI:
     """
     The main Paladins API.
     """
-    def __init__(self, dev_id, api_key):
+    def __init__(self, dev_id: str, auth_key: str, *, loop=None):
+        loop = loop if loop else asyncio.get_event_loop()
         # don't store the endpoint - the API should have no access to it's instance other than the request and close methods
-        endpoint = Endpoint("http://api.paladins.com/paladinsapi.svc", dev_id, api_key)
+        endpoint = Endpoint("http://api.paladins.com/paladinsapi.svc", dev_id, auth_key, loop=loop)
         self._server_status = None
         self._cache = DataCache()
         # forward endpoint request and close methods
