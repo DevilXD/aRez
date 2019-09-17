@@ -62,13 +62,13 @@ class PaladinsAPI:
         ----------
         force_refresh : Optional[bool]
             Bypasses the cache, forcing a fetch and returning a new object.
-            Defaults to False.
+            Defaults to `False`.
         
         Returns
         -------
         Optional[ServerStatus]
             The server status object.
-            None is returned if there is no cached status and fetching returned an empty response.
+            `None` is returned if there is no cached status and fetching returned an empty response.
         """
         if self._server_status is None or datetime.utcnow() - timedelta(minutes=1) >= self._server_status.timestamp or force_refresh:
             response = await self.request("gethirezserverstatus")
@@ -89,17 +89,17 @@ class PaladinsAPI:
         Parameters
         ----------
         language : Optional[Language]
-            The ``Language`` you want to fetch the information in.
-            Defaults to Language.English
+            The Language you want to fetch the information in.
+            Defaults to `Language.English`
         force_refresh : Optional[bool]
             Bypasses the cache, forcing a fetch and returning a new object.
-            Defaults to False.
+            Defaults to `False`.
         
         Returns
         -------
         Optional[ChampionInfo]
             An object containing all champions, cards, talents and items information in the chosen language.
-            None is returned if there was no cached information and fetching returned an empty response.
+            `None` is returned if there was no cached information and fetching returned an empty response.
         """
         assert isinstance(language, Language)
 
@@ -113,7 +113,7 @@ class PaladinsAPI:
 
     def get_player_from_id(self, player_id: int) -> PartialPlayer:
         """
-        Wraps a player ID into a PartialPlayer object.
+        Wraps a player ID into a `PartialPlayer` object.
 
         Note that since there is no input validation, so there's no guarantee an object created this way
         will return any meaningful results when it's methods are used.
@@ -135,7 +135,7 @@ class PaladinsAPI:
         """
         Fetches a Player object for the given player ID or player name.
 
-        Only players with ``Platform.Steam``, ``Platform.HiRez`` and ``Platform.Discord``
+        Only players with `Platform.Steam`, `Platform.HiRez` and `Platform.Discord`
         platforms will be returned when using this method with player name as input.
         For player ID inputs, players from all platforms will be returned.
 
@@ -150,7 +150,7 @@ class PaladinsAPI:
         -------
         Optional[Player]
             An object containing basic information about the player requested.
-            None is returned if a Player for the given ID or Name could not be found.
+            `None` is returned if a Player for the given ID or Name could not be found.
         """
         assert isinstance(player, (int, str))
         player_list = await self.request("getplayer", [player])
@@ -171,8 +171,8 @@ class PaladinsAPI:
             Player name you want to search for.
         platform : Optional[Platform]
             Platform you want to limit the search to.
-            Specifying None will search on all platforms.
-            Defaults to None.
+            Specifying `None` will search on all platforms.
+            Defaults to `None`.
         
         Returns
         -------
@@ -210,7 +210,7 @@ class PaladinsAPI:
         -------
         Optional[PartialPlayer]
             The player this platform ID is linked to.
-            None is returned if the player couldn't be found.
+            `None` is returned if the player couldn't be found.
         """
         assert isinstance(platform_id, int)
         assert isinstance(platform, Platform)
@@ -229,14 +229,14 @@ class PaladinsAPI:
         match_id : int
             Match ID you want to get a match for
         language : Optional[Language]
-            The ``Language`` you want to fetch the information in.
-            Defaults to Language.English
+            The Language you want to fetch the information in.
+            Defaults to `Language.English`
         
         Returns
         -------
         Optional[Match]
             A match for the ID specified.
-            None is returned if the match wasn't available on the server.
+            `None` is returned if the match wasn't available on the server.
         """
         assert isinstance(match_id, int)
         assert isinstance(language, Language)
