@@ -1,4 +1,4 @@
-.. currentmodule:: hirezapi
+.. currentmodule:: hirezapi.api
 
 PaladinsAPI
 ===========

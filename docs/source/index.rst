@@ -7,11 +7,12 @@ Welcome to HiRezAPI's documentation!
 ====================================
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+    :maxdepth: 2
+    :caption: Contents:
    
-   hirezapi
-   statuspage
+    paladinsapi
+    enumerations
+    statuspage
 
 
 Indices and tables
