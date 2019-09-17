@@ -11,6 +11,7 @@ Welcome to HiRezAPI's documentation!
     :caption: Contents:
    
     paladinsapi
+    players
     enumerations
     statuspage
 
