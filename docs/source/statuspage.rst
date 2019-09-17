@@ -11,19 +11,15 @@ Status Page
 
 .. autoclass:: ComponentGroup()
     :members:
-    :inherited-members:
 
 .. autoclass:: Component()
     :members:
-    :inherited-members:
 
 .. autoclass:: Incident()
     :members:
-    :inherited-members:
 
 .. autoclass:: ScheduledMaintenance()
     :members:
-    :inherited-members:
 
 .. autoclass:: Update()
     :members:

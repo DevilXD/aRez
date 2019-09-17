@@ -1,27 +1,12 @@
 import aiohttp
 import asyncio
+from abc import ABC
 from datetime import datetime, timezone
 
 def convert_timestamp(stamp: str):
     return datetime.strptime(stamp[:-3] + stamp[-2:], "%Y-%m-%dT%H:%M:%S.%f%z").astimezone(timezone.utc).replace(tzinfo=None).replace(microsecond=0)
 
-class BaseComponent:
-    """
-    Component's base.
-    
-    Attributes
-    ----------
-    id : str
-        The ID of a component.
-    name : str
-        The name of the component.
-    status : str
-        The current component's status.
-    created_at : datetime
-        The time when this component was created.
-    updated_at : datetime
-        The last time this component was updated.
-    """
+class BaseComponent(ABC):
     def __init__(self, comp_data: dict):
         self.id = comp_data["id"]
         self.name = comp_data["name"]
@@ -65,6 +50,16 @@ class Incident(BaseComponent):
     
     Attributes
     ----------
+    id : str
+        The ID of the incident.
+    name : str
+        The name of the incident.
+    status : str
+        The current incident's status.
+    created_at : datetime
+        The time when this incident was created.
+    updated_at : datetime
+        The last time this incident was updated.
     impact : str
         The impact of this incident.
     updates : List[Update]
@@ -81,6 +76,16 @@ class ScheduledMaintenance(BaseComponent):
     
     Attributes
     ----------
+    id : str
+        The ID of the scheduled maintenance.
+    name : str
+        The name of the scheduled maintenance.
+    status : str
+        The current scheduled maintenance's status.
+    created_at : datetime
+        The time when this scheduled maintenance was created.
+    updated_at : datetime
+        The last time this scheduled maintenance was updated.
     impact : str
         The impact of this scheduled maintenance.
     scheduled_for : datetime
@@ -103,6 +108,16 @@ class Component(BaseComponent):
     
     Attributes
     ----------
+    id : str
+        The ID of the component.
+    name : str
+        The name of the component.
+    status : str
+        The current component's status.
+    created_at : datetime
+        The time when this component was created.
+    updated_at : datetime
+        The last time this component was updated.
     group : ComponentGroup
         The group this component belongs to.
     incidents : List[Incident]
@@ -132,6 +147,16 @@ class ComponentGroup(BaseComponent):
     
     Attributes
     ----------
+    id : str
+        The ID of the component group.
+    name : str
+        The name of the component group.
+    status : str
+        The current component group's status.
+    created_at : datetime
+        The time when this component group was created.
+    updated_at : datetime
+        The last time this component group was updated.
     components : List[Component]
         A list of components this group has.
     incidents : List[Incident]
@@ -162,10 +187,10 @@ class Status:
 
     Attributes
     ----------
-    name : str
-        The name of the status page.
     id : str
         The ID of the status page.
+    name : str
+        The name of the status page.
     url : str
         The URL of the status page.
     timezone : str
@@ -245,7 +270,7 @@ class StatusPage:
     
     async def get_status(self):
         """
-        Returns the current statuspage's status.
+        Fetches the current statuspage's status.
         
         Returns
         -------
