@@ -1,5 +1,6 @@
-﻿from enum import Enum
+from enum import Enum
 from typing import Optional
+from contextlib import suppress
 
 __all__ = [
     'Rank',
@@ -18,13 +19,15 @@ class EnumGet(Enum):
         if isinstance(key_or_value, str):
             get = cls.__members__.get(key_or_value)
             if not get:
-                return cls.__members__.get(key_or_value.lower())
+                key_or_value = key_or_value.lower()
+                get = cls.__members__.get(key_or_value)
+            if not get:
+                key_or_value = key_or_value.replace(' ', '_')
+                get = cls.__members__.get(key_or_value)
             return get
         elif isinstance(key_or_value, int):
-            try:
+            with suppress(ValueError):
                 return cls(key_or_value)
-            except ValueError:
-                pass
         return None
 
 Platform = EnumGet("Platform", {
