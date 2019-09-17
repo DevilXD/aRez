@@ -13,6 +13,7 @@ Welcome to HiRezAPI's documentation!
     paladinsapi
     players
     enumerations
+    exceptions
     statuspage
 
 
