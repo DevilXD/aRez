@@ -1,4 +1,4 @@
-from enum import Enum
+﻿from enum import Enum
 from typing import Optional
 from contextlib import suppress
 
@@ -58,7 +58,25 @@ Platform = EnumGet("Platform", {
     "Discord":          25,
     "discord":          25,
 })
-Platform.__doc__ = "Platform enumeration. Represents player's platform."
+Platform.__doc__ = """
+Platform enumeration. Represents player's platform.
+
+Attributes
+----------
+Unknown
+    Unknown platform. You can sometimes get this when the information either isn't available,
+    or the returned value didn't match any of the existing ones.
+PC
+    Aliases: ``hirez``
+Steam
+PS4
+    Aliases: ``psn``
+Xbox
+    Aliases: ``xb``, ``xboxlive``, ``xboxone``, ``xbox_one``, ``xbox1``
+Switch
+    Aliases: ``nintendo switch``, ``nintendo_switch``
+Discord
+"""
 
 Region = EnumGet("Region", {
     "Unknown":              0,
@@ -82,7 +100,27 @@ Region = EnumGet("Region", {
     "southeast_asia":       6,
     "sea":                  6,
 })
-Region.__doc__ = "Region enumeration. Represents player's region."
+Region.__doc__ = """
+Region enumeration. Represents player's region.
+
+Attributes
+----------
+Unknown
+    Unknown region. You can sometimes get this when the information either isn't available,
+    or the returned value didn't match any of the existing ones.
+North America
+    Aliases: ``na``
+Europe
+    Aliases: ``eu``
+Oceania
+    Aliases: ``oce``
+Brazil
+    Aliases: ``br``
+Latin America North
+    Aliases: ``latam``
+Southeast Asia
+    Aliases: ``sea``
+"""
 
 Language = EnumGet("Language", {
     #"Unknown":         0,
@@ -107,7 +145,22 @@ Language = EnumGet("Language", {
     "Turkish":          13,
     "turkish":          13,
 })
-Language.__doc__ = "Language enumeration. Represents the response language."
+Language.__doc__ = """
+Language enumeration. Represents the response language.
+
+Attributes
+----------
+English
+German
+French
+Chinese
+Spanish
+Latin America
+Portuguese
+Russian
+Polish
+Turkish
+"""
 
 Queue = EnumGet("Queue", {
     "Unknown":                  0,
@@ -150,7 +203,32 @@ Queue = EnumGet("Queue", {
     "Test Maps":                445,
     "test_maps":                445,
 })
-Queue.__doc__ = "Queue enumeration. Represents a match queue."
+Queue.__doc__ = """
+Queue enumeration. Represents a match queue.
+
+Attributes
+----------
+Unknown
+    Unknown queue. You can sometimes get this when the information either isn't available,
+    or the returned value didn't match any of the existing ones.
+Casual Siege
+    Aliases: ``casual``, ``siege``
+Team Deathmatch
+    Aliases: ``deathmatch``, ``tdm``
+Onslaught
+Competitive Keyboard
+    Aliases: ``keyboard_comp``, ``keyboard_ranked``, ``kb_comp``, ``kb_ranked``
+Competitive Controller
+    Aliases: ``controller_comp``, ``controller_ranked``, ``cn_comp``, ``cn_ranked``
+Shooting Range
+Training Siege
+    Aliases: ``bot_siege``
+Training Onslaught
+    Aliases: ``bot_onslaught``
+Training Team Deathmatch
+    Aliases: ``bot_team_deathmatch``, ``bot_deathmatch``, ``bot_tdm``
+Test Maps
+"""
 
 Rank = EnumGet("Rank", {
     "Qualifying":   0,
@@ -210,7 +288,43 @@ Rank = EnumGet("Rank", {
     "Grandmaster":  27,
     "grandmaster":  27,
 })
-Rank.__doc__ = "Rank enumeration. Represents player's rank."
+Rank.__doc__ = """
+Rank enumeration. Represents player's rank.
+
+All attributes include an alias consisting of their lowercase name, an underscore, and a single
+digit representing the rank's level. Example: ``gold_4``.
+
+Attributes
+----------
+Qualifying
+Bronze V
+Bronze IV
+Bronze III
+Bronze II
+Bronze I
+Silver V
+Silver IV
+Silver III
+Silver II
+Silver I
+Gold V
+Gold IV
+Gold III
+Gold II
+Gold I
+Platinum V
+Platinum IV
+Platinum III
+Platinum II
+Platinum I
+Diamond V
+Diamond IV
+Diamond III
+Diamond II
+Diamond I
+Master
+Grandmaster
+"""
 
 DeviceType = EnumGet("DeviceType", {
     "Undefined":    0,
@@ -222,7 +336,21 @@ DeviceType = EnumGet("DeviceType", {
     "Talent":       3,
     "talent":       3,
 })
-DeviceType.__doc__ = "DeviceType enumeration. Represents a type of device: talent, card, shop item, etc."
+DeviceType.__doc__ = """
+DeviceType enumeration. Represents a type of device: talent, card, shop item, etc.
+
+Attributes
+----------
+Undefined
+    Represents an undefined device type. Devices with this type are usually (often unused) talents
+    or cards that couldn't be determined as valid.
+Item
+    The device of this type is a Shop Item.
+Card
+    The device of this type is a Card.
+Talent
+    The device of this type is a Talent.
+"""
 
 AbilityType = EnumGet("AbilityType", {
     "Undefined":        0,
@@ -233,7 +361,21 @@ AbilityType = EnumGet("AbilityType", {
     "area_damage":      2,
     "aoe":              2,
 })
-AbilityType.__doc__ = "AbilityType enumeration. Represents a type of an ability."
+AbilityType.__doc__ = """
+AbilityType enumeration. Represents a type of an ability.
+
+Currently only damage types are supported.
+
+Attributes
+----------
+Undefined
+    Represents an undefined ability type. Those abilities often deal no damage, or serve another
+    purpose that doesn't involve them doing so.
+Direct Damage
+    The ability does Direct Damage. Aliases: ``direct``
+Area Damage
+    The ability does Area Damage. Aliases: ``aoe``
+"""
 
 Activity = EnumGet("Activity", {
     "Offline":              0,
@@ -249,4 +391,21 @@ Activity = EnumGet("Activity", {
     "Unknown":              5,
     "unknown":              5,
 })
-Activity.__doc__ = "Activity enumeration. Represents player's in-game status."
+Activity.__doc__ = """
+Activity enumeration. Represents player's in-game status.
+
+Attributes
+----------
+Offline
+    The player is currently offline.
+In Lobby
+    The player is in the post-match lobby.
+Character Selection
+    The player is currently on the character selection screen before a match.
+In Match
+    The player is currently in a live match.
+Online
+    The player is currently online, most likely on the main menu screen.
+Unknown
+    The player's status is unknown.
+"""
