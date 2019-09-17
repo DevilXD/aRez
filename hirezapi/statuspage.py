@@ -82,13 +82,13 @@ class ScheduledMaintenance(BaseComponent):
     Attributes
     ----------
     impact : str
-        The impact of this incident.
+        The impact of this scheduled maintenance.
     scheduled_for : datetime
         The planned time this maintenance is scheduled to start.
     scheduled_until : datetime
         The planned time this maintenance is scheduled to end.
     updates : List[Update]
-        A list of updates this incident has.
+        A list of updates this scheduled maintenance has.
     """
     def __init__(self, main_data: dict):
         super().__init__(main_data)
