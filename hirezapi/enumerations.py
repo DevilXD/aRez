@@ -127,24 +127,34 @@ Language = EnumGet("Language", {
     #"Unknown":         0,
     "English":          1,
     "english":          1,
+    "en":               1,
     "German":           2,
     "german":           2,
+    "de":               2,
     "French":           3,
     "french":           3,
+    "fr":               3,
     "Chinese":          5,
     "chinese":          5,
-    "Spanish":          7,
-    "spanish":          7,
-    "Latin America":    9,
-    "latin_america":    9,
+    "zh":               5,
+    #"Spanish":         7, # old spanish - it seems like this language isn't used that much
+    #"spanish":         7, # over the #9 one, and is full of mostly outdated data
+    #"es":              7,
+    "Spanish":          9, # old Latin America
+    "spanish":          9, # old latin_america
+    "es":               9, # old Latin America
     "Portuguese":       10,
     "portuguese":       10,
+    "pt":               10,
     "Russian":          11,
     "russian":          11,
+    "ru":               11,
     "Polish":           12,
     "polish":           12,
+    "pl":               12,
     "Turkish":          13,
     "turkish":          13,
+    "tr":               13,
 })
 Language.__doc__ = """
 Language enumeration. Represents the response language.
@@ -152,15 +162,23 @@ Language enumeration. Represents the response language.
 Attributes
 ----------
 English
+    Aliases: ``en``
 German
+    Aliases: ``de``
 French
+    Aliases: ``fr``
 Chinese
+    Aliases: ``zh``
 Spanish
-Latin America
+    Aliases: ``es``
 Portuguese
+    Aliases: ``pt``
 Russian
+    Aliases: ``ru``
 Polish
+    Aliases: ``pl``
 Turkish
+    Aliases: ``tr``
 """
 
 Queue = EnumGet("Queue", {
