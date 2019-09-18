@@ -67,7 +67,8 @@ Unknown
     Unknown platform. You can sometimes get this when the information either isn't available,
     or the returned value didn't match any of the existing ones.
 PC
-    Aliases: ``hirez``
+HiRez
+    Equivalent to `PC`.
 Steam
 PS4
     Aliases: ``psn``
