@@ -190,6 +190,7 @@ Queue = EnumGet("Queue", {
     "cn_ranked":                428,
     "Shooting Range":           434,
     "shooting_range":           434,
+    "range":                    434,
     "Training Siege":           425,
     "training_siege":           425,
     "bot_siege":                425,
@@ -203,6 +204,7 @@ Queue = EnumGet("Queue", {
     "bot_tdm":                  470,
     "Test Maps":                445,
     "test_maps":                445,
+    "test":                     445,
 })
 Queue.__doc__ = """
 Queue enumeration. Represents a match queue.
@@ -222,6 +224,7 @@ Competitive Keyboard
 Competitive Controller
     Aliases: ``controller_comp``, ``controller_ranked``, ``cn_comp``, ``cn_ranked``
 Shooting Range
+    Aliases: ``range``
 Training Siege
     Aliases: ``bot_siege``
 Training Onslaught
@@ -229,6 +232,7 @@ Training Onslaught
 Training Team Deathmatch
     Aliases: ``bot_team_deathmatch``, ``bot_deathmatch``, ``bot_tdm``
 Test Maps
+    Aliases: ``test``
 """
 
 Rank = EnumGet("Rank", {
