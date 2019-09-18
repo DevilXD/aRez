@@ -19,10 +19,7 @@ class EnumGet(Enum):
         if isinstance(key_or_value, str):
             get = cls.__members__.get(key_or_value)
             if not get:
-                key_or_value = key_or_value.lower()
-                get = cls.__members__.get(key_or_value)
-            if not get:
-                key_or_value = key_or_value.replace(' ', '_')
+                key_or_value = key_or_value.lower().replace(' ', '_')
                 get = cls.__members__.get(key_or_value)
             return get
         elif isinstance(key_or_value, int):
@@ -54,7 +51,6 @@ Platform = EnumGet("Platform", {
     "mixer":            14,
     "Switch":           22,
     "switch":           22,
-    "nintendo switch":  22,
     "nintendo_switch":  22,
     "Discord":          25,
     "discord":          25,
