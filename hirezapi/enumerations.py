@@ -1,4 +1,4 @@
-﻿from enum import Enum
+from enum import Enum
 from typing import Optional
 from contextlib import suppress
 
@@ -42,6 +42,7 @@ Platform = EnumGet("Platform", {
     "PS4":              9,
     "ps4":              9,
     "psn":              9,
+    "playstation":      9,
     "Xbox":             10,
     "xbox":             10,
     "xb":               10,
@@ -71,7 +72,7 @@ HiRez
     Equivalent to `PC`.
 Steam
 PS4
-    Aliases: ``psn``
+    Aliases: ``psn``, ``playstation``
 Xbox
     Aliases: ``xb``, ``xboxlive``, ``xboxone``, ``xbox_one``, ``xbox1``
 Switch
