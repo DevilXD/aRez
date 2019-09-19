@@ -246,7 +246,7 @@ class PaladinsAPI:
         if response:
             return Match(self, language, response)
 
-    async def get_matches(self, match_ids: List[int], language: Language = Language.English) -> Dict[int, Optional[Match]]:
+    async def get_matches(self, match_ids: List[int], language: Language = Language.English) -> List[Match]:
         """
         Fetches multiple matches in a batch, for the given Match IDs.
 
@@ -260,25 +260,25 @@ class PaladinsAPI:
         match_ids : List[int]
             The list of Match IDs you want to fetch.
         language : Optional[Language]
-            The ``Language`` you want to fetch the information in.
-            Defaults to Language.English
+            The ``Language`` you want to fetch the information in.\n
+            Defaults to `Language.English`
         
         Returns
         -------
-        Dict[int, Optional[Match]]
-            A mapping of the requested IDs to their corresponding Match objects.
-            The match can be None if it wasn't available on the server.
+        List[Match]
+            Returns a list of the available matches requested.\n
+            Some of the matches can be not present if they weren't available on the server.
         """
         assert isinstance(match_ids, list)
         assert all(isinstance(mid, int) for mid in match_ids)
         assert isinstance(language, Language)
         if not match_ids:
-            # passed in an empty list you dummy
-            return {}
+            return []
         await self.get_champion_info(language)
         response = await self.request("getmatchdetailsbatch", [','.join(map(str, match_ids))])
         matches = {}
         for p in response:
             matches.setdefault(p["Match"], []).append(p)
         matches = [Match(self, language, match_list) for match_list in matches.values()]
-        return {mid: get(matches, id=mid) for mid in match_ids}
+        matches.sort(key=lambda m: match_ids.index(m.id))
+        return matches
