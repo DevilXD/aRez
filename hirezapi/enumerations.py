@@ -1,6 +1,6 @@
-from enum import Enum
-from typing import Optional
+﻿from enum import Enum
 from contextlib import suppress
+from typing import Optional, Union
 
 __all__ = [
     'Rank',
@@ -15,7 +15,21 @@ __all__ = [
 
 class EnumGet(Enum):
     @classmethod
-    def get(cls, key_or_value) -> Optional[Enum]:
+    def get(cls, key_or_value: Union[str, int]) -> Optional[Enum]:
+        """
+        Allows for exception-less and case-insensitive enumeration member aquisition.
+        
+        Parameters
+        ----------
+        key_or_value : Union[str, int]
+            A string or value representing the member you want to get.
+        
+        Returns
+        -------
+        Optional[Enum]
+            The matched enumeration memeber.
+            `None` is returned if one couldn't be matched.
+        """
         if isinstance(key_or_value, str):
             get = cls.__members__.get(key_or_value)
             if not get:
