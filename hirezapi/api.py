@@ -23,7 +23,7 @@ class PaladinsAPI:
     auth_key : str
         Your developer's authentication key (authKey).
     loop : Optional[asyncio.AbstractEventLoop]
-        The loop you want to use for this API.
+        The loop you want to use for this API.\n
         Default loop is used when not provided.
     """
     def __init__(self, dev_id: Union[int, str], auth_key: str, *, loop: Optional[asyncio.AbstractEventLoop] = None):
@@ -61,13 +61,13 @@ class PaladinsAPI:
         Parameters
         ----------
         force_refresh : Optional[bool]
-            Bypasses the cache, forcing a fetch and returning a new object.
+            Bypasses the cache, forcing a fetch and returning a new object.\n
             Defaults to `False`.
         
         Returns
         -------
         Optional[ServerStatus]
-            The server status object.
+            The server status object.\n
             `None` is returned if there is no cached status and fetching returned an empty response.
         """
         if self._server_status is None or datetime.utcnow() - timedelta(minutes=1) >= self._server_status.timestamp or force_refresh:
@@ -89,16 +89,16 @@ class PaladinsAPI:
         Parameters
         ----------
         language : Optional[Language]
-            The Language you want to fetch the information in.
+            The Language you want to fetch the information in.\n
             Defaults to `Language.English`
         force_refresh : Optional[bool]
-            Bypasses the cache, forcing a fetch and returning a new object.
+            Bypasses the cache, forcing a fetch and returning a new object.\n
             Defaults to `False`.
         
         Returns
         -------
         Optional[ChampionInfo]
-            An object containing all champions, cards, talents and items information in the chosen language.
+            An object containing all champions, cards, talents and items information in the chosen language.\n
             `None` is returned if there was no cached information and fetching returned an empty response.
         """
         assert isinstance(language, Language)
@@ -149,7 +149,7 @@ class PaladinsAPI:
         Returns
         -------
         Optional[Player]
-            An object containing basic information about the player requested.
+            An object containing basic information about the player requested.\n
             `None` is returned if a Player for the given ID or Name could not be found.
         """
         assert isinstance(player, (int, str))
@@ -170,8 +170,8 @@ class PaladinsAPI:
         player_name : str
             Player name you want to search for.
         platform : Optional[Platform]
-            Platform you want to limit the search to.
-            Specifying `None` will search on all platforms.
+            Platform you want to limit the search to.\n
+            Specifying `None` will search on all platforms.\n
             Defaults to `None`.
         
         Returns
@@ -201,7 +201,7 @@ class PaladinsAPI:
         Parameters
         ----------
         platform_id : int
-            The platform-specific ID of the linked player.
+            The platform-specific ID of the linked player.\n
             This is usually SteamID64, Discord User ID, etc.
         platform : Platform
             The platform this ID is for.
@@ -209,7 +209,7 @@ class PaladinsAPI:
         Returns
         -------
         Optional[PartialPlayer]
-            The player this platform ID is linked to.
+            The player this platform ID is linked to.\n
             `None` is returned if the player couldn't be found.
         """
         assert isinstance(platform_id, int)
@@ -227,15 +227,15 @@ class PaladinsAPI:
         Parameters
         ----------
         match_id : int
-            Match ID you want to get a match for
+            Match ID you want to get a match for.
         language : Optional[Language]
-            The Language you want to fetch the information in.
+            The Language you want to fetch the information in.\n
             Defaults to `Language.English`
         
         Returns
         -------
         Optional[Match]
-            A match for the ID specified.
+            A match for the ID specified.\n
             `None` is returned if the match wasn't available on the server.
         """
         assert isinstance(match_id, int)
