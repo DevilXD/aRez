@@ -250,10 +250,7 @@ class PaladinsAPI:
         """
         Fetches multiple matches in a batch, for the given Match IDs.
 
-        Uses up a single request.
-
-        .. note:: Due to API limitations, things might break if you will try requesting more than
-            10 matches at a time. Proceed at your own risk.
+        Uses up a single request for every multiple of 10 match IDs passed.
         
         Parameters
         ----------
@@ -275,10 +272,16 @@ class PaladinsAPI:
         if not match_ids:
             return []
         await self.get_champion_info(language)
-        response = await self.request("getmatchdetailsbatch", [','.join(map(str, match_ids))])
-        matches = {}
-        for p in response:
-            matches.setdefault(p["Match"], []).append(p)
-        matches = [Match(self, language, match_list) for match_list in matches.values()]
-        matches.sort(key=lambda m: match_ids.index(m.id))
+        def chunk(l: list, n: int):
+	        for i in range(0, len(l), n):
+		        yield l[i:i+n]
+        matches = []
+        for chunk_ids in chunk(match_ids, 10): # chunk the IDs into groups of 10
+            response = await self.request("getmatchdetailsbatch", [','.join(map(str, chunk_ids))])
+            chunk_matches = {}
+            for p in response:
+                chunk_matches.setdefault(p["Match"], []).append(p)
+            chunk_matches = [Match(self, language, match_list) for match_list in chunk_matches.values()]
+            chunk_matches.sort(key=lambda m: chunk_ids.index(m.id))
+            matches.extend(chunk_matches)
         return matches
