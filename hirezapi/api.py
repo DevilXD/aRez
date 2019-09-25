@@ -291,17 +291,10 @@ class PaladinsAPI:
         queue: Queue,
         *,
         start: datetime,
-        end: datetime = None,
-        duration: timedelta = None,
+        end: datetime,
         reverse: bool = False
     ):
         assert isinstance(queue, Queue)
         assert isinstance(start, datetime)
         assert isinstance(end, (None.__class__, datetime))
-        assert isinstance(duration, (None.__class__, timedelta))
         assert isinstance(reverse, bool)
-        if end is None and duration is None:
-            raise ValueError("You have to specify either `end` or `duration`!")
-        elif end is not None and duration is not None:
-            raise ValueError("Either `end` or `duration is allowed, not both!")
-        
