@@ -1,4 +1,4 @@
-﻿import asyncio
+import asyncio
 from datetime import datetime, timedelta
 from typing import Union, Optional, List, Dict
 
@@ -7,9 +7,9 @@ from .items import Device
 from .endpoint import Endpoint
 from .champion import Champion
 from .status import ServerStatus
-from .utils import get, convert_timestamp
 from .player import Player, PartialPlayer
 from .cache import DataCache, ChampionInfo
+from .utils import get, chunk, convert_timestamp
 from .enumerations import Language, Platform, Queue
 
 class PaladinsAPI:
@@ -272,9 +272,6 @@ class PaladinsAPI:
         if not match_ids:
             return []
         await self.get_champion_info(language)
-        def chunk(l: list, n: int):
-	        for i in range(0, len(l), n):
-		        yield l[i:i+n]
         matches = []
         for chunk_ids in chunk(match_ids, 10): # chunk the IDs into groups of 10
             response = await self.request("getmatchdetailsbatch", [','.join(map(str, chunk_ids))])
