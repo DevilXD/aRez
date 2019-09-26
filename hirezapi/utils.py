@@ -135,7 +135,7 @@ def get_name_or_id(iterable: Iterable, name_or_id: Union[str, int], *, fuzzy: bo
         else:
             return get(iterable, name=name_or_id)
 
-def chunk(l: List, n: int) -> Generator[List]:
+def chunk(l: List, n: int) -> Generator[List, None, None]:
     """
     A helper generator that divides the input list into chunks of `n` length.\n
     The last chunk may be shorter than specified.
