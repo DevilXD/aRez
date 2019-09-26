@@ -195,6 +195,14 @@ class MatchPlayer(KDAMixin):
         A list of items bought by the player during this match.
     credits : int
         The amount of credits earned this match.
+    kills : int
+        The amount of enemy team player kills.
+    kills_bot : int
+        The amount of enemy team bot kills.
+    deaths : int
+        The amount of deaths.
+    assists : int
+        The amount of assists.
     damage_dealt : int
         The amount of damage dealt.
     damage_taken : int
@@ -209,7 +217,7 @@ class MatchPlayer(KDAMixin):
         The amount of healing done by the player's bot after they disconnected.
     objective_time : int
         The amount of objective time the player got, in seconds.
-    multikills : Tuple[int]
+    multikills : Tuple[int, int, int, int]
         The amount of (double, tripple, quadra, penta) kills the player did during the match.
     multikill_max : int
         The maximum multikill player did during the match.
@@ -237,7 +245,7 @@ class MatchPlayer(KDAMixin):
 
         self.kills_bot  = player_data["Kills_Bot"]
         self.objective_time = player_data["Objective_Assists"]
-        self.multikill_max  = player_data["Multi_kill_Max"]
+        self.multikill_max = player_data["Multi_kill_Max"]
         self.multikills = (
             player_data["Kills_Double"],
             player_data["Kills_Triple"],
@@ -258,13 +266,10 @@ class MatchPlayer(KDAMixin):
     @property
     def disconnected(self) -> bool:
         """
-        Checks if the player has disconnected during the match.
+        Returns True if the player has disconnected during the match, False otherwise.\n
         This is done by checking if either `damage_bot` or `healing_bot` are non zero.
         
-        Returns
-        -------
-        bool
-            True if the player got disconnected, False otherwise.
+        :type: bool
         """
         return self.damage_bot > 0 or self.healing_bot > 0
 
@@ -316,6 +321,7 @@ class Match:
         self.queue = Queue.get(first_player["match_queue_id"]) or Queue(0)
         self.map_name = first_player["Map_Game"]
         self.duration = Duration(seconds=first_player["Time_In_Match_Seconds"])
+        self.timestamp = convert_timestamp(first_player["Entry_Datetime"])
         self.score = (first_player["Team1Score"], first_player["Team2Score"])
         self.winning_team = first_player["Winning_TaskForce"]
         self.bans = []

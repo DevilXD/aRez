@@ -13,6 +13,7 @@ Players
 
 .. autoclass:: MatchPlayer()
     :members:
+    :inherited-members:
 
 .. autoclass:: LivePlayer()
     :members:
