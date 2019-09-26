@@ -1,7 +1,7 @@
 from enum import Enum
 from datetime import datetime, timedelta
 from operator import attrgetter
-from typing import Union, Optional, Iterable, AsyncGenerator
+from typing import Union, Optional, List, Iterable, Generator, AsyncGenerator
 
 # A decorator responsible for making sure a timedelta subclass survives arthmetic operations. We have to do this since timedelta is normally immutable.
 def preserve_timedelta_subclass(subclass: timedelta):
@@ -134,6 +134,21 @@ def get_name_or_id(iterable: Iterable, name_or_id: Union[str, int], *, fuzzy: bo
             return matches[0] if matches else None
         else:
             return get(iterable, name=name_or_id)
+
+def chunk(l: List, n: int) -> Generator[List]:
+    """
+    A helper generator that divides the input list into chunks of `n` length.\n
+    The last chunk may be shorter than specified.
+    
+    Parameters
+    ----------
+    l : List
+        The list you want to divide into chunks.
+    n : int
+        The length of each chunk.
+    """
+    for i in range(0, len(l), n):
+        yield l[i:i+n]
 
 async def expand_partial(iterable: Iterable) -> AsyncGenerator:
     """
