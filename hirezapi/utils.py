@@ -129,7 +129,8 @@ def get_name_or_id(iterable: Iterable, name_or_id: Union[str, int], *, fuzzy: bo
     elif isinstance(name_or_id, str):
         if fuzzy:
             # we have to do it manually here
-            matches = [i for i in iterable if i.name.lower() == name_or_id.lower()]
+            name_or_id = name_or_id.lower()
+            matches = [i for i in iterable if i.name.lower() == name_or_id]
             return matches[0] if matches else None
         else:
             return get(iterable, name=name_or_id)
