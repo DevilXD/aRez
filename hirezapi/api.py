@@ -271,6 +271,7 @@ class PaladinsAPI:
         assert isinstance(language, Language)
         if not match_ids:
             return []
+        # ensure we have champion information first
         await self.get_champion_info(language)
         matches = []
         for chunk_ids in chunk(match_ids, 10): # chunk the IDs into groups of 10
