@@ -263,7 +263,7 @@ class PaladinsAPI:
         Returns
         -------
         List[Match]
-            Returns a list of the available matches requested.\n
+            A list of the available matches requested.\n
             Some of the matches can be not present if they weren't available on the server.
         """
         assert isinstance(match_ids, list)
