@@ -1,6 +1,6 @@
-import asyncio
-from datetime import datetime, timedelta
-from typing import Union, Optional, List, Dict
+﻿import asyncio
+from datetime import datetime, timedelta, timezone
+from typing import Union, Optional, List, Dict, AsyncGenerator
 
 from .match import Match
 from .items import Device
@@ -287,12 +287,119 @@ class PaladinsAPI:
     async def get_matches_for_queue(
         self,
         queue: Queue,
+        language: Language = Language.English,
         *,
         start: datetime,
         end: datetime,
         reverse: bool = False
-    ):
+    ) -> AsyncGenerator[Match, None]:
+        """
+        Creates an async generator that lets you iterate over all matches played
+        in a particular queue, between the timestamps provided.
+
+        Uses up a single request for every:
+        - multiple of 10 matches returned
+        - 10 minutes worth of matches fetched
+        Whole hour time slices are optimized to use a single request instead of
+        6 individual 10 minute ones.
+        
+        Parameters
+        ----------
+        queue : Queue
+            The ``Queue`` you want to fetch the matches for.
+        language : Language
+            The ``Language`` you want to fetch the information in.\n
+            Defaults to `Language.English`
+        start : datetime
+            A UTC timestamp indicating the starting point of a time slice you want to
+            fetch the matches in.
+        end : datetime
+            A UTC timestamp indicating the ending point of a time slice you want to
+            fetch the matches in.
+        reverse : bool
+            Reverses the order of the matches returned.
+            Defaults to `False`
+        
+        Returns
+        -------
+        AsyncGenerator[Match, None]
+            An async generator yielding matches played in the queue specified, between the
+            timestamps specified.
+        """
         assert isinstance(queue, Queue)
+        assert isinstance(language, Language)
         assert isinstance(start, datetime)
-        assert isinstance(end, (None.__class__, datetime))
+        assert isinstance(end, datetime)
         assert isinstance(reverse, bool)
+        # normalize and floor start and end to 10 minutes step resolution
+        start = start.replace(minute=(
+            start.minute // 10 * 10
+        ), second=0, microsecond=0)
+        end = end.replace(minute=(
+            end.minute // 10 * 10
+        ), second=0, microsecond=0)
+        if start >= end:
+            # the time slice is too short - save on processing by quitting early
+            return
+        # convert aware objects into UTC ones, matching server time
+        start = start.astimezone(timezone.utc)
+        end = end.astimezone(timezone.utc)
+        # ensure we have champion information first
+        await self.get_champion_info(language)
+
+        # Generates API-valid series of date and hour parameters
+        def date_gen(start, end, *, reverse=False):
+            one_hour = timedelta(hours=1)
+            ten_minutes = timedelta(minutes=10)
+            if reverse:
+                if end.minute > 0:
+                    # round down to the nearest hour
+                    closest_hour = end.replace(minute=0)
+                    while end > closest_hour and end > start:
+                        end -= ten_minutes
+                        yield (end.strftime("%Y%m%d"), "{},{:02}".format(end.hour, end.minute))
+                # round up to the nearest hour
+                closest_hour = start.replace(minute=0) + timedelta(hours=1)
+                while end > closest_hour and end > start:
+                    end -= one_hour
+                    yield (end.strftime("%Y%m%d"), str(end.hour))
+                if start.minute > 0:
+                    while end > start:
+                        end -= ten_minutes
+                        yield (end.strftime("%Y%m%d"), "{},{:02}".format(end.hour, end.minute))
+            else:
+                if start.minute > 0:
+                    # round up to the nearest hour
+                    closest_hour = start.replace(minute=0) + timedelta(hours=1)
+                    while start < closest_hour and start < end:
+                        yield (start.strftime("%Y%m%d"), "{},{:02}".format(start.hour, start.minute))
+                        start += ten_minutes
+                # round down to the nearest hour
+                closest_hour = end.replace(minute=0)
+                while start < closest_hour and start < end:
+                    yield (start.strftime("%Y%m%d"), str(start.hour))
+                    start += one_hour
+                if end.minute > 0:
+                    while start < end:
+                        yield (start.strftime("%Y%m%d"), "{},{:02}".format(start.hour, start.minute))
+                        start += ten_minutes
+        
+        # Use the generated date and hour values to iterate over and fetch matches
+        for date, hour in date_gen(start, end, reverse=reverse):
+            response = await self.request("getmatchidsbyqueue", [queue.value, date, hour])
+            if reverse:
+                match_ids = [e["Match"] for e in reversed(response) if e["Active_Flag"] == "n"]
+            else:
+                match_ids = [e["Match"] for e in response if e["Active_Flag"] == "n"]
+            for match in match_ids:
+                yield match
+            continue
+            for chunk_ids in chunk(match_ids, 10): # chunk the IDs into groups of 10
+                response = await self.request("getmatchdetailsbatch", [','.join(map(str, chunk_ids))])
+                chunk_matches = {}
+                for p in response:
+                    chunk_matches.setdefault(p["Match"], []).append(p)
+                chunk_matches = [Match(self, language, match_list) for match_list in chunk_matches.values()]
+                chunk_matches.sort(key=lambda m: chunk_ids.index(m.id))
+                for match in chunk_matches:
+                    yield match
