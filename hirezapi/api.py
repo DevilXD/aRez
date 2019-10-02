@@ -136,8 +136,8 @@ class PaladinsAPI:
         Fetches a Player object for the given player ID or player name.
 
         Only players with `Platform.Steam`, `Platform.HiRez` and `Platform.Discord`
-        platforms will be returned when using this method with player name as input.
-        For player ID inputs, players from all platforms will be returned.
+        platforms (PC players) will be returned when using this method with player name
+        as input. For player ID inputs, players from all platforms will be returned.
 
         Uses up a single request.
         
