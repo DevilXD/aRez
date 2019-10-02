@@ -153,6 +153,9 @@ class PaladinsAPI:
             `None` is returned if a Player for the given ID or Name could not be found.
         """
         assert isinstance(player, (int, str))
+        if player in [0, '0']:
+            # save on the requests by returning None straight away
+            return None
         player_list = await self.request("getplayer", [player])
         if player_list:
             return Player(self, player_list[0])
