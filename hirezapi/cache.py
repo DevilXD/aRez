@@ -15,7 +15,7 @@ class ChampionInfo:
     language : Language
         The language of this entry.
     devices : List[Device]
-        Returns a list of all cards, talents and shop items.
+        Returns a list of all cards, talents and shop items.\n
         This list also contains other devices that are returned from the API,
         but are considered invalid.
     champions : List[Champion]
@@ -70,14 +70,14 @@ class ChampionInfo:
         champion : Union[str, int]
             The Name or ID of the champion you want to get.
         fuzzy : bool
-            When set to True, makes the Name search case insensitive.
-            Defaults to False.
+            When set to `True`, makes the Name search case insensitive.\n
+            Defaults to `False`.
         
         Returns
         -------
         Optional[Champion]
-            The champion you requested.
-            None is returned if a champion with the requested Name or ID couldn't be found.
+            The champion you requested.\n
+            `None` is returned if a champion with the requested Name or ID couldn't be found.
         """
         return get_name_or_id(self.champions, champion, fuzzy=fuzzy)
 
@@ -91,14 +91,14 @@ class ChampionInfo:
         card : Union[str, int]
             The Name or ID of the card you want to get.
         fuzzy : bool
-            When set to True, makes the Name search case insensitive.
-            Defaults to False.
+            When set to `True`, makes the Name search case insensitive.\n
+            Defaults to `False`.
         
         Returns
         -------
         Optional[Device]
-            The card you requested.
-            None is returned if a card with the requested Name or ID couldn't be found.
+            The card you requested.\n
+            `None` is returned if a card with the requested Name or ID couldn't be found.
         """
         return get_name_or_id(self.cards, card, fuzzy=fuzzy)
 
@@ -112,14 +112,14 @@ class ChampionInfo:
         talent : Union[str, int]
             The Name or ID of the talent you want to get.
         fuzzy : bool
-            When set to True, makes the Name search case insensitive.
-            Defaults to False.
+            When set to `True`, makes the Name search case insensitive.\n
+            Defaults to `False`.
         
         Returns
         -------
         Optional[Device]
-            The talent you requested.
-            None is returned if a talent with the requested Name or ID couldn't be found.
+            The talent you requested.\n
+            `None` is returned if a talent with the requested Name or ID couldn't be found.
         """
         return get_name_or_id(self.talents, talent, fuzzy=fuzzy)
 
@@ -133,14 +133,14 @@ class ChampionInfo:
         item : Union[str, int]
             The Name or ID of the shop item you want to get.
         fuzzy : bool
-            When set to True, makes the Name search case insensitive.
-            Defaults to False.
+            When set to True, makes the Name search case insensitive.\n
+            Defaults to `False`.
         
         Returns
         -------
         Optional[Device]
-            The shop item you requested.
-            None is returned if a shop item with the requested Name or ID couldn't be found.
+            The shop item you requested.\n
+            `None` is returned if a shop item with the requested Name or ID couldn't be found.
         """
         return get_name_or_id(self.items, item, fuzzy=fuzzy)
 
@@ -164,7 +164,7 @@ class DataCache:
         Returns a champion for the given Name or ID, and Language specified.
         Case sensitive.
 
-        This method can return None or stale data if the entry hasn't been fetched yet, or haven't been updated in a while.
+        This method can return `None` or stale data if the entry hasn't been fetched yet, or haven't been updated in a while.
         Consider using the `get_champion_info` method from the main API instead.
         
         Parameters
@@ -172,17 +172,17 @@ class DataCache:
         champion : Union[str, int]
             The Name or ID of the champion you want to get.
         language : Language, optional
-            The Language you want to get the champion in.
-            Defaults to Language.English
+            The ``Language`` you want to get the champion in.\n
+            Defaults to `Language.English`
         fuzzy : bool
-            When set to True, makes the Name search case insensitive.
-            Defaults to False.
+            When set to True, makes the Name search case insensitive.\n
+            Defaults to `False`.
         
         Returns
         -------
         Optional[Champion]
-            The champion you requested.
-            None is returned if a champion couldn't be found, or the entry for the language specified hasn't been fetched yet.
+            The champion you requested.\n
+            `None` is returned if a champion couldn't be found, or the entry for the language specified hasn't been fetched yet.
         """
         entry = self._cache.get(language)
         if entry:
@@ -193,7 +193,7 @@ class DataCache:
         Returns a card for the given Name or ID, and Language specified.
         Case sensitive.
 
-        This method can return None or stale data if the entry hasn't been fetched yet, or haven't been updated in a while.
+        This method can return `None` or stale data if the entry hasn't been fetched yet, or haven't been updated in a while.
         Consider using the `get_champion_info` method from the main API instead.
         
         Parameters
@@ -201,17 +201,17 @@ class DataCache:
         card : Union[str, int]
             The Name or ID of the card you want to get.
         language : Language, optional
-            The Language you want to get the card in.
-            Defaults to Language.English
+            The ``Language`` you want to get the card in.\n
+            Defaults to `Language.English`
         fuzzy : bool
-            When set to True, makes the Name search case insensitive.
-            Defaults to False.
+            When set to True, makes the Name search case insensitive.\n
+            Defaults to `False`.
         
         Returns
         -------
         Optional[Device]
-            The card you requested.
-            None is returned if a card couldn't be found, or the entry for the language specified hasn't been fetched yet.
+            The card you requested.\n
+            `None` is returned if a card couldn't be found, or the entry for the language specified hasn't been fetched yet.
         """
         entry = self._cache.get(language)
         if entry:
@@ -222,7 +222,7 @@ class DataCache:
         Returns a talent for the given Name or ID, and Language specified.
         Case sensitive.
 
-        This method can return None or stale data if the entry hasn't been fetched yet, or haven't been updated in a while.
+        This method can return `None` or stale data if the entry hasn't been fetched yet, or haven't been updated in a while.
         Consider using the `get_champion_info` method from the main API instead.
         
         Parameters
@@ -230,17 +230,17 @@ class DataCache:
         talent : Union[str, int]
             The Name or ID of the talent you want to get.
         language : Language, optional
-            The Language you want to get the talent in.
-            Defaults to Language.English
+            The ``Language`` you want to get the talent in.\n
+            Defaults to `Language.English`
         fuzzy : bool
-            When set to True, makes the Name search case insensitive.
-            Defaults to False.
+            When set to True, makes the Name search case insensitive.\n
+            Defaults to `False`.
         
         Returns
         -------
         Optional[Device]
-            The talent you requested.
-            None is returned if a talent couldn't be found, or the entry for the language specified hasn't been fetched yet.
+            The talent you requested.\n
+            `None` is returned if a talent couldn't be found, or the entry for the language specified hasn't been fetched yet.
         """
         entry = self._cache.get(language)
         if entry:
@@ -251,7 +251,7 @@ class DataCache:
         Returns a shop item for the given Name or ID, and Language specified.
         Case sensitive.
 
-        This method can return None or stale data if the entry hasn't been fetched yet, or haven't been updated in a while.
+        This method can return `None` or stale data if the entry hasn't been fetched yet, or haven't been updated in a while.
         Consider using the `get_champion_info` method from the main API instead.
         
         Parameters
@@ -259,17 +259,17 @@ class DataCache:
         item : Union[str, int]
             The Name or ID of the item you want to get.
         language : Language, optional
-            The Language you want to get the shop item in.
-            Defaults to Language.English
+            The ``Language`` you want to get the shop item in.\n
+            Defaults to `Language.English`
         fuzzy : bool
-            When set to True, makes the Name search case insensitive.
-            Defaults to False.
+            When set to True, makes the Name search case insensitive.\n
+            Defaults to `False`.
         
         Returns
         -------
         Optional[Device]
-            The shop item you requested.
-            None is returned if a shop item couldn't be found, or the entry for the language specified hasn't been fetched yet.
+            The shop item you requested.\n
+            `None` is returned if a shop item couldn't be found, or the entry for the language specified hasn't been fetched yet.
         """
         entry = self._cache.get(language)
         if entry:
