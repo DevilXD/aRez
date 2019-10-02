@@ -149,10 +149,8 @@ class DataCache:
         self._cache: Mapping[Language, ChampionInfo] = {}
         self.refresh_every = timedelta(hours=12)
 
-    def __setitem__(self, language: Language, info_init_tuple):
-        if not isinstance(language, Language):
-            raise IndexError("Only Language emumeration members are allowed as keys")
-        self._cache[language] = ChampionInfo(self, language, *info_init_tuple)
+    def _create_entry(self, language: Language, champions_data, items_data):
+        self._cache[language] = ChampionInfo(self, language, champions_data, items_data)
 
     def __getitem__(self, language: Language):
         return self._cache.get(language)

@@ -1,4 +1,4 @@
-﻿import asyncio
+import asyncio
 from datetime import datetime, timedelta, timezone
 from typing import Union, Optional, List, Dict, AsyncGenerator
 
@@ -107,7 +107,7 @@ class PaladinsAPI:
             champions_response = await self.request("getgods", [language.value])
             items_response = await self.request("getitems", [language.value])
             if champions_response and items_response:
-                self._cache[language] = (champions_response, items_response)
+                self._cache._create_entry(language, champions_response, items_response)
 
         return self._cache[language] # DataCache uses `.get()` on the internal dict, so this won't cause a KeyError
 
