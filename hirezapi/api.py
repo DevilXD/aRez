@@ -1,4 +1,4 @@
-import asyncio
+﻿import asyncio
 from datetime import datetime, timedelta, timezone
 from typing import Union, Optional, List, Dict, AsyncGenerator
 
@@ -391,9 +391,9 @@ class PaladinsAPI:
         for date, hour in date_gen(start, end, reverse=reverse):
             response = await self.request("getmatchidsbyqueue", [queue.value, date, hour])
             if reverse:
-                match_ids = [e["Match"] for e in reversed(response) if e["Active_Flag"] == "n"]
+                match_ids = [int(e["Match"]) for e in reversed(response) if e["Active_Flag"] == "n"]
             else:
-                match_ids = [e["Match"] for e in response if e["Active_Flag"] == "n"]
+                match_ids = [int(e["Match"]) for e in response if e["Active_Flag"] == "n"]
             for chunk_ids in chunk(match_ids, 10): # chunk the IDs into groups of 10
                 response = await self.request("getmatchdetailsbatch", [','.join(map(str, chunk_ids))])
                 chunk_matches = {}
