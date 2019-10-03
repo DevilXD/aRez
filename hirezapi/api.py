@@ -1,4 +1,4 @@
-﻿import asyncio
+import asyncio
 from datetime import datetime, timedelta, timezone
 from typing import Union, Optional, List, Dict, AsyncGenerator
 
@@ -391,9 +391,6 @@ class PaladinsAPI:
                 match_ids = [e["Match"] for e in reversed(response) if e["Active_Flag"] == "n"]
             else:
                 match_ids = [e["Match"] for e in response if e["Active_Flag"] == "n"]
-            for match in match_ids:
-                yield match
-            continue
             for chunk_ids in chunk(match_ids, 10): # chunk the IDs into groups of 10
                 response = await self.request("getmatchdetailsbatch", [','.join(map(str, chunk_ids))])
                 chunk_matches = {}
