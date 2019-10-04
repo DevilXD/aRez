@@ -1,4 +1,4 @@
-﻿from enum import Enum
+from enum import Enum
 from contextlib import suppress
 from typing import Optional, Union
 
@@ -139,33 +139,42 @@ Language = EnumGet("Language", {
     "English":          1,
     "english":          1,
     "en":               1,
+    "eng":              1,
     "German":           2,
     "german":           2,
     "de":               2,
+    "ger":              2,
     "French":           3,
     "french":           3,
     "fr":               3,
+    "fre":              3,
     "Chinese":          5,
     "chinese":          5,
     "zh":               5,
+    "chi":              5,
     #"Spanish":         7, # old spanish - it seems like this language isn't used that much
     #"spanish":         7, # over the #9 one, and is full of mostly outdated data
     #"es":              7,
     "Spanish":          9, # old Latin America
     "spanish":          9, # old latin_america
     "es":               9, # old Latin America
+    "spa":              9,
     "Portuguese":       10,
     "portuguese":       10,
     "pt":               10,
+    "por":              10,
     "Russian":          11,
     "russian":          11,
     "ru":               11,
+    "rus":              11,
     "Polish":           12,
     "polish":           12,
     "pl":               12,
+    "pol":              12,
     "Turkish":          13,
     "turkish":          13,
     "tr":               13,
+    "tur":              13,
 })
 Language.__doc__ = """
 Language enumeration. Represents the response language.
@@ -173,23 +182,23 @@ Language enumeration. Represents the response language.
 Attributes
 ----------
 English
-    Aliases: ``en``
+    Aliases: ``en``, ``eng``
 German
-    Aliases: ``de``
+    Aliases: ``de``, ``ger``
 French
-    Aliases: ``fr``
+    Aliases: ``fr``, ``fre``
 Chinese
-    Aliases: ``zh``
+    Aliases: ``zh``, ``chi``
 Spanish
-    Aliases: ``es``
+    Aliases: ``es``, ``spa``
 Portuguese
-    Aliases: ``pt``
+    Aliases: ``pt``, ``por``
 Russian
-    Aliases: ``ru``
+    Aliases: ``ru``, ``rus``
 Polish
-    Aliases: ``pl``
+    Aliases: ``pl``, ``pol``
 Turkish
-    Aliases: ``tr``
+    Aliases: ``tr``, ``tur``
 """
 
 Queue = EnumGet("Queue", {
