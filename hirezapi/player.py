@@ -77,7 +77,7 @@ class PartialPlayer:
         """
         if self.private:
             raise Private
-        response = await self._api.request("getplayer", [self.id])
+        response = await self._api.request("getplayer", self.id)
         if response:
             return Player(self._api, response[0])
 
@@ -100,7 +100,7 @@ class PartialPlayer:
         """
         if self.private:
             raise Private
-        response = await self._api.request("getplayerstatus", [self.id])
+        response = await self._api.request("getplayerstatus", self.id)
         if response and response[0]["status"] != 5:
             return PlayerStatus(self, response[0])
     
@@ -122,7 +122,7 @@ class PartialPlayer:
         """
         if self.private:
             raise Private
-        response = await self._api.request("getfriends", [self.id])
+        response = await self._api.request("getfriends", self.id)
         return [PartialPlayer(self._api, p) for p in response]
 
     async def get_loadouts(self, language: Language = Language.English) -> List[Loadout]:
@@ -152,7 +152,7 @@ class PartialPlayer:
             raise Private
         # ensure we have champion information first
         await self._api.get_champion_info(language)
-        response = await self._api.request("getplayerloadouts", [self.id, language.value])
+        response = await self._api.request("getplayerloadouts", self.id, language.value)
         if not response or response and not response[0]["playerId"]:
             return []
         return [Loadout(self, language, l) for l in response]
@@ -184,7 +184,7 @@ class PartialPlayer:
             raise Private
         # ensure we have champion information first
         await self._api.get_champion_info(language)
-        response = await self._api.request("getgodranks", [self.id])
+        response = await self._api.request("getgodranks", self.id)
         return [ChampionStats(self, language, s) for s in response]
     
     async def get_match_history(self, language: Language = Language.English) -> List[PartialMatch]:
@@ -214,7 +214,7 @@ class PartialPlayer:
             raise Private
         # ensure we have champion information first
         await self._api.get_champion_info(language)
-        response = await self._api.request("getmatchhistory", [self.id])
+        response = await self._api.request("getmatchhistory", self.id)
         if not response or response and response[0]["ret_msg"]:
             return []
         return [PartialMatch(self, language, m) for m in response]

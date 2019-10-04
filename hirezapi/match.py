@@ -173,7 +173,7 @@ class PartialMatch(KDAMixin):
         Match
             The expanded match object.
         """
-        response = await self._api.request("getmatchdetails", [self.id])
+        response = await self._api.request("getmatchdetails", self.id)
         return Match(self._api, self.language, response)
 
 class MatchPlayer(KDAMixin):

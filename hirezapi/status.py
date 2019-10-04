@@ -126,7 +126,7 @@ class PlayerStatus:
             None is returned if the player isn't in a live match, or the match is played in an unsupported queue (customs).
         """
         if self.live_match_id:
-            response = await self.player._api.request("getmatchplayerdetails", [self.live_match_id])
+            response = await self.player._api.request("getmatchplayerdetails", self.live_match_id)
             if response and response[0] and response[0]["ret_msg"]:
                 return None
             return LiveMatch(self.player._api, language, response)
