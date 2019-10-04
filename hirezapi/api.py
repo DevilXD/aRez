@@ -1,4 +1,4 @@
-﻿import asyncio
+import asyncio
 from datetime import datetime, timedelta, timezone
 from typing import Union, Optional, List, Dict, AsyncGenerator
 
@@ -60,7 +60,7 @@ class PaladinsAPI:
         
         Parameters
         ----------
-        force_refresh : Optional[bool]
+        force_refresh : bool
             Bypasses the cache, forcing a fetch and returning a new object.\n
             Defaults to `False`.
         
@@ -88,10 +88,10 @@ class PaladinsAPI:
         
         Parameters
         ----------
-        language : Optional[Language]
-            The Language you want to fetch the information in.\n
+        language : Language
+            The `Language` you want to fetch the information in.\n
             Defaults to `Language.English`
-        force_refresh : Optional[bool]
+        force_refresh : bool
             Bypasses the cache, forcing a fetch and returning a new object.\n
             Defaults to `False`.
         
@@ -231,8 +231,8 @@ class PaladinsAPI:
         ----------
         match_id : int
             Match ID you want to get a match for.
-        language : Optional[Language]
-            The Language you want to fetch the information in.\n
+        language : Language
+            The `Language` you want to fetch the information in.\n
             Defaults to `Language.English`
         
         Returns
@@ -259,8 +259,8 @@ class PaladinsAPI:
         ----------
         match_ids : List[int]
             The list of Match IDs you want to fetch.
-        language : Optional[Language]
-            The ``Language`` you want to fetch the information in.\n
+        language : Language
+            The `Language` you want to fetch the information in.\n
             Defaults to `Language.English`
         
         Returns
@@ -300,18 +300,19 @@ class PaladinsAPI:
         Creates an async generator that lets you iterate over all matches played
         in a particular queue, between the timestamps provided.
 
-        Uses up a single request for every:
-        - multiple of 10 matches returned
-        - 10 minutes worth of matches fetched
+        Uses up a single request for every:\n
+        • multiple of 10 matches returned\n
+        • 10 minutes worth of matches fetched
+
         Whole hour time slices are optimized to use a single request instead of
-        6 individual 10 minute ones.
+        6 individual, 10 minute ones.
         
         Parameters
         ----------
         queue : Queue
-            The ``Queue`` you want to fetch the matches for.
+            The `Queue` you want to fetch the matches for.
         language : Language
-            The ``Language`` you want to fetch the information in.\n
+            The `Language` you want to fetch the information in.\n
             Defaults to `Language.English`
         start : datetime
             A UTC timestamp indicating the starting point of a time slice you want to

@@ -27,7 +27,7 @@ class EnumGet(Enum):
         Returns
         -------
         Optional[Enum]
-            The matched enumeration memeber.
+            The matched enumeration memeber.\n
             `None` is returned if one couldn't be matched.
         """
         if isinstance(key_or_value, str):

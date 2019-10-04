@@ -1,4 +1,4 @@
-﻿from typing import Union, List, TYPE_CHECKING
+from typing import Union, List, TYPE_CHECKING
 
 from .utils import get_name_or_id
 from .enumerations import Language, DeviceType, AbilityType

@@ -133,7 +133,7 @@ class ChampionInfo:
         item : Union[str, int]
             The Name or ID of the shop item you want to get.
         fuzzy : bool
-            When set to True, makes the Name search case insensitive.\n
+            When set to `True`, makes the Name search case insensitive.\n
             Defaults to `False`.
         
         Returns
@@ -171,11 +171,11 @@ class DataCache:
         ----------
         champion : Union[str, int]
             The Name or ID of the champion you want to get.
-        language : Language, optional
-            The ``Language`` you want to get the champion in.\n
+        language : Language
+            The `Language` you want to get the champion in.\n
             Defaults to `Language.English`
         fuzzy : bool
-            When set to True, makes the Name search case insensitive.\n
+            When set to `True`, makes the Name search case insensitive.\n
             Defaults to `False`.
         
         Returns
@@ -200,11 +200,11 @@ class DataCache:
         ----------
         card : Union[str, int]
             The Name or ID of the card you want to get.
-        language : Language, optional
-            The ``Language`` you want to get the card in.\n
+        language : Language
+            The `Language` you want to get the card in.\n
             Defaults to `Language.English`
         fuzzy : bool
-            When set to True, makes the Name search case insensitive.\n
+            When set to `True`, makes the Name search case insensitive.\n
             Defaults to `False`.
         
         Returns
@@ -230,10 +230,10 @@ class DataCache:
         talent : Union[str, int]
             The Name or ID of the talent you want to get.
         language : Language, optional
-            The ``Language`` you want to get the talent in.\n
+            The `Language` you want to get the talent in.\n
             Defaults to `Language.English`
         fuzzy : bool
-            When set to True, makes the Name search case insensitive.\n
+            When set to `True`, makes the Name search case insensitive.\n
             Defaults to `False`.
         
         Returns
@@ -258,11 +258,11 @@ class DataCache:
         ----------
         item : Union[str, int]
             The Name or ID of the item you want to get.
-        language : Language, optional
-            The ``Language`` you want to get the shop item in.\n
+        language : Language
+            The `Language` you want to get the shop item in.\n
             Defaults to `Language.English`
         fuzzy : bool
-            When set to True, makes the Name search case insensitive.\n
+            When set to `True`, makes the Name search case insensitive.\n
             Defaults to `False`.
         
         Returns

@@ -67,8 +67,8 @@ class PartialPlayer:
         Returns
         -------
         Optional[Player]
-            A full player object with all fields filled up, for the same player.
-            None is returned if this player could not be found.
+            A full player object with all fields filled up, for the same player.\n
+            `None` is returned if this player could not be found.
         
         Raises
         ------
@@ -90,8 +90,8 @@ class PartialPlayer:
         Returns
         -------
         Optional[PlayerStatus]
-            The player's status.
-            None is returned if this player could not be found.
+            The player's status.\n
+            `None` is returned if this player could not be found.
         
         Raises
         ------
@@ -133,9 +133,9 @@ class PartialPlayer:
         
         Parameters
         ----------
-        language : Optional[Language]
+        language : Language
             The `Language` you want to fetch the information in.
-            Defaults to Language.English
+            Defaults to `Language.English`
         
         Returns
         -------
@@ -165,9 +165,9 @@ class PartialPlayer:
         
         Parameters
         ----------
-        language : Optional[Language]
+        language : Language
             The `Language` you want to fetch the information in.
-            Defaults to Language.English
+            Defaults to `Language.English`
         
         Returns
         -------
@@ -195,9 +195,9 @@ class PartialPlayer:
         
         Parameters
         ----------
-        language : Optional[Language]
+        language : Language
             The `Language` you want to fetch the information in.
-            Defaults to Language.English
+            Defaults to `Language.English`
         
         Returns
         -------
@@ -234,8 +234,8 @@ class Player(PartialPlayer):
     private : bool
         Whether or not this profile is considered Private.
     active_player : Optional[PartialPlayer]
-        The current active player between merged profiles.
-        None if the current profile is the active profile.
+        The current active player between merged profiles.\n
+        `None` if the current profile is the active profile.
     merged_players : List[PartialPlayer]
         A list of all merged profiles.
     created_at : datetime

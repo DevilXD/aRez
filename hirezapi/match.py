@@ -13,8 +13,8 @@ class MatchItem:
     Attributes
     ----------
     item : Optional[Device]
-        The purchased item.
-        None with incomplete cache.
+        The purchased item.\n
+        `None` with incomplete cache.
     level : int
         The level of the item purchased.
     """
@@ -35,8 +35,8 @@ class MatchLoadout:
     cards : List[LoadoutCard]
         A list of loadout cards used.
     talent : Optional[Device]
-        The talent used.
-        None with incomplete cache.
+        The talent used.\n
+        `None` with incomplete cache.
     """
     def __init__(self, api, language: Language, match_data: dict):
         self.cards = []
@@ -67,8 +67,8 @@ class PartialMatch(KDAMixin):
     language : Language
         The language of cards, talents and items this match has.
     champion : Optional[Champion]
-        The champion used by the player in this match.
-        None with incomplete cache.
+        The champion used by the player in this match.\n
+        `None` with incomplete cache.
     queue : Queue
         The queue this match was played in.
     region : Region
@@ -187,8 +187,8 @@ class MatchPlayer(KDAMixin):
         This is always a new, partial object, regardless of which way the match was fetched.
         All attributes, Name, ID and Platform, should be present.
     champion : Optional[Champion]
-        The champion used by the player in this match.
-        None with incomplete cache.
+        The champion used by the player in this match.\n
+        `None` with incomplete cache.
     loadout : MatchLoadout
         The loadout used by the player in this match.
     items : List[MatchItem]
@@ -266,7 +266,7 @@ class MatchPlayer(KDAMixin):
     @property
     def disconnected(self) -> bool:
         """
-        Returns True if the player has disconnected during the match, False otherwise.\n
+        Returns `True` if the player has disconnected during the match, `False` otherwise.\n
         This is done by checking if either `damage_bot` or `healing_bot` are non zero.
         
         :type: bool
@@ -296,15 +296,15 @@ class Match:
     duration : Duration
         The duration of the match.
     bans : List[Champion]
-        A list of champions banned this match.
+        A list of champions banned this match.\n
         This is an empty list for non-ranked matches, or with incomplete cache.
     map_name : str
         The name of the map played.
     score : Tuple[int, int]
-        The match's ending score. The first value is the `team_1` score, while the second value - `team_2` score.
+        The match's ending score. The first value is the ``team_1`` score, while the second value - ``team_2`` score.
     winning_team : int
-        The winning team of this match.
-        This can be either `1` or `2`.
+        The winning team of this match.\n
+        This can be either ``1`` or ``2``.
     team_1 : List[MatchPlayer]
         A list of players in the first team.
     team_2 : List[MatchPlayer]
@@ -356,8 +356,8 @@ class LivePlayer(WinLoseMixin):
     player : PartialPlayer
         The actual player playing in this match.
     champion : Optional[Champion]
-        The champion the player is using in this match.
-        None with incomplete cache.
+        The champion the player is using in this match.\n
+        `None` with incomplete cache.
     rank : Rank
         The player's rank.
     account_level : int

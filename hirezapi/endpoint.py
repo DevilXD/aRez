@@ -22,7 +22,7 @@ class Endpoint:
     auth_key : str
         Your developer's authentication key (authKey).
     loop : Optional[asyncio.AbstractEventLoop]
-        The loop you want to use for this Endpoint.
+        The loop you want to use for this Endpoint.\n
         Default loop is used when not provided.
 
     .. note:: You can request your developer ID and authorization key here:
@@ -58,7 +58,7 @@ class Endpoint:
     def _get_signature(self, method_name: str, timestamp: str):
         return md5(''.join([self.__dev_id, method_name, self.__auth_key, timestamp]).encode()).hexdigest()
 
-    async def request(self, method_name: str, data: list = None):
+    async def request(self, method_name: str, *data: Union[int, str]):
         """
         Makes a direct request to the HiRez API.
         
@@ -69,8 +69,8 @@ class Endpoint:
         method_name : str
             The name of the method requested. This shouldn't include the reponse type as it's
             added for you.
-        data : Optional[List[Union[int, str]]]
-            A list of method parameters requested to add at the end of the request, if applicable.
+        *data : Union[int, str]
+            Method parameters requested to add at the end of the request, if applicable.
             Those should be either integers or strings.
         
         Returns
@@ -81,8 +81,8 @@ class Endpoint:
         Raises
         ------
         HTTPException
-            Whenever it was impossible to fetch the data in a reliable manner.
-            Check the `cause` attribute for the original exception that lead to this.
+            Whenever it was impossible to fetch the data in a reliable manner.\n
+            Check the ``cause`` attribute for the original exception that lead to this.
         """
         method_name = method_name.lower()
         req_stack = [self.url, "{}json".format(method_name)]
