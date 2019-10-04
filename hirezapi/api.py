@@ -321,8 +321,8 @@ class PaladinsAPI:
             A UTC timestamp indicating the ending point of a time slice you want to
             fetch the matches in.
         reverse : bool
-            Reverses the order of the matches returned.
-            Defaults to `False`
+            Reverses the order of the matches returned.\n
+            Defaults to `False`.
         
         Returns
         -------
