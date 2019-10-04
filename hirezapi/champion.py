@@ -20,7 +20,7 @@ class Ability:
     ----------
     name : str
         The name of the ability.
-    id : int, optional
+    id : int
         The ID of the ability.
     champion : Champion
         The champion this ability belongs to.
@@ -53,7 +53,7 @@ class Champion:
     ----------
     name : str
         The name of the champion.
-    id : Optional[int]
+    id : int
         The ID of the champion.
     title : str
         The champion's title.
@@ -113,12 +113,17 @@ class Champion:
     def get_ability(self, ability: Union[str, int]) -> Ability:
         """
         Returns an ability for this champion with the given Name or ID.
+
+        Parameters
+        ----------
+        ability : Union[str, int]
+            The ability's Name or ID you want to get.
         
         Returns
         -------
         Optional[Ability]
-            The ability you requested.
-            None is returned if the ability couldn't be found.
+            The ability you requested.\n
+            `None` is returned if the ability couldn't be found.
         """
         return get_name_or_id(self.abilities, ability)
 
@@ -126,11 +131,16 @@ class Champion:
         """
         Returns a card for this champion with the given Name or ID.
         
+        Parameters
+        ----------
+        card : Union[str, int]
+            The card's Name or ID you want to get.
+        
         Returns
         -------
         Optional[Device]
-            The card you requested.
-            None is returned if the card couldn't be found.
+            The card you requested.\n
+            `None` is returned if the card couldn't be found.
         """
         return get_name_or_id(self.cards, card)
     
@@ -138,10 +148,15 @@ class Champion:
         """
         Returns a talent for this champion with the given Name or ID.
         
+        Parameters
+        ----------
+        talent : Union[str, int]
+            The talent's Name or ID you want to get.
+        
         Returns
         -------
         Optional[Device]
-            The talent you requested.
-            None is returned if the talent couldn't be found.
+            The talent you requested.\n
+            `None` is returned if the talent couldn't be found.
         """
         return get_name_or_id(self.talents, talent)

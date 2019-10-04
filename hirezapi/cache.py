@@ -8,7 +8,7 @@ from .enumerations import Language, DeviceType
 
 class ChampionInfo:
     """
-    Represents a collection of champions, cards, telants and shop items.
+    Represents a collection of champions, cards, talents and shop items.
     
     Attributes
     ----------
@@ -35,7 +35,7 @@ class ChampionInfo:
         """
         A filtered iterator that lets you iterate over all cards.
 
-        Use `list()` to get a list instead.
+        Use ``list()`` to get a list instead.
         """
         dt = DeviceType["Card"]
         return filter(lambda d: d.type == dt, self.devices)
@@ -45,7 +45,7 @@ class ChampionInfo:
         """
         A filtered iterator that lets you iterate over all talents.
 
-        Use `list()` to get a list instead.
+        Use ``list()`` to get a list instead.
         """
         dt = DeviceType["Talent"]
         return filter(lambda d: d.type == dt, self.devices)
@@ -55,7 +55,7 @@ class ChampionInfo:
         """
         A filtered iterator that lets you iterate over all shop items.
 
-        Use `list()` to get a list instead.
+        Use ``list()`` to get a list instead.
         """
         dt = DeviceType["Item"]
         return filter(lambda d: d.type == dt, self.devices)

@@ -1,10 +1,10 @@
-.. currentmodule:: hirezapi.statuspage
-
 Status Page
 ===========
 
 This is a standalone module containing all StatusPage related return classes, responsible for
 fetching the current server status from the status page.
+
+.. currentmodule:: hirezapi.statuspage
 
 .. autoclass:: StatusPage
     :members:

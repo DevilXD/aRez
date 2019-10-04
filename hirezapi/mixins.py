@@ -37,7 +37,7 @@ class WinLoseMixin:
     @property
     def winrate_text(self) -> str:
         """
-        The calculated winrate as a percentage string.\n
+        The calculated winrate as a percentage string of up to 3 decimal places accuracy.\n
         The format is: ``"48.213%"``\n
         ``"N/A"`` is returned if there was no matches played.
 

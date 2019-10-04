@@ -72,7 +72,7 @@ def get(iterable: Iterable, **attrs):
     """
     Returns the first object from the ``iterable`` which attributes match the keyword arguments passed.
 
-    You can use `__` to search in nested attributes.
+    You can use ``__`` to search in nested attributes.
     
     Parameters
     ----------
@@ -159,7 +159,7 @@ async def expand_partial(iterable: Iterable) -> AsyncGenerator:
     Any other object found in the ``iterable`` is passed unchanged.
 
     The following classes are converted:
-        `PartialPlayer` -> `Player`
+        `PartialPlayer` -> `Player`\n
         `PartialMatch` -> `Match`
     
     Parameters

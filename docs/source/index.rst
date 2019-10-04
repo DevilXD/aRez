@@ -6,14 +6,42 @@
 Welcome to HiRezAPI's documentation!
 ====================================
 
+Models
+------
+
 .. toctree::
     :maxdepth: 2
-    :caption: Contents:
-   
+
     paladinsapi
     players
+    matches
+
+Data Classes
+------------
+
+.. toctree::
+    :maxdepth: 2
+
+    cache
+    items
+    champions
     enumerations
+
+Miscleaneous
+------------
+
+.. toctree::
+    :maxdepth: 2
+
+    misc
     exceptions
+
+Status Page
+-----------
+
+.. toctree::
+    :maxdepth: 2
+
     statuspage
 
 

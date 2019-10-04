@@ -44,7 +44,12 @@ class MatchLoadout:
             card_id = match_data["ItemId{}".format(i)]
             if not card_id:
                 continue
-            self.cards.append(LoadoutCard(api.get_card(card_id, language), match_data["ItemLevel{}".format(i)]))
+            self.cards.append(
+                LoadoutCard(
+                    api.get_card(card_id, language),
+                    match_data["ItemLevel{}".format(i)]
+                )
+            )
         self.talent = api.get_talent(match_data["ItemId6"], language)
 
     def __repr__(self) -> str:
@@ -85,6 +90,12 @@ class PartialMatch(KDAMixin):
         A list of items bought by the player during this match.
     credits : int
         The amount of credits earned this match.
+    kills : int
+        The amount of kills.
+    deaths : int
+        The amount of deaths.
+    assists : int
+        The amount of assists.
     damage_dealt : int
         The amount of damage dealt.
     damage_taken : int
@@ -102,9 +113,10 @@ class PartialMatch(KDAMixin):
     multikill_max : int
         The maximum multikill player did during the match.
     score : Tuple[int, int]
-        The match's ending score. The first value is always the allied-team score, while the second one - enemy team score.
+        The match's ending score. The first value is always the allied-team score,
+        while the second one - enemy team score.
     win_status : bool
-        True if the player won this match, False otherwise.
+        `True` if the player won this match, `False` otherwise.
     """
     def __init__(self, player: Union['PartialPlayer', 'Player'], language: Language, match_data: dict):
         super().__init__(match_data)
@@ -196,9 +208,9 @@ class MatchPlayer(KDAMixin):
     credits : int
         The amount of credits earned this match.
     kills : int
-        The amount of enemy team player kills.
+        The amount of player kills.
     kills_bot : int
-        The amount of enemy team bot kills.
+        The amount of bot kills.
     deaths : int
         The amount of deaths.
     assists : int
@@ -364,9 +376,17 @@ class LivePlayer(WinLoseMixin):
         The player's account level.
     mastery_level : int
         The player's champion mastery level.
+    wins : int
+        The amount of wins.
+    losses : int
+        The amount of losses.
     """
     def __init__(self, api, language: Language, player_data: dict):
-        player_data.update({"Wins": player_data["tierWins"], "Losses": player_data["tierLosses"]}) # win/loss correction for WinLoseMixin
+        # win/loss correction for WinLoseMixin
+        player_data.update({
+            "Wins": player_data["tierWins"],
+            "Losses": player_data["tierLosses"],
+        }) 
         super().__init__(player_data)
         self._api = api
         from .player import PartialPlayer # cyclic imports
@@ -409,7 +429,9 @@ class LiveMatch:
         self.team_1 = []
         self.team_2 = []
         for p in match_data:
-            getattr(self, "team_{}".format(p["taskForce"])).append(LivePlayer(self._api, language, p))
+            getattr(self, "team_{}".format(p["taskForce"])).append(
+                LivePlayer(self._api, language, p)
+            )
     
     def __repr__(self) -> str:
         return "{0.__class__.__name__}({0.queue.name}): {0.map}".format(self)

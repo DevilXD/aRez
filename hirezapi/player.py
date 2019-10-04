@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import Union, List, Optional
 
 from .items import Loadout
@@ -11,9 +11,10 @@ from .stats import Stats, RankedStats, ChampionStats
 
 class PartialPlayer:
     """
-    This object stores basic information about a player, such as their Player ID, Player Name and their Platform.
-    Depending on the way it was created, only the Player ID is quaranteed to exist - both name and platform
-    can be an empty string and `Platform.Unknown` respectively.
+    This object stores basic information about a player, such as their Player ID, Player Name
+    and their Platform. Depending on the way it was created, only the Player ID is guaranteed
+    to exist - both ``name`` and ``platform`` can be an empty string and `Platform.Unknown`
+    respectively.
 
     To ensure all attributes are filled up correctly before processing, use the `expand` method.
     
@@ -223,6 +224,8 @@ class Player(PartialPlayer):
     """
     A full Player object, containing all the information about a player.
     
+    This inherits from `PartialPlayer`, so all it's methods should be present here as well.
+
     Attributes
     ----------
     id : int
@@ -231,8 +234,6 @@ class Player(PartialPlayer):
         Name of the player.
     platform : Platform
         The player's platform.
-    private : bool
-        Whether or not this profile is considered Private.
     active_player : Optional[PartialPlayer]
         The current active player between merged profiles.\n
         `None` if the current profile is the active profile.
