@@ -175,7 +175,7 @@ class PartialMatch(KDAMixin):
         Returns
         -------
         bool
-            True if the player got disconnected, False otherwise.
+            `True` if the player got disconnected, `False` otherwise.
         """
         return self.damage_bot > 0 or self.healing_bot > 0
 
