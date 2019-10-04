@@ -100,6 +100,8 @@ class PartialMatch(KDAMixin):
         The amount of damage dealt.
     damage_taken : int
         The amount of damage taken.
+    damage_mitigated : int
+        The amount of damage mitigated (shielding).
     damage_bot : int
         The amount of damage done by the player's bot after they disconnected.
     healing_done : int
@@ -131,13 +133,14 @@ class PartialMatch(KDAMixin):
         self.timestamp = convert_timestamp(match_data["Match_Time"])
         self.map_name = match_data["Map_Game"]
 
-        self.credits      = match_data["Gold"]
-        self.damage_dealt = match_data["Damage"]
-        self.damage_taken = match_data["Damage_Taken"]
-        self.damage_bot   = match_data["Damage_Bot"]
-        self.healing_done = match_data["Healing"]
-        self.healing_self = match_data["Healing_Player_Self"]
-        self.healing_bot  = match_data["Healing_Bot"]
+        self.credits          = match_data["Gold"]
+        self.damage_dealt     = match_data["Damage"]
+        self.damage_taken     = match_data["Damage_Taken"]
+        self.damage_mitigated = match_data["Damage_Mitigated"]
+        self.damage_bot       = match_data["Damage_Bot"]
+        self.healing_done     = match_data["Healing"]
+        self.healing_self     = match_data["Healing_Player_Self"]
+        self.healing_bot      = match_data["Healing_Bot"]
 
         self.objective_time = match_data["Objective_Assists"]
         self.multikill_max  = match_data["Multi_kill_Max"]
@@ -219,6 +222,8 @@ class MatchPlayer(KDAMixin):
         The amount of damage dealt.
     damage_taken : int
         The amount of damage taken.
+    damage_mitigated : int
+        The amount of damage mitigated (shielding).
     damage_bot : int
         The amount of damage done by the player's bot after they disconnected.
     healing_done : int
@@ -247,13 +252,14 @@ class MatchPlayer(KDAMixin):
         self.player = PartialPlayer(self._api, player_payload)
         self.champion = self._api.get_champion(player_data["ChampionId"], language)
 
-        self.credits      = player_data["Gold_Earned"]
-        self.damage_dealt = player_data["Damage_Done_Physical"]
-        self.damage_taken = player_data["Damage_Taken"]
-        self.damage_bot   = player_data["Damage_Bot"]
-        self.healing_done = player_data["Healing"]
-        self.healing_self = player_data["Healing_Player_Self"]
-        self.healing_bot  = player_data["Healing_Bot"]
+        self.credits          = player_data["Gold_Earned"]
+        self.damage_dealt     = player_data["Damage_Done_Physical"]
+        self.damage_taken     = player_data["Damage_Taken"]
+        self.damage_mitigated = player_data["Damage_Mitigated"]
+        self.damage_bot       = player_data["Damage_Bot"]
+        self.healing_done     = player_data["Healing"]
+        self.healing_self     = player_data["Healing_Player_Self"]
+        self.healing_bot      = player_data["Healing_Bot"]
 
         self.kills_bot  = player_data["Kills_Bot"]
         self.objective_time = player_data["Objective_Assists"]
