@@ -206,6 +206,10 @@ class MatchPlayer(KDAMixin):
         `None` with incomplete cache.
     loadout : MatchLoadout
         The loadout used by the player in this match.
+    account_level : int
+        The player's account level.
+    mastery_level : int
+        The player's champion mastery level.
     items : List[MatchItem]
         A list of items bought by the player during this match.
     credits : int
@@ -251,6 +255,8 @@ class MatchPlayer(KDAMixin):
         }
         self.player = PartialPlayer(self._api, player_payload)
         self.champion = self._api.get_champion(player_data["ChampionId"], language)
+        self.account_level = player_data["Account_Level"]
+        self.mastery_level = player_data["Mastery_Level"]
 
         self.credits          = player_data["Gold_Earned"]
         self.damage_dealt     = player_data["Damage_Done_Physical"]
