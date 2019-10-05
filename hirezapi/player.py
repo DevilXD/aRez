@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Union, List, Optional
+from typing import Union, List, Optional, SupportsInt
 
 from .items import Loadout
 from .exceptions import Private
@@ -27,12 +27,10 @@ class PartialPlayer:
     platform : Platform
         The player's platform.
     """
-    # Nice consistency, HiRez
-    def __init__(self, api, player_data: dict):
+    def __init__(self, api, *, id: SupportsInt, name: str = '', platform: Union[str, int] = 0):
         self._api = api
-        self.id = int(player_data.get("Id") or player_data.get("player_id") or player_data.get("playerId") or 0) 
-        self.name = player_data.get("Name") or player_data.get("name") or player_data.get("playerName") or ''
-        platform = player_data.get("Platform") or player_data.get("portal_id") or player_data.get("portalId")
+        self.id = int(id)
+        self.name = name
         if type(platform) == str and platform.isdecimal():
             platform = int(platform)
         self.platform = Platform.get(platform) or Platform(0)
@@ -124,7 +122,7 @@ class PartialPlayer:
         if self.private:
             raise Private
         response = await self._api.request("getfriends", self.id)
-        return [PartialPlayer(self._api, p) for p in response]
+        return [PartialPlayer(self._api, id=p["player_id"], name=p["name"]) for p in response]
 
     async def get_loadouts(self, language: Language = Language.English) -> List[Loadout]:
         """
@@ -263,9 +261,22 @@ class Player(PartialPlayer):
         Player's ranked controller statistics
     """
     def __init__(self, api, player_data):
-        super().__init__(api, player_data)
-        self.active_player = PartialPlayer(api, {"player_id": player_data["ActivePlayerId"]}) if player_data["ActivePlayerId"] != self.id else None
-        self.merged_players = [PartialPlayer(api, p) for p in player_data["MergedPlayers"]] if player_data["MergedPlayers"] else []
+        super().__init__(
+            api,
+            id=player_data["Id"],
+            name=player_data["Name"],
+            platform=player_data["Platform"],
+        )
+        if player_data["ActivePlayerId"] != self.id:
+            self.active_player = PartialPlayer(api, id=player_data["ActivePlayerId"])
+        else:
+            self.active_player = None
+        self.merged_players = []
+        if player_data["MergedPlayers"]:
+            for p in player_data["MergedPlayers"]:
+                self.merged_players.append(
+                    PartialPlayer(api, id=p["playerId"], platform=p["portalId"])
+                )
         self.created_at = convert_timestamp(player_data["Created_Datetime"])
         self.last_login = convert_timestamp(player_data["Last_Login_Datetime"])
         self.level = player_data["Level"]

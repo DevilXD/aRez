@@ -111,25 +111,36 @@ class PaladinsAPI:
 
         return self._cache[language] # DataCache uses `.get()` on the internal dict, so this won't cause a KeyError
 
-    def get_player_from_id(self, player_id: int) -> PartialPlayer:
+    def wrap_player(
+        self,
+        player_id: int,
+        player_name: str = '',
+        platform: Optional[str] = None
+    ) -> PartialPlayer:
         """
-        Wraps a player ID into a `PartialPlayer` object.
+        Wraps player ID, Name and Platform into a `PartialPlayer` object.
 
-        Note that since there is no input validation, so there's no guarantee an object created this way
-        will return any meaningful results when it's methods are used.
+        Note that since there is no input validation, so there's no guarantee an object created
+        this way will return any meaningful results when it's methods are used.
         
         Parameters
         ----------
         player_id : int
-            The Player ID you want to get object for.
+            The player ID you want to get the object for.
+        player_name : str
+            The player Name you want the object to have.\n
+            Defaults to an empty string.
+        platform : Optional[Union[str, int]]
+            The platform you want the object to have.\n
+            Defaults to `Platform.Unknown`
         
         Returns
         -------
         PartialPlayer
-            An object with only the ID set.
+            The wrapped player object.
         """
         assert isinstance(player_id, int)
-        return PartialPlayer(self, {"player_id": player_id})
+        return PartialPlayer(self, id=player_id, name=player_name, platform=platform)
     
     async def get_player(self, player: Union[int, str]) -> Optional[Player]:
         """
@@ -184,16 +195,33 @@ class PaladinsAPI:
         """
         assert isinstance(player_name, str)
         assert isinstance(platform, (None.__class__, Platform))
-        player_name = player_name.lower()
         if platform:
             if platform.value <= 5 or platform.value == 25: # hirez, pc, steam and discord only
                 list_response = await self.request("getplayeridbyname", player_name)
             else:
                 list_response = await self.request("getplayeridsbygamertag", platform.value, player_name)
+            return [
+                PartialPlayer(
+                    self,
+                    id=p["player_id"],
+                    name=player_name,
+                    platform=p["portal_id"],
+                )
+                for p in list_response
+            ]
         else:
             response = await self.request("searchplayers", player_name)
+            player_name = player_name.lower()
             list_response = [r for r in response if r["Name"].lower() == player_name]
-        return [PartialPlayer(self, p) for p in list_response]
+            return [
+                PartialPlayer(
+                    self,
+                    id=p["player_id"],
+                    name=p["Name"],
+                    platform=p["portal_id"],
+                )
+                for p in list_response
+            ]
     
     async def get_from_platform(self, platform_id: int, platform: Platform) -> Optional[PartialPlayer]:
         """
@@ -219,7 +247,8 @@ class PaladinsAPI:
         assert isinstance(platform, Platform)
         response = await self.request("getplayeridbyportaluserid", platform.value, platform_id)
         if response:
-            return PartialPlayer(self, response[0])
+            p = response[0]
+            return PartialPlayer(self, id=p["player_id"], platform=p["portal_id"])
     
     async def get_match(self, match_id: int, language: Language = Language.English) -> Optional[Match]:
         """

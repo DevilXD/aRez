@@ -11,11 +11,18 @@ class Stats(WinLoseMixin):
     
     Attributes
     ----------
+    wins : int
+        The amount of wins.
+    losses : int
+        The amount of losses.
     leaves : int
         The amount of times player left / disconnected from a match.
     """
     def __init__(self, stats_data: dict):
-        super().__init__(stats_data)
+        super().__init__(
+            wins=stats_data["Wins"],
+            losses=stats_data["Losses"],
+        )
         self.leaves = stats_data["Leaves"]
     
     def __repr__(self) -> str:
@@ -27,6 +34,12 @@ class RankedStats(Stats):
     
     Attributes
     ----------
+    wins : int
+        The amount of wins.
+    losses : int
+        The amount of losses.
+    leaves : int
+        The amount of times player left / disconnected from a match.
     rank : Rank
         The player's current rank.
     points : int
@@ -80,8 +93,17 @@ class ChampionStats(WinLoseMixin, KDAMixin):
         The amount of time spent playing this champion.
     """
     def __init__(self, player: Union['PartialPlayer', 'Player'], language: Language, stats_data: dict):
-        super().__init__(stats_data)
-        super(WinLoseMixin, self).__init__(stats_data) #pylint: disable=bad-super-call
+        WinLoseMixin.__init__(
+            self,
+            wins=stats_data["Wins"],
+            losses=stats_data["Losses"],
+        )
+        KDAMixin.__init__(
+            self,
+            kills=stats_data["Kills"],
+            deaths=stats_data["Deaths"],
+            assists=stats_data["Assists"],
+        )
         self.player = player
         self.language = language
         self.champion = self.player._api.get_champion(int(stats_data["champion_id"]), language)

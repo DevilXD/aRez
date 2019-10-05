@@ -121,7 +121,11 @@ class PartialMatch(KDAMixin):
         `True` if the player won this match, `False` otherwise.
     """
     def __init__(self, player: Union['PartialPlayer', 'Player'], language: Language, match_data: dict):
-        super().__init__(match_data)
+        super().__init__(
+            kills=match_data["Kills"],
+            deaths=match_data["Deaths"],
+            assists=match_data["Assists"],
+        )
         self._api = player._api
         self.player = player
         self.language = language
@@ -244,16 +248,18 @@ class MatchPlayer(KDAMixin):
         The maximum multikill player did during the match.
     """
     def __init__(self, api, language: Language, player_data: dict):
-        player_data.update({"Kills": player_data["Kills_Player"]}) # kills correction for KDAMixin
-        super().__init__(player_data)
+        super().__init__(
+            kills=player_data["Kills_Player"],
+            deaths=player_data["Deaths"],
+            assists=player_data["Assists"],
+        )
         self._api = api
         from .player import PartialPlayer # cyclic imports
-        player_payload = {
-            "name": player_data["playerName"],
-            "player_id": int(player_data["playerId"]),
-            "portal_id": int(player_data["playerPortalId"]) if player_data["playerPortalId"] else None
-        }
-        self.player = PartialPlayer(self._api, player_payload)
+        self.player = PartialPlayer(self._api,
+            id=player_data["playerId"],
+            name=player_data["playerName"],
+            platform=player_data["playerPortalId"],
+        )
         self.champion = self._api.get_champion(player_data["ChampionId"], language)
         self.account_level = player_data["Account_Level"]
         self.mastery_level = player_data["Mastery_Level"]
@@ -394,15 +400,13 @@ class LivePlayer(WinLoseMixin):
         The amount of losses.
     """
     def __init__(self, api, language: Language, player_data: dict):
-        # win/loss correction for WinLoseMixin
-        player_data.update({
-            "Wins": player_data["tierWins"],
-            "Losses": player_data["tierLosses"],
-        }) 
-        super().__init__(player_data)
+        super().__init__(
+            wins=player_data["tierWins"],
+            losses=player_data["tierLosses"],
+        )
         self._api = api
         from .player import PartialPlayer # cyclic imports
-        self.player = PartialPlayer(api, player_data)
+        self.player = PartialPlayer(api, id=player_data["playerId"], name=player_data["playerName"])
         self.champion = self._api.get_champion(player_data["ChampionId"], language)
         self.rank = Rank.get(player_data["Tier"])
         self.account_level = player_data["Account_Level"]
