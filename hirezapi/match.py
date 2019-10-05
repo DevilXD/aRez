@@ -132,7 +132,7 @@ class PartialMatch(KDAMixin):
         self.id = match_data["Match"]
         self.champion = self._api.get_champion(match_data["ChampionId"], language)
         self.queue = Queue.get(match_data["Match_Queue_Id"]) or Queue(0)
-        self.region = Region.get(match_data["Region"])
+        self.region = Region.get(match_data["Region"]) or Region(0)
         self.duration = Duration(seconds=match_data["Time_In_Match_Seconds"])
         self.timestamp = convert_timestamp(match_data["Match_Time"])
         self.map_name = match_data["Map_Game"]
@@ -347,7 +347,7 @@ class Match:
         self.language = language
         first_player = match_data[0]
         self.id = first_player["Match"]
-        self.region = Region.get(first_player["Region"])
+        self.region = Region.get(first_player["Region"]) or Region(0)
         self.queue = Queue.get(first_player["match_queue_id"]) or Queue(0)
         self.map_name = first_player["Map_Game"]
         self.duration = Duration(seconds=first_player["Time_In_Match_Seconds"])
@@ -429,6 +429,8 @@ class LiveMatch:
         The name of the map played.
     queue : Queue
         The queue the match is being played in.
+    region : Region
+        The region this match is being played in.
     team_1 : List[LivePlayer]
         A list of live players in the first team.
     team_2 : List[LivePlayer]
@@ -442,6 +444,7 @@ class LiveMatch:
         self.id = first_player["Match"]
         self.map_name = first_player["mapGame"]
         self.queue = Queue.get(int(first_player["Queue"])) or Queue(0)
+        self.region = Region.get(first_player["playerRegion"]) or Region(0)
         self.team_1 = []
         self.team_2 = []
         for p in match_data:
