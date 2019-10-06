@@ -1,4 +1,4 @@
-import asyncio
+﻿import asyncio
 from datetime import datetime, timedelta, timezone
 from typing import Union, Optional, List, Dict, AsyncGenerator
 
@@ -159,6 +159,35 @@ class PaladinsAPI:
         player_list = await self.request("getplayer", [player])
         if player_list:
             return Player(self, player_list[0])
+    
+    async def get_players(self, player_ids: List[int]) -> List[Player]:
+        """
+        Fetches.
+
+        Uses up a single request for every multiple of 20 player IDs passed.
+
+        Parameters
+        ----------
+        player_ids : List[int]
+            The list of player IDs you want to fetch.
+
+        Returns
+        -------
+        List[Player]
+            A list of players.
+        """
+        assert isinstance(player_ids, list)
+        assert all(isinstance(pid, int) for pid in player_ids)
+        # save on the requests by making sure we're fetching only uniqie data
+        player_ids = set(player_ids)
+        # discard private players
+        player_ids.discard(0)
+        player_list = []
+        for chunk_ids in chunk(player_ids, 20):
+            chunk_players = await self.request("getplayerbatch", [','.join(map(str, player_ids))])
+            chunk_players.sort(key=lambda p: chunk_ids.index(p.id))
+            player_list.extend(chunk_players)
+        return [Player(self, p) for p in player_list]
     
     async def search_players(self, player_name: str, platform: Platform = None) -> List[PartialPlayer]:
         """
