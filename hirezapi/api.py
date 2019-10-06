@@ -173,7 +173,7 @@ class PaladinsAPI:
     
     async def get_players(self, player_ids: List[int]) -> List[Player]:
         """
-        Fetches.
+        Fetches multiple players in a batch.
 
         Uses up a single request for every multiple of 20 player IDs passed.
 
@@ -185,7 +185,9 @@ class PaladinsAPI:
         Returns
         -------
         List[Player]
-            A list of players.
+            A list of players requested.\n
+            Some players might not be included in the output if they weren't found,
+            or their profile was private.
         """
         assert isinstance(player_ids, list)
         assert all(isinstance(pid, int) for pid in player_ids)
