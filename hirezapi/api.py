@@ -115,7 +115,7 @@ class PaladinsAPI:
         self,
         player_id: int,
         player_name: str = '',
-        platform: Optional[str] = None
+        platform: Optional[Union[str, int]] = None
     ) -> PartialPlayer:
         """
         Wraps player ID, Name and Platform into a `PartialPlayer` object.
