@@ -8,7 +8,7 @@ from .enumerations import Language, DeviceType
 
 class ChampionInfo:
     """
-    Represents a collection of champions, cards, telants and shop items.
+    Represents a collection of champions, cards, talents and shop items.
     
     Attributes
     ----------
@@ -35,7 +35,7 @@ class ChampionInfo:
         """
         A filtered iterator that lets you iterate over all cards.
 
-        Use `list()` to get a list instead.
+        Use ``list()`` to get a list instead.
         """
         dt = DeviceType["Card"]
         return filter(lambda d: d.type == dt, self.devices)
@@ -45,7 +45,7 @@ class ChampionInfo:
         """
         A filtered iterator that lets you iterate over all talents.
 
-        Use `list()` to get a list instead.
+        Use ``list()`` to get a list instead.
         """
         dt = DeviceType["Talent"]
         return filter(lambda d: d.type == dt, self.devices)
@@ -55,7 +55,7 @@ class ChampionInfo:
         """
         A filtered iterator that lets you iterate over all shop items.
 
-        Use `list()` to get a list instead.
+        Use ``list()`` to get a list instead.
         """
         dt = DeviceType["Item"]
         return filter(lambda d: d.type == dt, self.devices)
@@ -133,7 +133,7 @@ class ChampionInfo:
         item : Union[str, int]
             The Name or ID of the shop item you want to get.
         fuzzy : bool
-            When set to True, makes the Name search case insensitive.\n
+            When set to `True`, makes the Name search case insensitive.\n
             Defaults to `False`.
         
         Returns
@@ -171,11 +171,11 @@ class DataCache:
         ----------
         champion : Union[str, int]
             The Name or ID of the champion you want to get.
-        language : Language, optional
-            The ``Language`` you want to get the champion in.\n
+        language : Language
+            The `Language` you want to get the champion in.\n
             Defaults to `Language.English`
         fuzzy : bool
-            When set to True, makes the Name search case insensitive.\n
+            When set to `True`, makes the Name search case insensitive.\n
             Defaults to `False`.
         
         Returns
@@ -200,11 +200,11 @@ class DataCache:
         ----------
         card : Union[str, int]
             The Name or ID of the card you want to get.
-        language : Language, optional
-            The ``Language`` you want to get the card in.\n
+        language : Language
+            The `Language` you want to get the card in.\n
             Defaults to `Language.English`
         fuzzy : bool
-            When set to True, makes the Name search case insensitive.\n
+            When set to `True`, makes the Name search case insensitive.\n
             Defaults to `False`.
         
         Returns
@@ -230,10 +230,10 @@ class DataCache:
         talent : Union[str, int]
             The Name or ID of the talent you want to get.
         language : Language, optional
-            The ``Language`` you want to get the talent in.\n
+            The `Language` you want to get the talent in.\n
             Defaults to `Language.English`
         fuzzy : bool
-            When set to True, makes the Name search case insensitive.\n
+            When set to `True`, makes the Name search case insensitive.\n
             Defaults to `False`.
         
         Returns
@@ -258,11 +258,11 @@ class DataCache:
         ----------
         item : Union[str, int]
             The Name or ID of the item you want to get.
-        language : Language, optional
-            The ``Language`` you want to get the shop item in.\n
+        language : Language
+            The `Language` you want to get the shop item in.\n
             Defaults to `Language.English`
         fuzzy : bool
-            When set to True, makes the Name search case insensitive.\n
+            When set to `True`, makes the Name search case insensitive.\n
             Defaults to `False`.
         
         Returns

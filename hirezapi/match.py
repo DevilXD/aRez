@@ -13,8 +13,8 @@ class MatchItem:
     Attributes
     ----------
     item : Optional[Device]
-        The purchased item.
-        None with incomplete cache.
+        The purchased item.\n
+        `None` with incomplete cache.
     level : int
         The level of the item purchased.
     """
@@ -35,8 +35,8 @@ class MatchLoadout:
     cards : List[LoadoutCard]
         A list of loadout cards used.
     talent : Optional[Device]
-        The talent used.
-        None with incomplete cache.
+        The talent used.\n
+        `None` with incomplete cache.
     """
     def __init__(self, api, language: Language, match_data: dict):
         self.cards = []
@@ -44,7 +44,12 @@ class MatchLoadout:
             card_id = match_data["ItemId{}".format(i)]
             if not card_id:
                 continue
-            self.cards.append(LoadoutCard(api.get_card(card_id, language), match_data["ItemLevel{}".format(i)]))
+            self.cards.append(
+                LoadoutCard(
+                    api.get_card(card_id, language),
+                    match_data["ItemLevel{}".format(i)]
+                )
+            )
         self.talent = api.get_talent(match_data["ItemId6"], language)
 
     def __repr__(self) -> str:
@@ -67,8 +72,8 @@ class PartialMatch(KDAMixin):
     language : Language
         The language of cards, talents and items this match has.
     champion : Optional[Champion]
-        The champion used by the player in this match.
-        None with incomplete cache.
+        The champion used by the player in this match.\n
+        `None` with incomplete cache.
     queue : Queue
         The queue this match was played in.
     region : Region
@@ -85,10 +90,18 @@ class PartialMatch(KDAMixin):
         A list of items bought by the player during this match.
     credits : int
         The amount of credits earned this match.
+    kills : int
+        The amount of kills.
+    deaths : int
+        The amount of deaths.
+    assists : int
+        The amount of assists.
     damage_dealt : int
         The amount of damage dealt.
     damage_taken : int
         The amount of damage taken.
+    damage_mitigated : int
+        The amount of damage mitigated (shielding).
     damage_bot : int
         The amount of damage done by the player's bot after they disconnected.
     healing_done : int
@@ -102,30 +115,36 @@ class PartialMatch(KDAMixin):
     multikill_max : int
         The maximum multikill player did during the match.
     score : Tuple[int, int]
-        The match's ending score. The first value is always the allied-team score, while the second one - enemy team score.
+        The match's ending score. The first value is always the allied-team score,
+        while the second one - enemy team score.
     win_status : bool
-        True if the player won this match, False otherwise.
+        `True` if the player won this match, `False` otherwise.
     """
     def __init__(self, player: Union['PartialPlayer', 'Player'], language: Language, match_data: dict):
-        super().__init__(match_data)
+        super().__init__(
+            kills=match_data["Kills"],
+            deaths=match_data["Deaths"],
+            assists=match_data["Assists"],
+        )
         self._api = player._api
         self.player = player
         self.language = language
         self.id = match_data["Match"]
         self.champion = self._api.get_champion(match_data["ChampionId"], language)
         self.queue = Queue.get(match_data["Match_Queue_Id"]) or Queue(0)
-        self.region = Region.get(match_data["Region"])
+        self.region = Region.get(match_data["Region"]) or Region(0)
         self.duration = Duration(seconds=match_data["Time_In_Match_Seconds"])
         self.timestamp = convert_timestamp(match_data["Match_Time"])
         self.map_name = match_data["Map_Game"]
 
-        self.credits      = match_data["Gold"]
-        self.damage_dealt = match_data["Damage"]
-        self.damage_taken = match_data["Damage_Taken"]
-        self.damage_bot   = match_data["Damage_Bot"]
-        self.healing_done = match_data["Healing"]
-        self.healing_self = match_data["Healing_Player_Self"]
-        self.healing_bot  = match_data["Healing_Bot"]
+        self.credits          = match_data["Gold"]
+        self.damage_dealt     = match_data["Damage"]
+        self.damage_taken     = match_data["Damage_Taken"]
+        self.damage_mitigated = match_data["Damage_Mitigated"]
+        self.damage_bot       = match_data["Damage_Bot"]
+        self.healing_done     = match_data["Healing"]
+        self.healing_self     = match_data["Healing_Player_Self"]
+        self.healing_bot      = match_data["Healing_Bot"]
 
         self.objective_time = match_data["Objective_Assists"]
         self.multikill_max  = match_data["Multi_kill_Max"]
@@ -160,7 +179,7 @@ class PartialMatch(KDAMixin):
         Returns
         -------
         bool
-            True if the player got disconnected, False otherwise.
+            `True` if the player got disconnected, `False` otherwise.
         """
         return self.damage_bot > 0 or self.healing_bot > 0
 
@@ -173,7 +192,7 @@ class PartialMatch(KDAMixin):
         Match
             The expanded match object.
         """
-        response = await self._api.request("getmatchdetails", [self.id])
+        response = await self._api.request("getmatchdetails", self.id)
         return Match(self._api, self.language, response)
 
 class MatchPlayer(KDAMixin):
@@ -187,18 +206,22 @@ class MatchPlayer(KDAMixin):
         This is always a new, partial object, regardless of which way the match was fetched.
         All attributes, Name, ID and Platform, should be present.
     champion : Optional[Champion]
-        The champion used by the player in this match.
-        None with incomplete cache.
+        The champion used by the player in this match.\n
+        `None` with incomplete cache.
     loadout : MatchLoadout
         The loadout used by the player in this match.
+    account_level : int
+        The player's account level.
+    mastery_level : int
+        The player's champion mastery level.
     items : List[MatchItem]
         A list of items bought by the player during this match.
     credits : int
         The amount of credits earned this match.
     kills : int
-        The amount of enemy team player kills.
+        The amount of player kills.
     kills_bot : int
-        The amount of enemy team bot kills.
+        The amount of bot kills.
     deaths : int
         The amount of deaths.
     assists : int
@@ -207,6 +230,8 @@ class MatchPlayer(KDAMixin):
         The amount of damage dealt.
     damage_taken : int
         The amount of damage taken.
+    damage_mitigated : int
+        The amount of damage mitigated (shielding).
     damage_bot : int
         The amount of damage done by the player's bot after they disconnected.
     healing_done : int
@@ -223,25 +248,30 @@ class MatchPlayer(KDAMixin):
         The maximum multikill player did during the match.
     """
     def __init__(self, api, language: Language, player_data: dict):
-        player_data.update({"Kills": player_data["Kills_Player"]}) # kills correction for KDAMixin
-        super().__init__(player_data)
+        super().__init__(
+            kills=player_data["Kills_Player"],
+            deaths=player_data["Deaths"],
+            assists=player_data["Assists"],
+        )
         self._api = api
         from .player import PartialPlayer # cyclic imports
-        player_payload = {
-            "name": player_data["playerName"],
-            "player_id": int(player_data["playerId"]),
-            "portal_id": int(player_data["playerPortalId"]) if player_data["playerPortalId"] else None
-        }
-        self.player = PartialPlayer(self._api, player_payload)
+        self.player = PartialPlayer(self._api,
+            id=player_data["playerId"],
+            name=player_data["playerName"],
+            platform=player_data["playerPortalId"],
+        )
         self.champion = self._api.get_champion(player_data["ChampionId"], language)
+        self.account_level = player_data["Account_Level"]
+        self.mastery_level = player_data["Mastery_Level"]
 
-        self.credits      = player_data["Gold_Earned"]
-        self.damage_dealt = player_data["Damage_Done_Physical"]
-        self.damage_taken = player_data["Damage_Taken"]
-        self.damage_bot   = player_data["Damage_Bot"]
-        self.healing_done = player_data["Healing"]
-        self.healing_self = player_data["Healing_Player_Self"]
-        self.healing_bot  = player_data["Healing_Bot"]
+        self.credits          = player_data["Gold_Earned"]
+        self.damage_dealt     = player_data["Damage_Done_Physical"]
+        self.damage_taken     = player_data["Damage_Taken"]
+        self.damage_mitigated = player_data["Damage_Mitigated"]
+        self.damage_bot       = player_data["Damage_Bot"]
+        self.healing_done     = player_data["Healing"]
+        self.healing_self     = player_data["Healing_Player_Self"]
+        self.healing_bot      = player_data["Healing_Bot"]
 
         self.kills_bot  = player_data["Kills_Bot"]
         self.objective_time = player_data["Objective_Assists"]
@@ -266,7 +296,7 @@ class MatchPlayer(KDAMixin):
     @property
     def disconnected(self) -> bool:
         """
-        Returns True if the player has disconnected during the match, False otherwise.\n
+        Returns `True` if the player has disconnected during the match, `False` otherwise.\n
         This is done by checking if either `damage_bot` or `healing_bot` are non zero.
         
         :type: bool
@@ -296,15 +326,15 @@ class Match:
     duration : Duration
         The duration of the match.
     bans : List[Champion]
-        A list of champions banned this match.
+        A list of champions banned this match.\n
         This is an empty list for non-ranked matches, or with incomplete cache.
     map_name : str
         The name of the map played.
     score : Tuple[int, int]
-        The match's ending score. The first value is the `team_1` score, while the second value - `team_2` score.
+        The match's ending score. The first value is the ``team_1`` score, while the second value - ``team_2`` score.
     winning_team : int
-        The winning team of this match.
-        This can be either `1` or `2`.
+        The winning team of this match.\n
+        This can be either ``1`` or ``2``.
     team_1 : List[MatchPlayer]
         A list of players in the first team.
     team_2 : List[MatchPlayer]
@@ -317,7 +347,7 @@ class Match:
         self.language = language
         first_player = match_data[0]
         self.id = first_player["Match"]
-        self.region = Region.get(first_player["Region"])
+        self.region = Region.get(first_player["Region"]) or Region(0)
         self.queue = Queue.get(first_player["match_queue_id"]) or Queue(0)
         self.map_name = first_player["Map_Game"]
         self.duration = Duration(seconds=first_player["Time_In_Match_Seconds"])
@@ -356,21 +386,27 @@ class LivePlayer(WinLoseMixin):
     player : PartialPlayer
         The actual player playing in this match.
     champion : Optional[Champion]
-        The champion the player is using in this match.
-        None with incomplete cache.
+        The champion the player is using in this match.\n
+        `None` with incomplete cache.
     rank : Rank
         The player's rank.
     account_level : int
         The player's account level.
     mastery_level : int
         The player's champion mastery level.
+    wins : int
+        The amount of wins.
+    losses : int
+        The amount of losses.
     """
     def __init__(self, api, language: Language, player_data: dict):
-        player_data.update({"Wins": player_data["tierWins"], "Losses": player_data["tierLosses"]}) # win/loss correction for WinLoseMixin
-        super().__init__(player_data)
+        super().__init__(
+            wins=player_data["tierWins"],
+            losses=player_data["tierLosses"],
+        )
         self._api = api
         from .player import PartialPlayer # cyclic imports
-        self.player = PartialPlayer(api, player_data)
+        self.player = PartialPlayer(api, id=player_data["playerId"], name=player_data["playerName"])
         self.champion = self._api.get_champion(player_data["ChampionId"], language)
         self.rank = Rank.get(player_data["Tier"])
         self.account_level = player_data["Account_Level"]
@@ -393,6 +429,8 @@ class LiveMatch:
         The name of the map played.
     queue : Queue
         The queue the match is being played in.
+    region : Region
+        The region this match is being played in.
     team_1 : List[LivePlayer]
         A list of live players in the first team.
     team_2 : List[LivePlayer]
@@ -406,10 +444,13 @@ class LiveMatch:
         self.id = first_player["Match"]
         self.map_name = first_player["mapGame"]
         self.queue = Queue.get(int(first_player["Queue"])) or Queue(0)
+        self.region = Region.get(first_player["playerRegion"]) or Region(0)
         self.team_1 = []
         self.team_2 = []
         for p in match_data:
-            getattr(self, "team_{}".format(p["taskForce"])).append(LivePlayer(self._api, language, p))
+            getattr(self, "team_{}".format(p["taskForce"])).append(
+                LivePlayer(self._api, language, p)
+            )
     
     def __repr__(self) -> str:
         return "{0.__class__.__name__}({0.queue.name}): {0.map}".format(self)

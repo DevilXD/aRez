@@ -1,7 +1,7 @@
-.. currentmodule:: hirezapi.exceptions
-
 Exceptions
 ==========
+
+.. currentmodule:: hirezapi.exceptions
 
 .. autoexception:: HiRezAPIException
     :members:

@@ -1,4 +1,4 @@
-﻿import re
+import re
 from typing import Optional, Union
 
 from .champion import Champion, Ability
@@ -21,26 +21,26 @@ class Device:
     icon_url : str
         The URL of this device's icon.
     ability : Optional[Union[Ability, str]]
-        The ability this device affects, or a string denoting the affected part of the champion.
-        Can be None in cases where this information couldn't be parsed.
+        The ability this device affects, or a string denoting the affected part of the champion.\n
+        Can be `None` in cases where this information couldn't be parsed.
     champion : Optional[Champion]
-        The champion this device belongs to.
-        None for shop items.
+        The champion this device belongs to.\n
+        `None` for shop items.
     base : Optional[float]
-        The base value of the card's scaling.
-        None for talents.
+        The base value of the card's scaling.\n
+        `None` for talents.
     scale : Optional[float]
-        The scale value of the card's scaling.
-        None for talents.
+        The scale value of the card's scaling.\n
+        `None` for talents.
     cooldown : int
         The cooldown of this device, in seconds.
-        0 if there is no cooldown.
+        ``0`` if there is no cooldown.
     price : int
         The price of this device.
-        0 if there's no price (it's free).
+        ``0`` if there's no price (it's free).
     unlocked_at : int
         The champion's mastery level required to unlock this device. Applies only to talents.
-        0 means it's inlocked by default.
+        ``0`` means it's unlocked by default.
     """
     _desc_pattern = re.compile(r'\[(.+?)\] (.*)')
     _card_pattern = re.compile(r'{scale=(\d+|0\.\d+)\|(\d+|0\.\d+)}|{(\d+)}')
@@ -100,8 +100,8 @@ class LoadoutCard:
     Attributes
     ----------
     card : Optional[Device]
-        The actual card that belongs to this loadout.
-        None with incomplete cache.
+        The actual card that belongs to this loadout.\n
+        `None` with incomplete cache.
     points : int
         The amount of loadout points that have been assigned to this card.
     """
@@ -125,8 +125,9 @@ class Loadout:
         Name of the loadout.
     player : Union[PartialPlayer, Player]
         The player this loadout belongs to.
-    champion : Champion
+    champion : Optional[Champion]
         The champion this loadout belongs to.
+        `None` with incomplete cache.
     language : Language
         The language of all the cards this loadout has.
     cards : List[LoadoutCard]

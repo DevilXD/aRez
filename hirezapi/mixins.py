@@ -11,9 +11,9 @@ class WinLoseMixin:
     losses : int
         The amount of losses.
     """
-    def __init__(self, stats_data: dict):
-        self.wins = stats_data["Wins"]
-        self.losses = stats_data["Losses"]
+    def __init__(self, *, wins: int, losses: int):
+        self.wins = wins
+        self.losses = losses
     
     @property
     def matches_played(self) -> int:
@@ -37,7 +37,7 @@ class WinLoseMixin:
     @property
     def winrate_text(self) -> str:
         """
-        The calculated winrate as a percentage string.\n
+        The calculated winrate as a percentage string of up to 3 decimal places accuracy.\n
         The format is: ``"48.213%"``\n
         ``"N/A"`` is returned if there was no matches played.
 
@@ -58,10 +58,10 @@ class KDAMixin:
     assists : int
         The amount of assists.
     """
-    def __init__(self, stats_data: dict):
-        self.kills = stats_data["Kills"]
-        self.deaths = stats_data["Deaths"]
-        self.assists = stats_data["Assists"]
+    def __init__(self, *, kills: int, deaths: int, assists: int):
+        self.kills = kills
+        self.deaths = deaths
+        self.assists = assists
     
     @property
     def kda(self) -> float:

@@ -13,11 +13,11 @@ class HTTPException(HiRezAPIException):
     Attributes
     ----------
     cause : Optional[Exception]
-        The original exception cause. This is usually:
-        - aiohttp.ClientResponseError or it's derivatives
-        - asyncio.TimeoutError when the request times out
-        - Unauthorized exception when your credentials were invalid
-        - None if the cause was unknown
+        The original exception cause. This is usually:\n
+        • aiohttp.ClientResponseError or it's derivatives\n
+        • asyncio.TimeoutError when the request times out\n
+        • Unauthorized exception when your credentials were invalid\n
+        • None if the cause was unknown
     """
     def __init__(self, original_exc = None):
         super().__init__("There was an error while processing the request!")

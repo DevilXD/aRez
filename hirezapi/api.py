@@ -60,7 +60,7 @@ class PaladinsAPI:
         
         Parameters
         ----------
-        force_refresh : Optional[bool]
+        force_refresh : bool
             Bypasses the cache, forcing a fetch and returning a new object.\n
             Defaults to `False`.
         
@@ -88,10 +88,10 @@ class PaladinsAPI:
         
         Parameters
         ----------
-        language : Optional[Language]
-            The Language you want to fetch the information in.\n
+        language : Language
+            The `Language` you want to fetch the information in.\n
             Defaults to `Language.English`
-        force_refresh : Optional[bool]
+        force_refresh : bool
             Bypasses the cache, forcing a fetch and returning a new object.\n
             Defaults to `False`.
         
@@ -104,32 +104,43 @@ class PaladinsAPI:
         assert isinstance(language, Language)
 
         if self._cache._needs_refreshing(language) or force_refresh:
-            champions_response = await self.request("getgods", [language.value])
-            items_response = await self.request("getitems", [language.value])
+            champions_response = await self.request("getgods", language.value)
+            items_response = await self.request("getitems", language.value)
             if champions_response and items_response:
                 self._cache._create_entry(language, champions_response, items_response)
 
         return self._cache[language] # DataCache uses `.get()` on the internal dict, so this won't cause a KeyError
 
-    def get_player_from_id(self, player_id: int) -> PartialPlayer:
+    def wrap_player(
+        self,
+        player_id: int,
+        player_name: str = '',
+        platform: Optional[str] = None
+    ) -> PartialPlayer:
         """
-        Wraps a player ID into a `PartialPlayer` object.
+        Wraps player ID, Name and Platform into a `PartialPlayer` object.
 
-        Note that since there is no input validation, so there's no guarantee an object created this way
-        will return any meaningful results when it's methods are used.
+        Note that since there is no input validation, so there's no guarantee an object created
+        this way will return any meaningful results when it's methods are used.
         
         Parameters
         ----------
         player_id : int
-            The Player ID you want to get object for.
+            The player ID you want to get the object for.
+        player_name : str
+            The player Name you want the object to have.\n
+            Defaults to an empty string.
+        platform : Optional[Union[str, int]]
+            The platform you want the object to have.\n
+            Defaults to `Platform.Unknown`
         
         Returns
         -------
         PartialPlayer
-            An object with only the ID set.
+            The wrapped player object.
         """
         assert isinstance(player_id, int)
-        return PartialPlayer(self, {"player_id": player_id})
+        return PartialPlayer(self, id=player_id, name=player_name, platform=platform)
     
     async def get_player(self, player: Union[int, str]) -> Optional[Player]:
         """
@@ -156,7 +167,7 @@ class PaladinsAPI:
         if player in [0, '0']:
             # save on the requests by returning None straight away
             return None
-        player_list = await self.request("getplayer", [player])
+        player_list = await self.request("getplayer", player)
         if player_list:
             return Player(self, player_list[0])
     
@@ -213,16 +224,33 @@ class PaladinsAPI:
         """
         assert isinstance(player_name, str)
         assert isinstance(platform, (None.__class__, Platform))
-        player_name = player_name.lower()
         if platform:
             if platform.value <= 5 or platform.value == 25: # hirez, pc, steam and discord only
-                list_response = await self.request("getplayeridbyname", [player_name])
+                list_response = await self.request("getplayeridbyname", player_name)
             else:
-                list_response = await self.request("getplayeridsbygamertag", [platform.value, player_name])
+                list_response = await self.request("getplayeridsbygamertag", platform.value, player_name)
+            return [
+                PartialPlayer(
+                    self,
+                    id=p["player_id"],
+                    name=player_name,
+                    platform=p["portal_id"],
+                )
+                for p in list_response
+            ]
         else:
-            response = await self.request("searchplayers", [player_name])
+            response = await self.request("searchplayers", player_name)
+            player_name = player_name.lower()
             list_response = [r for r in response if r["Name"].lower() == player_name]
-        return [PartialPlayer(self, p) for p in list_response]
+            return [
+                PartialPlayer(
+                    self,
+                    id=p["player_id"],
+                    name=p["Name"],
+                    platform=p["portal_id"],
+                )
+                for p in list_response
+            ]
     
     async def get_from_platform(self, platform_id: int, platform: Platform) -> Optional[PartialPlayer]:
         """
@@ -246,9 +274,10 @@ class PaladinsAPI:
         """
         assert isinstance(platform_id, int)
         assert isinstance(platform, Platform)
-        response = await self.request("getplayeridbyportaluserid", [platform.value, platform_id])
+        response = await self.request("getplayeridbyportaluserid", platform.value, platform_id)
         if response:
-            return PartialPlayer(self, response[0])
+            p = response[0]
+            return PartialPlayer(self, id=p["player_id"], platform=p["portal_id"])
     
     async def get_match(self, match_id: int, language: Language = Language.English) -> Optional[Match]:
         """
@@ -260,8 +289,8 @@ class PaladinsAPI:
         ----------
         match_id : int
             Match ID you want to get a match for.
-        language : Optional[Language]
-            The Language you want to fetch the information in.\n
+        language : Language
+            The `Language` you want to fetch the information in.\n
             Defaults to `Language.English`
         
         Returns
@@ -274,7 +303,7 @@ class PaladinsAPI:
         assert isinstance(language, Language)
         # ensure we have champion information first
         await self.get_champion_info(language)
-        response = await self.request("getmatchdetails", [match_id])
+        response = await self.request("getmatchdetails", match_id)
         if response:
             return Match(self, language, response)
 
@@ -288,8 +317,8 @@ class PaladinsAPI:
         ----------
         match_ids : List[int]
             The list of Match IDs you want to fetch.
-        language : Optional[Language]
-            The ``Language`` you want to fetch the information in.\n
+        language : Language
+            The `Language` you want to fetch the information in.\n
             Defaults to `Language.English`
         
         Returns
@@ -307,7 +336,7 @@ class PaladinsAPI:
         await self.get_champion_info(language)
         matches = []
         for chunk_ids in chunk(match_ids, 10): # chunk the IDs into groups of 10
-            response = await self.request("getmatchdetailsbatch", [','.join(map(str, chunk_ids))])
+            response = await self.request("getmatchdetailsbatch", ','.join(map(str, chunk_ids)))
             chunk_matches = {}
             for p in response:
                 chunk_matches.setdefault(p["Match"], []).append(p)
@@ -329,18 +358,19 @@ class PaladinsAPI:
         Creates an async generator that lets you iterate over all matches played
         in a particular queue, between the timestamps provided.
 
-        Uses up a single request for every:
-        - multiple of 10 matches returned
-        - 10 minutes worth of matches fetched
+        Uses up a single request for every:\n
+        • multiple of 10 matches returned\n
+        • 10 minutes worth of matches fetched
+
         Whole hour time slices are optimized to use a single request instead of
-        6 individual 10 minute ones.
+        6 individual, 10 minute ones.
         
         Parameters
         ----------
         queue : Queue
-            The ``Queue`` you want to fetch the matches for.
+            The `Queue` you want to fetch the matches for.
         language : Language
-            The ``Language`` you want to fetch the information in.\n
+            The `Language` you want to fetch the information in.\n
             Defaults to `Language.English`
         start : datetime
             A UTC timestamp indicating the starting point of a time slice you want to
@@ -349,8 +379,8 @@ class PaladinsAPI:
             A UTC timestamp indicating the ending point of a time slice you want to
             fetch the matches in.
         reverse : bool
-            Reverses the order of the matches returned.
-            Defaults to `False`
+            Reverses the order of the matches returned.\n
+            Defaults to `False`.
         
         Returns
         -------
@@ -418,16 +448,13 @@ class PaladinsAPI:
         
         # Use the generated date and hour values to iterate over and fetch matches
         for date, hour in date_gen(start, end, reverse=reverse):
-            response = await self.request("getmatchidsbyqueue", [queue.value, date, hour])
+            response = await self.request("getmatchidsbyqueue", queue.value, date, hour)
             if reverse:
-                match_ids = [e["Match"] for e in reversed(response) if e["Active_Flag"] == "n"]
+                match_ids = [int(e["Match"]) for e in reversed(response) if e["Active_Flag"] == "n"]
             else:
-                match_ids = [e["Match"] for e in response if e["Active_Flag"] == "n"]
-            for match in match_ids:
-                yield match
-            continue
+                match_ids = [int(e["Match"]) for e in response if e["Active_Flag"] == "n"]
             for chunk_ids in chunk(match_ids, 10): # chunk the IDs into groups of 10
-                response = await self.request("getmatchdetailsbatch", [','.join(map(str, chunk_ids))])
+                response = await self.request("getmatchdetailsbatch", ','.join(map(str, chunk_ids)))
                 chunk_matches = {}
                 for p in response:
                     chunk_matches.setdefault(p["Match"], []).append(p)

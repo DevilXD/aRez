@@ -1,5 +1,5 @@
-from datetime import timedelta
-from typing import Union, List, Optional
+from datetime import datetime, timedelta
+from typing import Union, List, Optional, SupportsInt
 
 from .items import Loadout
 from .exceptions import Private
@@ -11,9 +11,10 @@ from .stats import Stats, RankedStats, ChampionStats
 
 class PartialPlayer:
     """
-    This object stores basic information about a player, such as their Player ID, Player Name and their Platform.
-    Depending on the way it was created, only the Player ID is quaranteed to exist - both name and platform
-    can be an empty string and `Platform.Unknown` respectively.
+    This object stores basic information about a player, such as their Player ID, Player Name
+    and their Platform. Depending on the way it was created, only the Player ID is guaranteed
+    to exist - both ``name`` and ``platform`` can be an empty string and `Platform.Unknown`
+    respectively.
 
     To ensure all attributes are filled up correctly before processing, use the `expand` method.
     
@@ -26,12 +27,10 @@ class PartialPlayer:
     platform : Platform
         The player's platform.
     """
-    # Nice consistency, HiRez
-    def __init__(self, api, player_data: dict):
+    def __init__(self, api, *, id: SupportsInt, name: str = '', platform: Union[str, int] = 0):
         self._api = api
-        self.id = int(player_data.get("Id") or player_data.get("player_id") or player_data.get("playerId") or 0) 
-        self.name = player_data.get("Name") or player_data.get("name") or player_data.get("playerName") or ''
-        platform = player_data.get("Platform") or player_data.get("portal_id") or player_data.get("portalId")
+        self.id = int(id)
+        self.name = name
         if type(platform) == str and platform.isdecimal():
             platform = int(platform)
         self.platform = Platform.get(platform) or Platform(0)
@@ -67,8 +66,8 @@ class PartialPlayer:
         Returns
         -------
         Optional[Player]
-            A full player object with all fields filled up, for the same player.
-            None is returned if this player could not be found.
+            A full player object with all fields filled up, for the same player.\n
+            `None` is returned if this player could not be found.
         
         Raises
         ------
@@ -77,7 +76,7 @@ class PartialPlayer:
         """
         if self.private:
             raise Private
-        response = await self._api.request("getplayer", [self.id])
+        response = await self._api.request("getplayer", self.id)
         if response:
             return Player(self._api, response[0])
 
@@ -90,8 +89,8 @@ class PartialPlayer:
         Returns
         -------
         Optional[PlayerStatus]
-            The player's status.
-            None is returned if this player could not be found.
+            The player's status.\n
+            `None` is returned if this player could not be found.
         
         Raises
         ------
@@ -100,7 +99,7 @@ class PartialPlayer:
         """
         if self.private:
             raise Private
-        response = await self._api.request("getplayerstatus", [self.id])
+        response = await self._api.request("getplayerstatus", self.id)
         if response and response[0]["status"] != 5:
             return PlayerStatus(self, response[0])
     
@@ -122,8 +121,8 @@ class PartialPlayer:
         """
         if self.private:
             raise Private
-        response = await self._api.request("getfriends", [self.id])
-        return [PartialPlayer(self._api, p) for p in response]
+        response = await self._api.request("getfriends", self.id)
+        return [PartialPlayer(self._api, id=p["player_id"], name=p["name"]) for p in response]
 
     async def get_loadouts(self, language: Language = Language.English) -> List[Loadout]:
         """
@@ -133,9 +132,9 @@ class PartialPlayer:
         
         Parameters
         ----------
-        language : Optional[Language]
+        language : Language
             The `Language` you want to fetch the information in.
-            Defaults to Language.English
+            Defaults to `Language.English`
         
         Returns
         -------
@@ -152,7 +151,7 @@ class PartialPlayer:
             raise Private
         # ensure we have champion information first
         await self._api.get_champion_info(language)
-        response = await self._api.request("getplayerloadouts", [self.id, language.value])
+        response = await self._api.request("getplayerloadouts", self.id, language.value)
         if not response or response and not response[0]["playerId"]:
             return []
         return [Loadout(self, language, l) for l in response]
@@ -165,9 +164,9 @@ class PartialPlayer:
         
         Parameters
         ----------
-        language : Optional[Language]
+        language : Language
             The `Language` you want to fetch the information in.
-            Defaults to Language.English
+            Defaults to `Language.English`
         
         Returns
         -------
@@ -184,7 +183,7 @@ class PartialPlayer:
             raise Private
         # ensure we have champion information first
         await self._api.get_champion_info(language)
-        response = await self._api.request("getgodranks", [self.id])
+        response = await self._api.request("getgodranks", self.id)
         return [ChampionStats(self, language, s) for s in response]
     
     async def get_match_history(self, language: Language = Language.English) -> List[PartialMatch]:
@@ -195,9 +194,9 @@ class PartialPlayer:
         
         Parameters
         ----------
-        language : Optional[Language]
+        language : Language
             The `Language` you want to fetch the information in.
-            Defaults to Language.English
+            Defaults to `Language.English`
         
         Returns
         -------
@@ -214,7 +213,7 @@ class PartialPlayer:
             raise Private
         # ensure we have champion information first
         await self._api.get_champion_info(language)
-        response = await self._api.request("getmatchhistory", [self.id])
+        response = await self._api.request("getmatchhistory", self.id)
         if not response or response and response[0]["ret_msg"]:
             return []
         return [PartialMatch(self, language, m) for m in response]
@@ -223,6 +222,8 @@ class Player(PartialPlayer):
     """
     A full Player object, containing all the information about a player.
     
+    This inherits from `PartialPlayer`, so all it's methods should be present here as well.
+
     Attributes
     ----------
     id : int
@@ -231,11 +232,9 @@ class Player(PartialPlayer):
         Name of the player.
     platform : Platform
         The player's platform.
-    private : bool
-        Whether or not this profile is considered Private.
     active_player : Optional[PartialPlayer]
-        The current active player between merged profiles.
-        None if the current profile is the active profile.
+        The current active player between merged profiles.\n
+        `None` if the current profile is the active profile.
     merged_players : List[PartialPlayer]
         A list of all merged profiles.
     created_at : datetime
@@ -262,9 +261,22 @@ class Player(PartialPlayer):
         Player's ranked controller statistics
     """
     def __init__(self, api, player_data):
-        super().__init__(api, player_data)
-        self.active_player = PartialPlayer(api, {"player_id": player_data["ActivePlayerId"]}) if player_data["ActivePlayerId"] != self.id else None
-        self.merged_players = [PartialPlayer(api, p) for p in player_data["MergedPlayers"]] if player_data["MergedPlayers"] else []
+        super().__init__(
+            api,
+            id=player_data["Id"],
+            name=player_data["Name"],
+            platform=player_data["Platform"],
+        )
+        if player_data["ActivePlayerId"] != self.id:
+            self.active_player = PartialPlayer(api, id=player_data["ActivePlayerId"])
+        else:
+            self.active_player = None
+        self.merged_players = []
+        if player_data["MergedPlayers"]:
+            for p in player_data["MergedPlayers"]:
+                self.merged_players.append(
+                    PartialPlayer(api, id=p["playerId"], platform=p["portalId"])
+                )
         self.created_at = convert_timestamp(player_data["Created_Datetime"])
         self.last_login = convert_timestamp(player_data["Last_Login_Datetime"])
         self.level = player_data["Level"]

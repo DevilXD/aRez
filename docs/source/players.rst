@@ -1,7 +1,7 @@
-.. currentmodule:: hirezapi.player
-
 Players
 =======
+
+.. currentmodule:: hirezapi.player
 
 .. autoclass:: PartialPlayer()
     :members:
@@ -17,3 +17,4 @@ Players
 
 .. autoclass:: LivePlayer()
     :members:
+    :inherited-members:
