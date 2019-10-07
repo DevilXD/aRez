@@ -193,10 +193,6 @@ class PaladinsAPI:
         assert all(isinstance(pid, int) for pid in player_ids)
         if not player_ids:
             return []
-        # save on the requests by making sure we're fetching only unique data, without private players
-        player_ids = set(player_ids)
-        player_ids.discard(0)
-        player_ids = list(player_ids)
         player_list = []
         for chunk_ids in chunk(player_ids, 20):
             chunk_players = await self.request("getplayerbatch", [','.join(map(str, player_ids))])
@@ -336,8 +332,6 @@ class PaladinsAPI:
         assert isinstance(language, Language)
         if not match_ids:
             return []
-        # save on the requests by making sure we're fetching only unique data
-        match_ids = list(set(match_ids))
         # ensure we have champion information first
         await self.get_champion_info(language)
         matches = []
