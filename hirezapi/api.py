@@ -196,9 +196,10 @@ class PaladinsAPI:
         player_list = []
         for chunk_ids in chunk(player_ids, 20):
             chunk_players = await self.request("getplayerbatch", ','.join(map(str, player_ids)))
+            chunk_players = [Player(self, p) for p in chunk_players]
             chunk_players.sort(key=lambda p: chunk_ids.index(p.id))
             player_list.extend(chunk_players)
-        return [Player(self, p) for p in player_list]
+        return player_list
     
     async def search_players(self, player_name: str, platform: Platform = None) -> List[PartialPlayer]:
         """
