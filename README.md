@@ -24,7 +24,7 @@ Currently supported:
 - [x] `getmatchplayerdetails` (Information about the current player's match)  
 - [ ] `getplayerachievements` (Player's achievements)  
 - [x] `getmatchdetailsbatch` (Fetching multiple matches at once)  
-- [ ] `getmatchidsbyqueue` (Fetching all matches by queue)  
+- [x] `getmatchidsbyqueue` (Fetching all matches by queue)  
 - [ ] `getqueuestats` (Player match stats by queue)  
 
 There are plans on expanding the existing framework to incorporate the above and below:
