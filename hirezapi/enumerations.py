@@ -1,4 +1,4 @@
-from enum import Enum
+﻿from enum import Enum
 from contextlib import suppress
 from typing import Optional, Union
 
@@ -99,8 +99,11 @@ Region = EnumGet("Region", {
     "Europe":               2,
     "europe":               2,
     "eu":                   2,
+    "Australia":            3,
     "Oceania":              3,
+    "australia":            3,
     "oceania":              3,
+    "aus":                  3,
     "oce":                  3,
     "Brazil":               4,
     "brazil":               4,
@@ -124,8 +127,9 @@ North America
     Aliases: ``na``
 Europe
     Aliases: ``eu``
-Oceania
-    Aliases: ``oce``
+Australia
+    Also known as Oceania.
+    Aliases: ``aus``, ``oce``
 Brazil
     Aliases: ``br``
 Latin America North
