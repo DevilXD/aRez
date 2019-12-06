@@ -103,6 +103,7 @@ class PlayerStatus:
         An enumeration representing the current player status.
     """
     def __init__(self, player, status_data: dict):
+        self._api = player._api
         self.player = player
         self.live_match_id = status_data["Match"] or None
         self.queue = (
@@ -133,8 +134,10 @@ class PlayerStatus:
             `None` is returned if the player isn't in a live match,
             or the match is played in an unsupported queue (customs).
         """
+        # ensure we have champion information first
+        await self._api.get_champion_info(language)
         if self.live_match_id:
             response = await self.player._api.request("getmatchplayerdetails", self.live_match_id)
             if response and response[0] and response[0]["ret_msg"]:
                 return None
-            return LiveMatch(self.player._api, language, response)
+            return LiveMatch(self._api, language, response)
