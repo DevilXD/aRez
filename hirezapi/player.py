@@ -1,4 +1,3 @@
-from datetime import datetime, timedelta
 from typing import Union, List, Optional, SupportsInt
 
 from .items import Loadout
@@ -9,6 +8,7 @@ from .utils import convert_timestamp, Duration
 from .enumerations import Language, Platform, Region
 from .stats import Stats, RankedStats, ChampionStats
 
+
 class PartialPlayer:
     """
     This object stores basic information about a player, such as their Player ID, Player Name
@@ -17,7 +17,7 @@ class PartialPlayer:
     respectively.
 
     To ensure all attributes are filled up correctly before processing, use the `expand` method.
-    
+
     Attributes
     ----------
     id : int
@@ -34,26 +34,26 @@ class PartialPlayer:
         if type(platform) == str and platform.isdecimal():
             platform = int(platform)
         self.platform = Platform.get(platform) or Platform(0)
-    
+
     def __eq__(self, other) -> bool:
         assert isinstance(other, self.__class__)
         return self.id != 0 and other.id != 0 and self.id == other.id
-    
+
     def __repr__(self):
         platform = self.platform.name if self.platform else None
         return "{0.__class__.__name__}: {0.name}({0.id} / {1})".format(self, platform)
-    
+
     @property
     def private(self) -> bool:
         """
         Checks to see if this profile is Private or not.
 
         Trying to fetch any information for a Private profile will raise the `Private` exception.
-        
+
         Returns
         -------
         bool
-            True if this player profile is considered Private, False otherwise.
+            `True` if this player profile is considered Private, `False` otherwise.
         """
         return self.id == 0
 
@@ -62,13 +62,13 @@ class PartialPlayer:
         Expands and refreshes the information stored inside this object.
 
         Uses up a single request.
-        
+
         Returns
         -------
         Optional[Player]
             A full player object with all fields filled up, for the same player.\n
             `None` is returned if this player could not be found.
-        
+
         Raises
         ------
         Private
@@ -85,13 +85,13 @@ class PartialPlayer:
         Fetches the player's current status.
 
         Uses up a single request.
-        
+
         Returns
         -------
         Optional[PlayerStatus]
             The player's status.\n
             `None` is returned if this player could not be found.
-        
+
         Raises
         ------
         Private
@@ -102,18 +102,18 @@ class PartialPlayer:
         response = await self._api.request("getplayerstatus", self.id)
         if response and response[0]["status"] != 5:
             return PlayerStatus(self, response[0])
-    
+
     async def get_friends(self) -> List['PartialPlayer']:
         """
         Fetches the player's friend list.
 
         Uses up a single request.
-        
+
         Returns
         -------
         List[PartialPlayer]
             A list of players this player is friends with.
-        
+
         Raises
         ------
         Private
@@ -129,18 +129,18 @@ class PartialPlayer:
         Fetches the player's loadouts.
 
         Uses up a single request.
-        
+
         Parameters
         ----------
         language : Language
             The `Language` you want to fetch the information in.
             Defaults to `Language.English`
-        
+
         Returns
         -------
         List[Loadout]
             A list of player's loadouts.
-        
+
         Raises
         ------
         Private
@@ -155,24 +155,26 @@ class PartialPlayer:
         if not response or response and not response[0]["playerId"]:
             return []
         return [Loadout(self, language, l) for l in response]
-    
-    async def get_champion_stats(self, language: Language = Language.English) -> List[ChampionStats]:
+
+    async def get_champion_stats(
+        self, language: Language = Language.English
+    ) -> List[ChampionStats]:
         """
         Fetches the player's champion statistics.
 
         Uses up a single request.
-        
+
         Parameters
         ----------
         language : Language
             The `Language` you want to fetch the information in.
             Defaults to `Language.English`
-        
+
         Returns
         -------
         List[ChampionStats]
             A list of champion statistics objects, one for each played champion.
-        
+
         Raises
         ------
         Private
@@ -185,24 +187,24 @@ class PartialPlayer:
         await self._api.get_champion_info(language)
         response = await self._api.request("getgodranks", self.id)
         return [ChampionStats(self, language, s) for s in response]
-    
+
     async def get_match_history(self, language: Language = Language.English) -> List[PartialMatch]:
         """
         Fetches player's match history.
 
         Uses up a single request.
-        
+
         Parameters
         ----------
         language : Language
             The `Language` you want to fetch the information in.
             Defaults to `Language.English`
-        
+
         Returns
         -------
         List[PartialMatch]
             A list of partial matches, containing statistics for the current player only.
-        
+
         Raises
         ------
         Private
@@ -218,10 +220,11 @@ class PartialPlayer:
             return []
         return [PartialMatch(self, language, m) for m in response]
 
+
 class Player(PartialPlayer):
     """
     A full Player object, containing all the information about a player.
-    
+
     This inherits from `PartialPlayer`, so all it's methods should be present here as well.
 
     Attributes

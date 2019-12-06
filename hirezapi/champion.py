@@ -1,10 +1,11 @@
 from typing import Union, List, TYPE_CHECKING
 
 from .utils import get_name_or_id
-from .enumerations import Language, DeviceType, AbilityType
+from .enumerations import DeviceType, AbilityType
 
 if TYPE_CHECKING:
     from .items import Device
+
 
 def card_ability_sort(card: Union['Device', str]):
     try:
@@ -12,10 +13,11 @@ def card_ability_sort(card: Union['Device', str]):
     except AttributeError:
         return "z{}".format(card.ability)
 
+
 class Ability:
     """
     Represents a Champion's Ability.
-    
+
     Attributes
     ----------
     name : str
@@ -37,13 +39,14 @@ class Ability:
         self.name = ability_data["Summary"]
         self.id = ability_data["Id"]
         self.champion = champion
-        self.description = ability_data["Description"].strip().replace('\r', ' ').replace('  ', ' ')
+        self.description = ability_data["Description"].strip().replace('\r', '')
         self.type = AbilityType.get(ability_data["damageType"]) or AbilityType(0)
         self.cooldown = ability_data["rechargeSeconds"]
         self.icon_url = ability_data["URL"]
-    
+
     def __repr__(self) -> str:
         return "{0.__class__.__name__}: {0.name}({0.id})".format(self)
+
 
 class Champion:
     """
@@ -84,7 +87,10 @@ class Champion:
         self.health = champion_data["Health"]
         self.speed = champion_data["Speed"]
 
-        self.abilities = [Ability(self, champion_data["Ability_{}".format(i)]) for i in range(1,6)]
+        self.abilities = [
+            Ability(self, champion_data["Ability_{}".format(i)])
+            for i in range(1, 6)
+        ]
         self.talents: List['Device'] = []
         self.cards: List['Device'] = []
 
@@ -99,17 +105,17 @@ class Champion:
         self.talents.sort(key=lambda d: d.unlocked_at)
         self.cards.sort(key=lambda d: d.name)
         self.cards.sort(key=card_ability_sort)
-    
+
     def __eq__(self, other) -> bool:
         assert isinstance(other, self.__class__)
         return self.id == other.id
-    
+
     def __repr__(self) -> str:
         return "{0.__class__.__name__}: {0.name}({0.id})".format(self)
-    
+
     def __bool__(self) -> bool:
         return len(self.cards) == 16 and len(self.talents) == 3
-    
+
     def get_ability(self, ability: Union[str, int]) -> Ability:
         """
         Returns an ability for this champion with the given Name or ID.
@@ -118,7 +124,7 @@ class Champion:
         ----------
         ability : Union[str, int]
             The ability's Name or ID you want to get.
-        
+
         Returns
         -------
         Optional[Ability]
@@ -130,12 +136,12 @@ class Champion:
     def get_card(self, card: Union[str, int]) -> 'Device':
         """
         Returns a card for this champion with the given Name or ID.
-        
+
         Parameters
         ----------
         card : Union[str, int]
             The card's Name or ID you want to get.
-        
+
         Returns
         -------
         Optional[Device]
@@ -143,16 +149,16 @@ class Champion:
             `None` is returned if the card couldn't be found.
         """
         return get_name_or_id(self.cards, card)
-    
+
     def get_talent(self, talent: Union[str, int]) -> 'Device':
         """
         Returns a talent for this champion with the given Name or ID.
-        
+
         Parameters
         ----------
         talent : Union[str, int]
             The talent's Name or ID you want to get.
-        
+
         Returns
         -------
         Optional[Device]

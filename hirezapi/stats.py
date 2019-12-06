@@ -5,10 +5,11 @@ from .utils import convert_timestamp
 from .enumerations import Rank, Language
 from .mixins import WinLoseMixin, KDAMixin
 
+
 class Stats(WinLoseMixin):
     """
     Represents casual player stats.
-    
+
     Attributes
     ----------
     wins : int
@@ -24,14 +25,15 @@ class Stats(WinLoseMixin):
             losses=stats_data["Losses"],
         )
         self.leaves = stats_data["Leaves"]
-    
+
     def __repr__(self) -> str:
         return "{0.__class__.__name__}: {0.wins}/{0.losses} ({0.winrate_text})".format(self)
+
 
 class RankedStats(Stats):
     """
     Represents ranked player stats.
-    
+
     Attributes
     ----------
     wins : int
@@ -68,10 +70,11 @@ class RankedStats(Stats):
         self.prev_mmr = stats_data["PrevRank"]
         self.trend = stats_data["Trend"]
 
+
 class ChampionStats(WinLoseMixin, KDAMixin):
     """
     Represents player's champion stats.
-    
+
     Attributes
     ----------
     player : Union[PartialPlayer, Player]
@@ -92,7 +95,9 @@ class ChampionStats(WinLoseMixin, KDAMixin):
     playtime : Duration
         The amount of time spent playing this champion.
     """
-    def __init__(self, player: Union['PartialPlayer', 'Player'], language: Language, stats_data: dict):
+    def __init__(
+        self, player: Union['PartialPlayer', 'Player'], language: Language, stats_data: dict
+    ):
         WinLoseMixin.__init__(
             self,
             wins=stats_data["Wins"],
@@ -112,8 +117,8 @@ class ChampionStats(WinLoseMixin, KDAMixin):
         self.experience = stats_data["Worshippers"]
         self.credits_earned = stats_data["Gold"]
         self.playtime = Duration(minutes=stats_data["Minutes"])
-        #"MinionKills"
-    
+        # "MinionKills"
+
     def __repr__(self) -> str:
         champion_name = self.champion.name if self.champion else "Unknown"
         return "{1}({0.level}): ({0.wins}/{0.losses}) {0.kda_text}".format(self, champion_name)

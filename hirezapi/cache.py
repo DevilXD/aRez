@@ -1,15 +1,16 @@
 from datetime import datetime, timedelta
-from typing import Optional, Union, List, Mapping, Iterator
+from typing import Optional, Union, Mapping, Iterator
 
 from .items import Device
 from .champion import Champion
 from .utils import get_name_or_id
 from .enumerations import Language, DeviceType
 
+
 class ChampionInfo:
     """
     Represents a collection of champions, cards, talents and shop items.
-    
+
     Attributes
     ----------
     language : Language
@@ -60,11 +61,13 @@ class ChampionInfo:
         dt = DeviceType["Item"]
         return filter(lambda d: d.type == dt, self.devices)
 
-    def get_champion(self, champion: Union[str, int], *, fuzzy: bool = False) -> Optional[Champion]:
+    def get_champion(
+        self, champion: Union[str, int], *, fuzzy: bool = False
+    ) -> Optional[Champion]:
         """
         Returns a champion for the given Name or ID.
         Case sensitive.
-        
+
         Parameters
         ----------
         champion : Union[str, int]
@@ -72,7 +75,7 @@ class ChampionInfo:
         fuzzy : bool
             When set to `True`, makes the Name search case insensitive.\n
             Defaults to `False`.
-        
+
         Returns
         -------
         Optional[Champion]
@@ -85,7 +88,7 @@ class ChampionInfo:
         """
         Returns a champion's card for the given Name or ID.
         Case sensitive.
-        
+
         Parameters
         ----------
         card : Union[str, int]
@@ -93,7 +96,7 @@ class ChampionInfo:
         fuzzy : bool
             When set to `True`, makes the Name search case insensitive.\n
             Defaults to `False`.
-        
+
         Returns
         -------
         Optional[Device]
@@ -106,7 +109,7 @@ class ChampionInfo:
         """
         Returns a champion's talent for the given Name or ID.
         Case sensitive.
-        
+
         Parameters
         ----------
         talent : Union[str, int]
@@ -114,7 +117,7 @@ class ChampionInfo:
         fuzzy : bool
             When set to `True`, makes the Name search case insensitive.\n
             Defaults to `False`.
-        
+
         Returns
         -------
         Optional[Device]
@@ -127,7 +130,7 @@ class ChampionInfo:
         """
         Returns a shop item for the given Name or ID.
         Case sensitive.
-        
+
         Parameters
         ----------
         item : Union[str, int]
@@ -135,7 +138,7 @@ class ChampionInfo:
         fuzzy : bool
             When set to `True`, makes the Name search case insensitive.\n
             Defaults to `False`.
-        
+
         Returns
         -------
         Optional[Device]
@@ -143,6 +146,7 @@ class ChampionInfo:
             `None` is returned if a shop item with the requested Name or ID couldn't be found.
         """
         return get_name_or_id(self.items, item, fuzzy=fuzzy)
+
 
 class DataCache:
     def __init__(self):
@@ -159,14 +163,21 @@ class DataCache:
         entry = self._cache.get(language)
         return entry is None or datetime.utcnow() >= entry._expires_at
 
-    def get_champion(self, champion: Union[str, int], language: Language = Language["english"], *, fuzzy: bool = False) -> Optional[Champion]:
+    def get_champion(
+        self,
+        champion: Union[str, int],
+        language: Language = Language["english"],
+        *,
+        fuzzy: bool = False,
+    ) -> Optional[Champion]:
         """
         Returns a champion for the given Name or ID, and Language specified.
         Case sensitive.
 
-        This method can return `None` or stale data if the entry hasn't been fetched yet, or haven't been updated in a while.
+        This method can return `None` or stale data if the entry hasn't been fetched yet,
+        or haven't been updated in a while.\n
         Consider using the `get_champion_info` method from the main API instead.
-        
+
         Parameters
         ----------
         champion : Union[str, int]
@@ -177,25 +188,33 @@ class DataCache:
         fuzzy : bool
             When set to `True`, makes the Name search case insensitive.\n
             Defaults to `False`.
-        
+
         Returns
         -------
         Optional[Champion]
             The champion you requested.\n
-            `None` is returned if a champion couldn't be found, or the entry for the language specified hasn't been fetched yet.
+            `None` is returned if a champion couldn't be found, or the entry for the language
+            specified hasn't been fetched yet.
         """
         entry = self._cache.get(language)
         if entry:
             return entry.get_champion(champion, fuzzy=fuzzy)
 
-    def get_card(self, card: Union[str, int], language: Language = Language["english"], *, fuzzy: bool = False) -> Optional[Device]:
+    def get_card(
+        self,
+        card: Union[str, int],
+        language: Language = Language["english"],
+        *,
+        fuzzy: bool = False,
+    ) -> Optional[Device]:
         """
         Returns a card for the given Name or ID, and Language specified.
         Case sensitive.
 
-        This method can return `None` or stale data if the entry hasn't been fetched yet, or haven't been updated in a while.
+        This method can return `None` or stale data if the entry hasn't been fetched yet,
+        or haven't been updated in a while.\n
         Consider using the `get_champion_info` method from the main API instead.
-        
+
         Parameters
         ----------
         card : Union[str, int]
@@ -206,25 +225,33 @@ class DataCache:
         fuzzy : bool
             When set to `True`, makes the Name search case insensitive.\n
             Defaults to `False`.
-        
+
         Returns
         -------
         Optional[Device]
             The card you requested.\n
-            `None` is returned if a card couldn't be found, or the entry for the language specified hasn't been fetched yet.
+            `None` is returned if a card couldn't be found, or the entry for the language
+            specified hasn't been fetched yet.
         """
         entry = self._cache.get(language)
         if entry:
             return entry.get_card(card, fuzzy=fuzzy)
 
-    def get_talent(self, talent: Union[str, int], language: Language = Language["english"], *, fuzzy: bool = False) -> Optional[Device]:
+    def get_talent(
+        self,
+        talent: Union[str, int],
+        language: Language = Language["english"],
+        *,
+        fuzzy: bool = False,
+    ) -> Optional[Device]:
         """
         Returns a talent for the given Name or ID, and Language specified.
         Case sensitive.
 
-        This method can return `None` or stale data if the entry hasn't been fetched yet, or haven't been updated in a while.
+        This method can return `None` or stale data if the entry hasn't been fetched yet,
+        or haven't been updated in a while.\n
         Consider using the `get_champion_info` method from the main API instead.
-        
+
         Parameters
         ----------
         talent : Union[str, int]
@@ -235,25 +262,33 @@ class DataCache:
         fuzzy : bool
             When set to `True`, makes the Name search case insensitive.\n
             Defaults to `False`.
-        
+
         Returns
         -------
         Optional[Device]
             The talent you requested.\n
-            `None` is returned if a talent couldn't be found, or the entry for the language specified hasn't been fetched yet.
+            `None` is returned if a talent couldn't be found, or the entry for the language
+            specified hasn't been fetched yet.\n
         """
         entry = self._cache.get(language)
         if entry:
             return entry.get_talent(talent, fuzzy=fuzzy)
 
-    def get_item(self, item: Union[str, int], language: Language = Language["english"], *, fuzzy: bool = False) -> Optional[Device]:
+    def get_item(
+        self,
+        item: Union[str, int],
+        language: Language = Language["english"],
+        *,
+        fuzzy: bool = False,
+    ) -> Optional[Device]:
         """
         Returns a shop item for the given Name or ID, and Language specified.
         Case sensitive.
 
-        This method can return `None` or stale data if the entry hasn't been fetched yet, or haven't been updated in a while.
+        This method can return `None` or stale data if the entry hasn't been fetched yet,
+        or haven't been updated in a while.\n
         Consider using the `get_champion_info` method from the main API instead.
-        
+
         Parameters
         ----------
         item : Union[str, int]
@@ -264,12 +299,13 @@ class DataCache:
         fuzzy : bool
             When set to `True`, makes the Name search case insensitive.\n
             Defaults to `False`.
-        
+
         Returns
         -------
         Optional[Device]
             The shop item you requested.\n
-            `None` is returned if a shop item couldn't be found, or the entry for the language specified hasn't been fetched yet.
+            `None` is returned if a shop item couldn't be found, or the entry for the language
+            specified hasn't been fetched yet.
         """
         entry = self._cache.get(language)
         if entry:

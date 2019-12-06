@@ -13,17 +13,18 @@ __all__ = [
     'AbilityType',
 ]
 
+
 class EnumGet(Enum):
     @classmethod
     def get(cls, key_or_value: Union[str, int]) -> Optional[Enum]:
         """
         Allows for exception-less and case-insensitive enumeration member aquisition.
-        
+
         Parameters
         ----------
         key_or_value : Union[str, int]
             A string or value representing the member you want to get.
-        
+
         Returns
         -------
         Optional[Enum]
@@ -40,6 +41,7 @@ class EnumGet(Enum):
             with suppress(ValueError):
                 return cls(key_or_value)
         return None
+
 
 Platform = EnumGet("Platform", {
     "Unknown":          0,
@@ -139,7 +141,7 @@ Southeast Asia
 """
 
 Language = EnumGet("Language", {
-    #"Unknown":         0,
+    # "Unknown":        0,
     "English":          1,
     "english":          1,
     "en":               1,
@@ -156,12 +158,12 @@ Language = EnumGet("Language", {
     "chinese":          5,
     "zh":               5,
     "chi":              5,
-    #"Spanish":         7, # old spanish - it seems like this language isn't used that much
-    #"spanish":         7, # over the #9 one, and is full of mostly outdated data
-    #"es":              7,
-    "Spanish":          9, # old Latin America
-    "spanish":          9, # old latin_america
-    "es":               9, # old Latin America
+    # "Spanish":        7,  # old spanish - it seems like this language isn't used that much
+    # "spanish":        7,  # over the #9 one, and is full of mostly outdated data
+    # "es":             7,
+    "Spanish":          9,  # old Latin America
+    "spanish":          9,  # old latin_america
+    "es":               9,  # old Latin America
     "spa":              9,
     "Portuguese":       10,
     "portuguese":       10,

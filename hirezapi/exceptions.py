@@ -4,24 +4,27 @@ class HiRezAPIException(Exception):
     """
     pass
 
+
 class HTTPException(HiRezAPIException):
     """
-    General exception raised by the Endpoint in cases where getting a response from the server wasn't possible.
-    
+    General exception raised by the Endpoint in cases where getting a response from
+    the server wasn't possible.
+
     Inherits from `HiRezAPIException`.
 
     Attributes
     ----------
     cause : Optional[Exception]
         The original exception cause. This is usually:\n
-        • aiohttp.ClientResponseError or it's derivatives\n
-        • asyncio.TimeoutError when the request times out\n
-        • Unauthorized exception when your credentials were invalid\n
-        • None if the cause was unknown
+        • `aiohttp.ClientResponseError` or it's derivatives\n
+        • `asyncio.TimeoutError` when the request times out\n
+        • `Unauthorized` exception when your credentials were invalid\n
+        • `None` if the cause was unknown
     """
-    def __init__(self, original_exc = None):
+    def __init__(self, original_exc=None):
         super().__init__("There was an error while processing the request!")
         self.cause = original_exc
+
 
 class Unauthorized(HiRezAPIException):
     """
@@ -32,6 +35,7 @@ class Unauthorized(HiRezAPIException):
     """
     def __init__(self):
         super().__init__("Your authorization credentials are invalid!")
+
 
 class Private(HiRezAPIException):
     """

@@ -1,13 +1,14 @@
 import re
 from typing import Optional, Union
 
-from .champion import Champion, Ability
+from .champion import Champion
 from .enumerations import DeviceType, Language
+
 
 class Device:
     """
     Represents a Device - those are usually cards, talents and shop items.
-    
+
     Attributes
     ----------
     id : int
@@ -72,31 +73,32 @@ class Device:
             self.type = DeviceType["Item"]
         else:
             self.type = DeviceType["Undefined"]
-        self.champion = None # later overwritten when the device is added to a champion
+        self.champion = None  # later overwritten when the device is added to a champion
         self.name = device_data["DeviceName"]
         self.id = device_data["ItemId"]
         self.icon_url = device_data["itemIcon_URL"]
         self.cooldown = device_data["recharge_seconds"]
         self.price = device_data["Price"]
         self.unlocked_at = device_data["talent_reward_level"]
-    
+
     def __eq__(self, other) -> bool:
         assert isinstance(other, self.__class__)
         return self.id == other.id
 
     def __repr__(self) -> str:
         return "{0.type.name}: {0.name}".format(self)
-    
+
     def _attach_champion(self, champion: Champion):
         self.champion = champion
         ability = champion.get_ability(self.ability)
         if ability:
             self.ability = ability
 
+
 class LoadoutCard:
     """
     Represents a Loadout Card.
-    
+
     Attributes
     ----------
     card : Optional[Device]
@@ -108,15 +110,16 @@ class LoadoutCard:
     def __init__(self, card: Optional[Device], points: int):
         self.card = card
         self.points = points
-    
+
     def __repr__(self) -> str:
         card_name = self.card.name if self.card else "Unknown"
         return "{1}: {0.points}".format(self, card_name)
 
+
 class Loadout:
     """
     Represents a Champion's Loadout.
-    
+
     Attributes
     ----------
     id : int
@@ -133,7 +136,9 @@ class Loadout:
     cards : List[LoadoutCard]
         A list of loadout cards this lodaout consists of.
     """
-    def __init__(self, player: Union['PartialPlayer', 'Player'], language: Language, loadout_data: dict):
+    def __init__(
+        self, player: Union['PartialPlayer', 'Player'], language: Language, loadout_data: dict
+    ):
         assert player.id == loadout_data["playerId"]
         self._api = player._api
         self.player = player
@@ -141,8 +146,11 @@ class Loadout:
         self.champion = self._api.get_champion(loadout_data["ChampionId"], language)
         self.name = loadout_data["DeckName"]
         self.id = loadout_data["DeckId"]
-        self.cards = [LoadoutCard(self._api.get_card(c["ItemId"], language), c["Points"]) for c in loadout_data["LoadoutItems"]]
-    
+        self.cards = [
+            LoadoutCard(self._api.get_card(c["ItemId"], language), c["Points"])
+            for c in loadout_data["LoadoutItems"]
+        ]
+
     def __repr__(self) -> str:
         champion_name = self.champion.name if self.champion else "Unknown"
         return "{1}: {0.name}".format(self, champion_name)

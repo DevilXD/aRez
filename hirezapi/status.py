@@ -4,6 +4,7 @@ from datetime import datetime
 from .match import LiveMatch
 from .enumerations import Activity, Queue, Language
 
+
 class Status:
     """
     Represets a single server status.
@@ -16,9 +17,9 @@ class Status:
         A string denoting which environment this server is running in.
         This is usually `live` or `pts`.
     up : bool
-        True if the server is UP, False otherwise.
+        `True` if the server is UP, `False` otherwise.
     limited_access : bool
-        True if this servers has limited access, False otherwise.
+        `True` if this servers has limited access, `False` otherwise.
     version : str
         The current version of this server.
     """
@@ -29,6 +30,7 @@ class Status:
         self.limited_access = status_data["limited_access"]
         self.version = status_data["version"]
 
+
 class ServerStatus:
     """
     An object representing the current HiRez server's status.
@@ -38,14 +40,14 @@ class ServerStatus:
     timestamp : datetime
         A UTC timestamp denoting when this status was fetched.
     all_up : bool
-        True if all live servers are UP, False otherwise.
+        `True` if all live servers are UP, `False` otherwise.
         Note that this doesn't include PTS.
     limited_access : bool
-        True if at least one live server has limited access, False otherwise.
+        `True` if at least one live server has limited access, `False` otherwise.
         Note that this doesn't include PTS.
     all_statuses : List[Status]
         A list of all available statuses.
-    
+
     Attributes below are added dynamically, for the sake of easy access only.
     Please note that they should (but may not) be available at all times.
 
@@ -76,54 +78,60 @@ class ServerStatus:
                 if status.limited_access:
                     self.limited_access = True
                 setattr(self, s["platform"], status)
-    
+
     def __repr__(self) -> str:
         status = "All UP" if self.all_up else "Not all UP"
         limited = "LIMITED" if self.limited_access else "NOT LIMITED"
         return "{0.__class__.__name__}({1} / {2})".format(self, status, limited)
 
+
 class PlayerStatus:
     """
     Represents the Player status.
-    
+
     Attributes
     ----------
     player : Union[PartialPlayer, Player]
         The player this status is for.
     live_match_id : Optional[int]
         ID of the live match the player is currently in.
-        None if the player isn't in a match.
+        `None` if the player isn't in a match.
     queue : Optional[Queue]
         The queue the player is currently playing in.
-        None if the player isn't in a match.
+        `None` if the player isn't in a match.
     status : Activity
         An enumeration representing the current player status.
     """
     def __init__(self, player, status_data: dict):
         self.player = player
         self.live_match_id = status_data["Match"] or None
-        self.queue = status_data["match_queue_id"] and Queue.get(status_data["match_queue_id"]) or None
+        self.queue = (
+            status_data["match_queue_id"]
+            and Queue.get(status_data["match_queue_id"])
+            or None
+        )
         self.status = Activity.get(status_data["status"])
-    
+
     def __repr__(self) -> str:
         return "{0.player.name}({0.player.id}): {0.status.name}".format(self)
-    
+
     async def get_live_match(self, language: Language = Language.English) -> Optional[LiveMatch]:
         """
         Fetches a live match the player is currently in.
 
         Uses up a single request.
-        
+
         Parameters
         ----------
         language : Optional[Language]
             The language to fetch the match in, Language.English by default.
-        
+
         Returns
         -------
         Optional[LiveMatch]
             The live match requested.
-            None is returned if the player isn't in a live match, or the match is played in an unsupported queue (customs).
+            `None` is returned if the player isn't in a live match,
+            or the match is played in an unsupported queue (customs).
         """
         if self.live_match_id:
             response = await self.player._api.request("getmatchplayerdetails", self.live_match_id)

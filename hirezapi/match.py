@@ -1,4 +1,3 @@
-from datetime import datetime, timedelta
 from typing import Union, List, Generator
 
 from .items import LoadoutCard
@@ -6,10 +5,11 @@ from .mixins import KDAMixin, WinLoseMixin
 from .utils import convert_timestamp, Duration
 from .enumerations import Queue, Language, Region, Rank
 
+
 class MatchItem:
     """
     Represents an item shop's purchase.
-    
+
     Attributes
     ----------
     item : Optional[Device]
@@ -21,10 +21,11 @@ class MatchItem:
     def __init__(self, item, level):
         self.item = item
         self.level = level
-    
+
     def __repr__(self) -> str:
         item_name = self.item.name if self.item else "Unknown"
         return "{1}: {0.level}".format(self, item_name)
+
 
 class MatchLoadout:
     """
@@ -40,7 +41,7 @@ class MatchLoadout:
     """
     def __init__(self, api, language: Language, match_data: dict):
         self.cards = []
-        for i in range(1,6):
+        for i in range(1, 6):
             card_id = match_data["ItemId{}".format(i)]
             if not card_id:
                 continue
@@ -56,13 +57,14 @@ class MatchLoadout:
         talent_name = self.talent.name if self.talent else "Unknown"
         return "{}: {}/{}/{}/{}/{}".format(talent_name, *(c.points for c in self.cards))
 
+
 class PartialMatch(KDAMixin):
     """
     Represents a match from a single player's perspective only.
-    
+
     This partial object is returned by the `get_match_history` player's method.
     To obtain a full object, try using `expand`.
-    
+
     Attributes
     ----------
     id : int
@@ -120,7 +122,9 @@ class PartialMatch(KDAMixin):
     win_status : bool
         `True` if the player won this match, `False` otherwise.
     """
-    def __init__(self, player: Union['PartialPlayer', 'Player'], language: Language, match_data: dict):
+    def __init__(
+        self, player: Union['PartialPlayer', 'Player'], language: Language, match_data: dict
+    ):
         super().__init__(
             kills=match_data["Kills"],
             deaths=match_data["Deaths"],
@@ -148,7 +152,7 @@ class PartialMatch(KDAMixin):
 
         self.objective_time = match_data["Objective_Assists"]
         self.multikill_max  = match_data["Multi_kill_Max"]
-        
+
         my_team         = match_data["TaskForce"]
         my_score        = match_data["Team{}Score".format(my_team)]
         other_team      = 1 if my_team == 2 else 2
@@ -157,7 +161,7 @@ class PartialMatch(KDAMixin):
         self.win_status = my_team == match_data["Winning_TaskForce"]
 
         self.items = []
-        for i in range(1,5):
+        for i in range(1, 5):
             item_id = match_data["ActiveId{}".format(i)]
             if not item_id:
                 continue
@@ -165,7 +169,7 @@ class PartialMatch(KDAMixin):
             level = match_data["ActiveLevel{}".format(i)] // 4 + 1
             self.items.append(MatchItem(item, level))
         self.loadout = MatchLoadout(self._api, language, match_data)
-    
+
     def __repr__(self) -> str:
         champion_name = self.champion.name if self.champion else "Unknown"
         return "{0.queue.name}: {1}: {0.kda_text}".format(self, champion_name)
@@ -175,7 +179,7 @@ class PartialMatch(KDAMixin):
         """
         Checks if the player has disconnected during the match.
         This is done by checking if either `damage_bot` or `healing_bot` are non zero.
-        
+
         Returns
         -------
         bool
@@ -186,7 +190,7 @@ class PartialMatch(KDAMixin):
     async def expand(self) -> 'Match':
         """
         Expands this object into a full Match, containing all match players and information.
-        
+
         Returns
         -------
         Match
@@ -195,10 +199,11 @@ class PartialMatch(KDAMixin):
         response = await self._api.request("getmatchdetails", self.id)
         return Match(self._api, self.language, response)
 
+
 class MatchPlayer(KDAMixin):
     """
     Represents a full match's player.
-    
+
     Attributes
     ----------
     player : PartialPlayer
@@ -254,8 +259,9 @@ class MatchPlayer(KDAMixin):
             assists=player_data["Assists"],
         )
         self._api = api
-        from .player import PartialPlayer # cyclic imports
-        self.player = PartialPlayer(self._api,
+        from .player import PartialPlayer  # cyclic imports
+        self.player = PartialPlayer(
+            self._api,
             id=player_data["playerId"],
             name=player_data["playerName"],
             platform=player_data["playerPortalId"],
@@ -284,7 +290,7 @@ class MatchPlayer(KDAMixin):
         )
 
         self.items = []
-        for i in range(1,5):
+        for i in range(1, 5):
             item_id = player_data["ActiveId{}".format(i)]
             if not item_id:
                 continue
@@ -292,20 +298,23 @@ class MatchPlayer(KDAMixin):
             level = player_data["ActiveLevel{}".format(i)] + 1
             self.items.append(MatchItem(item, level))
         self.loadout = MatchLoadout(self._api, language, player_data)
-    
+
     @property
     def disconnected(self) -> bool:
         """
         Returns `True` if the player has disconnected during the match, `False` otherwise.\n
         This is done by checking if either `damage_bot` or `healing_bot` are non zero.
-        
+
         :type: bool
         """
         return self.damage_bot > 0 or self.healing_bot > 0
 
     def __repr__(self) -> str:
         player_name = self.player.name if self.player.id else "Unknown"
-        return "{1}({0.player.id}): ({0.kda_text}, {0.damage_dealt}, {0.healing_done})".format(self, player_name)
+        return "{1}({0.player.id}): ({0.kda_text}, {0.damage_dealt}, {0.healing_done})".format(
+            self, player_name
+        )
+
 
 class Match:
     """
@@ -331,7 +340,8 @@ class Match:
     map_name : str
         The name of the map played.
     score : Tuple[int, int]
-        The match's ending score. The first value is the ``team_1`` score, while the second value - ``team_2`` score.
+        The match's ending score.
+        The first value is the ``team_1`` score, while the second value - ``team_2`` score.
     winning_team : int
         The winning team of this match.\n
         This can be either ``1`` or ``2``.
@@ -355,7 +365,7 @@ class Match:
         self.score = (first_player["Team1Score"], first_player["Team2Score"])
         self.winning_team = first_player["Winning_TaskForce"]
         self.bans = []
-        for i in range(1,5):
+        for i in range(1, 5):
             ban_id = first_player["BanId{}".format(i)]
             if not ban_id:
                 continue
@@ -365,8 +375,12 @@ class Match:
         self.team_1 = []
         self.team_2 = []
         for p in match_data:
-            getattr(self, "team_{}".format(p["TaskForce"])).append(MatchPlayer(self._api, language, p))
-    
+            getattr(
+                self, "team_{}".format(p["TaskForce"])
+            ).append(
+                MatchPlayer(self._api, language, p)
+            )
+
     @property
     def players(self) -> Generator[MatchPlayer, None, None]:
         for p in self.team_1:
@@ -377,10 +391,11 @@ class Match:
     def __repr__(self) -> str:
         return "{0.queue.name}({0.id}): {0.score}".format(self)
 
+
 class LivePlayer(WinLoseMixin):
     """
     Represents a liva match player.
-    
+
     Attributes
     ----------
     player : PartialPlayer
@@ -405,22 +420,27 @@ class LivePlayer(WinLoseMixin):
             losses=player_data["tierLosses"],
         )
         self._api = api
-        from .player import PartialPlayer # cyclic imports
-        self.player = PartialPlayer(api, id=player_data["playerId"], name=player_data["playerName"])
+        from .player import PartialPlayer  # cyclic imports
+        self.player = PartialPlayer(
+            api, id=player_data["playerId"], name=player_data["playerName"]
+        )
         self.champion = self._api.get_champion(player_data["ChampionId"], language)
         self.rank = Rank.get(player_data["Tier"])
         self.account_level = player_data["Account_Level"]
         self.mastery_level = player_data["Mastery_Level"]
-    
+
     def __repr__(self) -> str:
         player_name = self.player.name if self.player.id else "Unknown"
         champion_name = self.champion.name if self.champion else "Unknown"
-        return "{1}({0.player.id}): {0.account_level} level: {2}({0.mastery_level})".format(self, player_name, champion_name)
+        return "{1}({0.player.id}): {0.account_level} level: {2}({0.mastery_level})".format(
+            self, player_name, champion_name
+        )
+
 
 class LiveMatch:
     """
     Represents a live match.
-    
+
     Attributes
     ----------
     id : int
@@ -451,10 +471,10 @@ class LiveMatch:
             getattr(self, "team_{}".format(p["taskForce"])).append(
                 LivePlayer(self._api, language, p)
             )
-    
+
     def __repr__(self) -> str:
         return "{0.__class__.__name__}({0.queue.name}): {0.map}".format(self)
-    
+
     @property
     def players(self) -> Generator[LivePlayer, None, None]:
         for p in self.team_1:

@@ -1,10 +1,13 @@
 import aiohttp
-import asyncio
 from abc import ABC
 from datetime import datetime, timezone
 
+
 def convert_timestamp(stamp: str):
-    return datetime.strptime(stamp[:-3] + stamp[-2:], "%Y-%m-%dT%H:%M:%S.%f%z").astimezone(timezone.utc).replace(tzinfo=None).replace(microsecond=0)
+    return datetime.strptime(
+        stamp[:-3] + stamp[-2:], "%Y-%m-%dT%H:%M:%S.%f%z"
+    ).astimezone(timezone.utc).replace(tzinfo=None).replace(microsecond=0)
+
 
 class BaseComponent(ABC):
     def __init__(self, comp_data: dict):
@@ -13,14 +16,15 @@ class BaseComponent(ABC):
         self.status = comp_data["status"]
         self.created_at = convert_timestamp(comp_data["created_at"])
         self.updated_at = convert_timestamp(comp_data["updated_at"])
-    
+
     def __repr__(self) -> str:
         return "{0.__class__.__name__}: {0.name}".format(self)
+
 
 class Update:
     """
     Represents an incident or scheduled maintenance status update.
-    
+
     Attributes
     ----------
     id : str
@@ -40,14 +44,15 @@ class Update:
         self.status = upd_data["status"]
         self.created_at = convert_timestamp(upd_data["created_at"])
         self.updated_at = convert_timestamp(upd_data["updated_at"])
-    
+
     def __repr__(self) -> str:
         return "{}: {}".format(self.status.replace('_', ' ').title(), self.description)
+
 
 class Incident(BaseComponent):
     """
     Represents an incident.
-    
+
     Attributes
     ----------
     id : str
@@ -70,10 +75,11 @@ class Incident(BaseComponent):
         self.impact = inc_data["impact"]
         self.updates = [Update(u) for u in inc_data["incident_updates"]]
 
+
 class ScheduledMaintenance(BaseComponent):
     """
     Represents a scheduled maintenance.
-    
+
     Attributes
     ----------
     id : str
@@ -102,10 +108,11 @@ class ScheduledMaintenance(BaseComponent):
         self.scheduled_until = convert_timestamp(main_data["scheduled_until"])
         self.updates = [Update(u) for u in main_data["incident_updates"]]
 
+
 class Component(BaseComponent):
     """
     Represents a status component.
-    
+
     Attributes
     ----------
     id : str
@@ -130,21 +137,22 @@ class Component(BaseComponent):
         self.group = group
         self.incidents = []
         self.scheduled_maintenances = []
-    
+
     def _add_incident(self, incident: Incident):
         self.incidents.append(incident)
         if self.group:
             self.group._add_incident(incident)
-    
+
     def _add_scheduled_mainenance(self, scheduled_maintenance: ScheduledMaintenance):
         self.scheduled_maintenances.append(scheduled_maintenance)
         if self.group:
             self.group._add_scheduled_mainenance(scheduled_maintenance)
 
+
 class ComponentGroup(BaseComponent):
     """
     Represents a component's group.
-    
+
     Attributes
     ----------
     id : str
@@ -169,17 +177,18 @@ class ComponentGroup(BaseComponent):
         self.components = []
         self.incidents = []
         self.scheduled_maintenances = []
-    
+
     def _add_component(self, comp: Component):
         self.components.append(comp)
-    
+
     def _add_incident(self, incident: Incident):
         if incident not in self.incidents:
             self.incidents.append(incident)
-    
+
     def _add_scheduled_mainenance(self, scheduled_maintenance: ScheduledMaintenance):
         if scheduled_maintenance not in self.scheduled_maintenances:
             self.scheduled_maintenances.append(scheduled_maintenance)
+
 
 class Status:
     """
@@ -226,7 +235,7 @@ class Status:
             group._add_component(comp)
             self.components.append(comp)
         self.groups = list(groups.values())
-        
+
         components_mapping = {c.id: c for c in self.components}
 
         self.incidents = []
@@ -246,32 +255,33 @@ class Status:
                 if comp:
                     comp._add_scheduled_mainenance(sm)
 
+
 class StatusPage:
     def __init__(self, url: str):
         self.url = "{}/api/v2/summary.json".format(url.rstrip('/'))
         self._http_session = aiohttp.ClientSession(raise_for_status=True)
-    
+
     def __del__(self):
         self._http_session.detach()
-    
+
     async def close(self):
         await self._http_session.close()
-    
+
     # async with integration
     async def __aenter__(self):
         return self
-    
+
     async def __aexit__(self, exc_type, exc, traceback):
         await self._http_session.close()
-    
+
     async def request(self):
         async with self._http_session.get(self.url) as response:
             return await response.json()
-    
+
     async def get_status(self):
         """
         Fetches the current statuspage's status.
-        
+
         Returns
         -------
         Status
