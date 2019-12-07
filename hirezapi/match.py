@@ -341,13 +341,13 @@ class Match:
         The name of the map played.
     score : Tuple[int, int]
         The match's ending score.
-        The first value is the ``team_1`` score, while the second value - ``team_2`` score.
+        The first value is the ``team1`` score, while the second value - ``team2`` score.
     winning_team : int
         The winning team of this match.\n
         This can be either ``1`` or ``2``.
-    team_1 : List[MatchPlayer]
+    team1 : List[MatchPlayer]
         A list of players in the first team.
-    team_2 : List[MatchPlayer]
+    team2 : List[MatchPlayer]
         A list of players in the second team.
     players : Generator[MatchPlayer]
         A generator that iterates over all match players in the match.
@@ -372,20 +372,20 @@ class Match:
             ban_champ = self._api.get_champion(ban_id, language)
             if ban_champ:
                 self.bans.append(ban_champ)
-        self.team_1 = []
-        self.team_2 = []
+        self.team1 = []
+        self.team2 = []
         for p in match_data:
             getattr(
-                self, "team_{}".format(p["TaskForce"])
+                self, "team{}".format(p["TaskForce"])
             ).append(
                 MatchPlayer(self._api, language, p)
             )
 
     @property
     def players(self) -> Generator[MatchPlayer, None, None]:
-        for p in self.team_1:
+        for p in self.team1:
             yield p
-        for p in self.team_2:
+        for p in self.team2:
             yield p
 
     def __repr__(self) -> str:
@@ -451,9 +451,9 @@ class LiveMatch:
         The queue the match is being played in.
     region : Region
         The region this match is being played in.
-    team_1 : List[LivePlayer]
+    team1 : List[LivePlayer]
         A list of live players in the first team.
-    team_2 : List[LivePlayer]
+    team2 : List[LivePlayer]
         A list of live players in the second team.
     players : Generator[LivePlayer]
         A generator that iterates over all live match players in the match.
@@ -465,10 +465,10 @@ class LiveMatch:
         self.map_name = first_player["mapGame"]
         self.queue = Queue.get(int(first_player["Queue"])) or Queue(0)
         self.region = Region.get(first_player["playerRegion"]) or Region(0)
-        self.team_1 = []
-        self.team_2 = []
+        self.team1 = []
+        self.team2 = []
         for p in match_data:
-            getattr(self, "team_{}".format(p["taskForce"])).append(
+            getattr(self, "team{}".format(p["taskForce"])).append(
                 LivePlayer(self._api, language, p)
             )
 
@@ -477,7 +477,7 @@ class LiveMatch:
 
     @property
     def players(self) -> Generator[LivePlayer, None, None]:
-        for p in self.team_1:
+        for p in self.team1:
             yield p
-        for p in self.team_2:
+        for p in self.team2:
             yield p
