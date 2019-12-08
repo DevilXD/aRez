@@ -473,7 +473,7 @@ class LiveMatch:
             )
 
     def __repr__(self) -> str:
-        return "{0.__class__.__name__}({0.queue.name}): {0.map}".format(self)
+        return "{0.__class__.__name__}({0.queue.name}): {0.map_name}".format(self)
 
     @property
     def players(self) -> Generator[LivePlayer, None, None]:
