@@ -148,7 +148,7 @@ class Loadout:
         self.id = loadout_data["DeckId"]
         self.cards = [
             LoadoutCard(self._api.get_card(c["ItemId"], language), c["Points"])
-            for c in loadout_data["LoadoutItems"]
+            for c in sorted(loadout_data["LoadoutItems"], key=lambda c: c["Points"], reverse=True)
         ]
 
     def __repr__(self) -> str:
