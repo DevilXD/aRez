@@ -291,12 +291,16 @@ class Player(PartialPlayer):
         self.hz_gamer_tag = player_data["hz_gamer_tag"]
         self.hz_player_name = player_data["hz_player_name"]
         self.casual = Stats(player_data)
-        self.ranked_keyboard = RankedStats(player_data["RankedKBM"])
-        self.ranked_controller = RankedStats(player_data["RankedController"])
+        self.ranked_keyboard = RankedStats("Keyboard", player_data["RankedKBM"])
+        self.ranked_controller = RankedStats("Controller", player_data["RankedController"])
 
     @property
-    def highest_rank(self):
+    def ranked_best(self) -> RankedStats:
         """
-        Returns the highest rank between the keyboard and controller stats.
+        Returns the best ranked stats between the keyboard and controller ones.
+
+        If the rank is the same, winrate is used to determine the one returned.
         """
-        return max(self.ranked_keyboard.rank, self.ranked_controller.rank)
+        if self.ranked_controller.rank == self.ranked_keyboard.rank:
+            return max(self.ranked_keyboard, self.ranked_controller, key=lambda r: r.winrate)
+        return max(self.ranked_keyboard, self.ranked_controller, key=lambda r: r.rank)

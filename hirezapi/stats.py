@@ -36,6 +36,9 @@ class RankedStats(Stats):
 
     Attributes
     ----------
+    type : str
+        The type of these stats.\n
+        This is usually either ``Keyboard`` or ``Controller``.
     wins : int
         The amount of wins.
     losses : int
@@ -61,8 +64,9 @@ class RankedStats(Stats):
         This is currently always returned as 0 by the API.\n
         Not useable.
     """
-    def __init__(self, stats_data: dict):
+    def __init__(self, type_name: str, stats_data: dict):
         super().__init__(stats_data)
+        self.type = type_name
         self.rank = Rank(stats_data["Tier"])
         self.season = stats_data["Season"]
         self.points = stats_data["Points"]
