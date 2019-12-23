@@ -244,7 +244,7 @@ class PaladinsAPI:
         assert isinstance(player_name, str)
         assert isinstance(platform, (None.__class__, Platform))
         if platform:
-            if platform.value <= 5 or platform.value == 25:  # hirez, pc, steam and discord only
+            if platform <= 5 or platform == 25:  # hirez, pc, steam and discord only
                 list_response = await self.request("getplayeridbyname", player_name)
             else:
                 list_response = await self.request(

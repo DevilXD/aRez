@@ -1,4 +1,4 @@
-﻿from enum import Enum
+﻿from enum import IntEnum
 from contextlib import suppress
 from typing import Optional, Union
 
@@ -14,9 +14,9 @@ __all__ = [
 ]
 
 
-class EnumGet(Enum):
+class EnumGet(IntEnum):
     @classmethod
-    def get(cls, key_or_value: Union[str, int]) -> Optional[Enum]:
+    def get(cls, key_or_value: Union[str, int]) -> Optional["EnumGet"]:
         """
         Allows for exception-less and case-insensitive enumeration member aquisition.
 
@@ -27,7 +27,7 @@ class EnumGet(Enum):
 
         Returns
         -------
-        Optional[Enum]
+        Optional[EnumGet]
             The matched enumeration memeber.\n
             `None` is returned if one couldn't be matched.
         """

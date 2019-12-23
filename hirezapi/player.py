@@ -293,3 +293,10 @@ class Player(PartialPlayer):
         self.casual = Stats(player_data)
         self.ranked_keyboard = RankedStats(player_data["RankedKBM"])
         self.ranked_controller = RankedStats(player_data["RankedController"])
+
+    @property
+    def highest_rank(self):
+        """
+        Returns the highest rank between the keyboard and controller stats.
+        """
+        return max(self.ranked_keyboard.rank, self.ranked_controller.rank)
