@@ -218,7 +218,7 @@ class PaladinsAPI:
         return player_list
 
     async def search_players(
-        self, player_name: str, platform: Platform = None
+        self, player_name: str, platform: Optional[Platform] = None
     ) -> List[PartialPlayer]:
         """
         Fetches all players whose name matches the name specified.
