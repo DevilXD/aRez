@@ -152,5 +152,5 @@ class Loadout:
         ]
 
     def __repr__(self) -> str:
-        champion_name = self.champion.name if self.champion else "Unknown"
+        champion_name = self.champion.name if self.champion is not None else "Unknown"
         return "{1}: {0.name}".format(self, champion_name)

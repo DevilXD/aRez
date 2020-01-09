@@ -171,7 +171,7 @@ class PartialMatch(KDAMixin):
         self.loadout = MatchLoadout(self._api, language, match_data)
 
     def __repr__(self) -> str:
-        champion_name = self.champion.name if self.champion else "Unknown"
+        champion_name = self.champion.name if self.champion is not None else "Unknown"
         return "{0.queue.name}: {1}: {0.kda_text}".format(self, champion_name)
 
     @property
@@ -431,7 +431,7 @@ class LivePlayer(WinLoseMixin):
 
     def __repr__(self) -> str:
         player_name = self.player.name if self.player.id else "Unknown"
-        champion_name = self.champion.name if self.champion else "Unknown"
+        champion_name = self.champion.name if self.champion is not None else "Unknown"
         return "{1}({0.player.id}): {0.account_level} level: {2}({0.mastery_level})".format(
             self, player_name, champion_name
         )
