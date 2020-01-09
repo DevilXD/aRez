@@ -65,11 +65,15 @@ class Device:
         else:
             self.base = None
             self.scale = None
-        if device_data["item_type"] == "Inventory Vendor - Talents":
+        item_type = device_data["item_type"]
+        if item_type == "Inventory Vendor - Talents":
             self.type = DeviceType["Talent"]
-        elif device_data["item_type"].startswith("Card Vendor Rank"):
+        elif (
+            item_type.startswith("Card Vendor Rank")
+            or item_type == "Inventory Vendor - Champion Cards"
+        ):
             self.type = DeviceType["Card"]
-        elif device_data["item_type"].startswith("Burn Card"):
+        elif item_type.startswith("Burn Card"):
             self.type = DeviceType["Item"]
         else:
             self.type = DeviceType["Undefined"]
