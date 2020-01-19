@@ -1,10 +1,26 @@
-# Python stuff
-__pycache__/
-/*.py
-!/example.py
+################
+# Python stuff #
+################
 
-# VSCode stuff
+# exclude all Python files in the root repo directory (testing files)
+/*.py
+# except for 'example.py'
+!/example.py
+# exclude Python's cache files
+__pycache__/
+
+################
+# VSCode stuff #
+################
+
+# VSCode project settings
 .vscode
+# MyPy cache
+.mypy_cache
+
+########
+# Temp #
+########
 
 # Temporary docs override
 /docs/_build
