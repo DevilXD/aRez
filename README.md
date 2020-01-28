@@ -11,36 +11,36 @@ This library is supposed to be used as a module. **As of right now, only Paladin
 
 Currently supported:
 
-- [x] `getgods / getchampions` and `getitems` regarding god / champion and card / talent / shop item information  
-- [x] `getplayer` (Player stats)  
-- [x] `getplayeridbyname`, `getplayeridsbygamertag` and `searchplayers` under a single, intuitive method (Finding the players)  
-- [x] `getfriends` (Player friends)  
-- [x] `getgodranks / getchampionranks` (God / Champion stats)  
-- [x] `getplayerloadouts` (Player loadouts for each god / champion)  
-- [x] `getplayerstatus` (Player status)  
-- [x] `getmatchhistory` (Player's recent matches)  
-- [x] `getmatchdetails` (Match details, by the ID or from player's recent matches)  
-- [x] `getplayeridbyportaluserid` (Finding the player by their Portal ID)  
-- [x] `getmatchplayerdetails` (Information about the current player's match)  
-- [ ] `getplayerachievements` (Player's achievements)  
-- [x] `getmatchdetailsbatch` (Fetching multiple matches at once)  
-- [x] `getmatchidsbyqueue` (Fetching all matches by queue)  
-- [ ] `getqueuestats` (Player match stats by queue)  
+- [x] `getgods / getchampions` and `getitems` regarding god / champion and card / talent / shop item information
+- [x] `getplayer` (Player stats)
+- [x] `getplayeridbyname`, `getplayeridsbygamertag` and `searchplayers` under a single, intuitive method (Finding the players)
+- [x] `getfriends` (Player friends)
+- [x] `getgodranks / getchampionranks` (God / Champion stats)
+- [x] `getplayerloadouts` (Player loadouts for each god / champion)
+- [x] `getplayerstatus` (Player status)
+- [x] `getmatchhistory` (Player's recent matches)
+- [x] `getmatchdetails` (Match details, by the ID or from player's recent matches)
+- [x] `getplayeridbyportaluserid` (Finding the player by their Portal ID)
+- [x] `getmatchplayerdetails` (Information about the current player's match)
+- [ ] `getplayerachievements` (Player's achievements)
+- [x] `getmatchdetailsbatch` (Fetching multiple matches at once)
+- [x] `getmatchidsbyqueue` (Fetching all matches by queue)
+- [ ] `getqueuestats` (Player match stats by queue)
 
 There are plans on expanding the existing framework to incorporate the above and below:
- 
+
 - [ ] Adding documentation
-- [ ] Making PaladinsAPI inherit from BaseAPI  
-    - [ ] Support for SmiteAPI (support Smite endpoint URL)  
-        - [ ] Support for Teams  
-            - [ ] Support for `getteamdetails` endpoint  
-            - [ ] Support for `getteamplayers` endpoint  
-            - [ ] Support for `searchteams` endpoint  
-    - [ ] \(Maybe) Support for RealmRoyaleAPI (support Realm Royale endpoint URL)  
+- [ ] Making PaladinsAPI inherit from BaseAPI
+    - [ ] Support for SmiteAPI (support Smite endpoint URL)
+        - [ ] Support for Teams
+            - [ ] Support for `getteamdetails` endpoint
+            - [ ] Support for `getteamplayers` endpoint
+            - [ ] Support for `searchteams` endpoint
+    - [ ] \(Maybe) Support for RealmRoyaleAPI (support Realm Royale endpoint URL)
 
 ### Requirements
 
-- Python 3.6+ (might work on lower versions too; untested)
+- Python 3.8+
 - aiohttp 2.0+
 
 ### Resources
@@ -70,5 +70,5 @@ loop.run_until_complete(main())  # run the async loop
 
 ### Notes
 
-This is an alpha version - as of right now, everything is a subject to change.  
+This is an alpha version - as of right now, everything is a subject to change.
 Once both Paladins and Smite (and maybe Realm Royale) APIs are supported, this wrapper is going to have it's v1.0 release, and I will try to manage the versioning the proper way from there.
