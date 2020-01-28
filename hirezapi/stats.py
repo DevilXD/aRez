@@ -1,9 +1,12 @@
-from typing import Union
 from .utils import Duration
+from typing import Union, TYPE_CHECKING
 
 from .utils import convert_timestamp
 from .enumerations import Rank, Language
 from .mixins import WinLoseMixin, KDAMixin
+
+if TYPE_CHECKING:
+    from .player import PartialPlayer, Player  # noqa
 
 
 class Stats(WinLoseMixin):
@@ -100,7 +103,7 @@ class ChampionStats(WinLoseMixin, KDAMixin):
         The amount of time spent playing this champion.
     """
     def __init__(
-        self, player: Union['PartialPlayer', 'Player'], language: Language, stats_data: dict
+        self, player: Union["PartialPlayer", "Player"], language: Language, stats_data: dict
     ):
         WinLoseMixin.__init__(
             self,

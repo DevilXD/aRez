@@ -1,6 +1,6 @@
 ﻿import asyncio
 from datetime import datetime, timedelta, timezone
-from typing import Union, Optional, List, AsyncGenerator
+from typing import Optional, Union, List, Dict, AsyncGenerator
 
 from .match import Match
 from .utils import chunk
@@ -37,7 +37,7 @@ class PaladinsAPI:
         # don't store the endpoint - the API should have no access to it's instance other than
         # the request and close methods
         endpoint = Endpoint("http://api.paladins.com/paladinsapi.svc", dev_id, auth_key, loop=loop)
-        self._server_status = None
+        self._server_status: Optional[ServerStatus] = None
         self._cache = DataCache()
         # forward endpoint request and close methods
         self.request = endpoint.request
@@ -131,7 +131,7 @@ class PaladinsAPI:
         self,
         player_id: int,
         player_name: str = '',
-        platform: Optional[Union[str, int]] = None
+        platform: Union[str, int] = 0
     ) -> PartialPlayer:
         """
         Wraps player ID, Name and Platform into a `PartialPlayer` object.
@@ -146,7 +146,7 @@ class PaladinsAPI:
         player_name : str
             The player Name you want the object to have.\n
             Defaults to an empty string.
-        platform : Optional[Union[str, int]]
+        platform : Union[str, int]
             The platform you want the object to have.\n
             Defaults to `Platform.Unknown`
 
@@ -186,6 +186,7 @@ class PaladinsAPI:
         player_list = await self.request("getplayer", player)
         if player_list:
             return Player(self, player_list[0])
+        return None
 
     async def get_players(self, player_ids: List[int]) -> List[Player]:
         """
@@ -209,7 +210,7 @@ class PaladinsAPI:
         assert all(isinstance(pid, int) for pid in player_ids)
         if not player_ids:
             return []
-        player_list = []
+        player_list: List[Player] = []
         for chunk_ids in chunk(player_ids, 20):
             chunk_players = await self.request("getplayerbatch", ','.join(map(str, player_ids)))
             chunk_players = [Player(self, p) for p in chunk_players]
@@ -301,6 +302,7 @@ class PaladinsAPI:
         if response:
             p = response[0]
             return PartialPlayer(self, id=p["player_id"], platform=p["portal_id"])
+        return None
 
     async def get_match(
         self, match_id: int, language: Language = Language.English
@@ -331,6 +333,7 @@ class PaladinsAPI:
         response = await self.request("getmatchdetails", match_id)
         if response:
             return Match(self, language, response)
+        return None
 
     async def get_matches(
         self, match_ids: List[int], language: Language = Language.English
@@ -361,18 +364,17 @@ class PaladinsAPI:
             return []
         # ensure we have champion information first
         await self.get_champion_info(language)
-        matches = []
+        matches: List[Match] = []
         for chunk_ids in chunk(match_ids, 10):  # chunk the IDs into groups of 10
             response = await self.request("getmatchdetailsbatch", ','.join(map(str, chunk_ids)))
-            chunk_matches = {}
+            bunched_matches: Dict[int, list] = {}
             for p in response:
-                chunk_matches.setdefault(p["Match"], []).append(p)
-            chunk_matches = [
-                Match(self, language, match_list)
-                for match_list in chunk_matches.values()
+                bunched_matches.setdefault(p["Match"], []).append(p)
+            chunked_matches = [
+                Match(self, language, match_list) for match_list in bunched_matches.values()
             ]
-            chunk_matches.sort(key=lambda m: chunk_ids.index(m.id))
-            matches.extend(chunk_matches)
+            chunked_matches.sort(key=lambda m: chunk_ids.index(m.id))
+            matches.extend(chunked_matches)
         return matches
 
     async def get_matches_for_queue(
@@ -495,13 +497,12 @@ class PaladinsAPI:
                 response = await self.request(
                     "getmatchdetailsbatch", ','.join(map(str, chunk_ids))
                 )
-                chunk_matches = {}
+                bunched_matches: Dict[int, list] = {}
                 for p in response:
-                    chunk_matches.setdefault(p["Match"], []).append(p)
-                chunk_matches = [
-                    Match(self, language, match_list)
-                    for match_list in chunk_matches.values()
+                    bunched_matches.setdefault(p["Match"], []).append(p)
+                chunked_matches = [
+                    Match(self, language, match_list) for match_list in bunched_matches.values()
                 ]
-                chunk_matches.sort(key=lambda m: chunk_ids.index(m.id))
-                for match in chunk_matches:
+                chunked_matches.sort(key=lambda m: chunk_ids.index(m.id))
+                for match in chunked_matches:
                     yield match

@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Optional, Union, Mapping, Iterator
+from typing import Optional, Union, List, Dict, Iterator
 
 from .items import Device
 from .champion import Champion
@@ -22,14 +22,18 @@ class ChampionInfo:
     champions : List[Champion]
         Returns a list of all champions.
     """
-    def __init__(self, cache, language, champions_data, items_data):
+    def __init__(
+        self, cache: "DataCache", language: Language, champions_data: dict, items_data: dict
+    ):
         self.language = language
-        self._expires_at = datetime.utcnow() + cache.refresh_every
-        sorted_devices = {}
+        self._expires_at: datetime = datetime.utcnow() + cache.refresh_every
+        sorted_devices: Dict[int, List[Device]] = {}
         for d in items_data:
             sorted_devices.setdefault(d["champion_id"], []).append(Device(d))
-        self.devices = [d for dl in sorted_devices.values() for d in dl]
-        self.champions = [Champion(sorted_devices.get(c["id"], []), c) for c in champions_data]
+        self.devices: List[Device] = [d for dl in sorted_devices.values() for d in dl]
+        self.champions: List[Champion] = [
+            Champion(sorted_devices.get(c["id"], []), c) for c in champions_data
+        ]
 
     @property
     def cards(self) -> Iterator[Device]:
@@ -150,7 +154,7 @@ class ChampionInfo:
 
 class DataCache:
     def __init__(self):
-        self._cache: Mapping[Language, ChampionInfo] = {}
+        self._cache: Dict[Language, ChampionInfo] = {}
         self.refresh_every = timedelta(hours=12)
 
     def _create_entry(self, language: Language, champions_data, items_data):
@@ -199,6 +203,7 @@ class DataCache:
         entry = self._cache.get(language)
         if entry:
             return entry.get_champion(champion, fuzzy=fuzzy)
+        return None
 
     def get_card(
         self,
@@ -236,6 +241,7 @@ class DataCache:
         entry = self._cache.get(language)
         if entry:
             return entry.get_card(card, fuzzy=fuzzy)
+        return None
 
     def get_talent(
         self,
@@ -273,6 +279,7 @@ class DataCache:
         entry = self._cache.get(language)
         if entry:
             return entry.get_talent(talent, fuzzy=fuzzy)
+        return None
 
     def get_item(
         self,
@@ -310,3 +317,4 @@ class DataCache:
         entry = self._cache.get(language)
         if entry:
             return entry.get_item(item, fuzzy=fuzzy)
+        return None

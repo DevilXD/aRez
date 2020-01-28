@@ -1,4 +1,4 @@
-from typing import Union, List, Optional, SupportsInt
+from typing import Union, List, Optional, SupportsInt, TYPE_CHECKING
 
 from .items import Loadout
 from .exceptions import Private
@@ -7,6 +7,9 @@ from .status import PlayerStatus
 from .utils import convert_timestamp, Duration
 from .enumerations import Language, Platform, Region
 from .stats import Stats, RankedStats, ChampionStats
+
+if TYPE_CHECKING:
+    from .api import PaladinsAPI  # noqa
 
 
 class PartialPlayer:
@@ -27,11 +30,18 @@ class PartialPlayer:
     platform : Platform
         The player's platform.
     """
-    def __init__(self, api, *, id: SupportsInt, name: str = '', platform: Union[str, int] = 0):
+    def __init__(
+        self,
+        api: "PaladinsAPI",
+        *,
+        id: SupportsInt,
+        name: str = '',
+        platform: Union[str, int] = 0,
+    ):
         self._api = api
         self.id = int(id)
         self.name = name
-        if type(platform) == str and platform.isdecimal():
+        if isinstance(platform, str) and platform.isdecimal():
             platform = int(platform)
         self.platform = Platform.get(platform) or Platform(0)
 
@@ -79,6 +89,7 @@ class PartialPlayer:
         response = await self._api.request("getplayer", self.id)
         if response:
             return Player(self._api, response[0])
+        return None
 
     async def get_status(self) -> Optional[PlayerStatus]:
         """
@@ -102,6 +113,7 @@ class PartialPlayer:
         response = await self._api.request("getplayerstatus", self.id)
         if response and response[0]["status"] != 5:
             return PlayerStatus(self, response[0])
+        return None
 
     async def get_friends(self) -> List['PartialPlayer']:
         """
@@ -263,18 +275,17 @@ class Player(PartialPlayer):
     ranked_controller : RankedStats
         Player's ranked controller statistics
     """
-    def __init__(self, api, player_data):
+    def __init__(self, api: "PaladinsAPI", player_data):
         super().__init__(
             api,
             id=player_data["Id"],
             name=player_data["Name"],
             platform=player_data["Platform"],
         )
+        self.active_player: Optional[PartialPlayer] = None
         if player_data["ActivePlayerId"] != self.id:
             self.active_player = PartialPlayer(api, id=player_data["ActivePlayerId"])
-        else:
-            self.active_player = None
-        self.merged_players = []
+        self.merged_players: List[PartialPlayer] = []
         if player_data["MergedPlayers"]:
             for p in player_data["MergedPlayers"]:
                 self.merged_players.append(
@@ -282,14 +293,14 @@ class Player(PartialPlayer):
                 )
         self.created_at = convert_timestamp(player_data["Created_Datetime"])
         self.last_login = convert_timestamp(player_data["Last_Login_Datetime"])
-        self.level = player_data["Level"]
+        self.level: int = player_data["Level"]
         self.playtime = Duration(hours=player_data["HoursPlayed"])
-        self.champions_count = player_data["MasteryLevel"]
+        self.champions_count: int = player_data["MasteryLevel"]
         self.region = Region.get(player_data["Region"]) or Region(0)
-        self.total_achievements = player_data["Total_Achievements"]
-        self.total_exp = player_data["Total_Worshippers"]
-        self.hz_gamer_tag = player_data["hz_gamer_tag"]
-        self.hz_player_name = player_data["hz_player_name"]
+        self.total_achievements: int = player_data["Total_Achievements"]
+        self.total_exp: int = player_data["Total_Worshippers"]
+        self.hz_gamer_tag: str = player_data["hz_gamer_tag"]
+        self.hz_player_name: str = player_data["hz_player_name"]
         self.casual = Stats(player_data)
         self.ranked_keyboard = RankedStats("Keyboard", player_data["RankedKBM"])
         self.ranked_controller = RankedStats("Controller", player_data["RankedController"])

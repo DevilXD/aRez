@@ -1,6 +1,7 @@
 import asyncio
 from hirezapi import PaladinsAPI, StatusPage
 
+
 DEV_ID = "1234"  # Your Developer ID (example)
 AUTH_KEY = "8HBMWTCWAIZESURZHZND0IRXOZIOLVM5"  # Your Auth Key (example)
 

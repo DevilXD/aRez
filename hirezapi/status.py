@@ -1,8 +1,12 @@
-from typing import Optional
 from datetime import datetime
+from typing import Optional, Union, List, TYPE_CHECKING
 
 from .match import LiveMatch
 from .enumerations import Activity, Queue, Language
+
+if TYPE_CHECKING:
+    from .api import PaladinsAPI
+    from .player import PartialPlayer, Player  # noqa
 
 
 class Status:
@@ -24,11 +28,11 @@ class Status:
         The current version of this server.
     """
     def __init__(self, status_data: dict):
-        self.platform = status_data["platform"]
-        self.environment = status_data["environment"]
+        self.platform: str = status_data["platform"]
+        self.environment: str = status_data["environment"]
         self.up = status_data["status"] == "UP"
-        self.limited_access = status_data["limited_access"]
-        self.version = status_data["version"]
+        self.limited_access: bool = status_data["limited_access"]
+        self.version: str = status_data["version"]
 
 
 class ServerStatus:
@@ -66,7 +70,7 @@ class ServerStatus:
         self.timestamp = datetime.utcnow()
         self.all_up = True
         self.limited_access = False
-        self.all_statuses = []
+        self.all_statuses: List[Status] = []
         for s in status_data:
             status = Status(s)
             self.all_statuses.append(status)
@@ -102,11 +106,11 @@ class PlayerStatus:
     status : Activity
         An enumeration representing the current player status.
     """
-    def __init__(self, player, status_data: dict):
-        self._api = player._api
+    def __init__(self, player: Union["PartialPlayer", "Player"], status_data: dict):
+        self._api: "PaladinsAPI" = player._api
         self.player = player
-        self.live_match_id = status_data["Match"] or None
-        self.queue = (
+        self.live_match_id: Optional[int] = status_data["Match"] or None
+        self.queue: Optional[Queue] = (
             status_data["match_queue_id"]
             and Queue.get(status_data["match_queue_id"])
             or None
@@ -124,8 +128,9 @@ class PlayerStatus:
 
         Parameters
         ----------
-        language : Optional[Language]
-            The language to fetch the match in, Language.English by default.
+        language : Language
+            The language to fetch the match in.
+            Defaults to `Language.English`.
 
         Returns
         -------
@@ -141,3 +146,4 @@ class PlayerStatus:
             if response and response[0] and response[0]["ret_msg"]:
                 return None
             return LiveMatch(self._api, language, response)
+        return None

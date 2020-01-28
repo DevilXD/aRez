@@ -1,3 +1,6 @@
+from typing import Optional
+
+
 class HiRezAPIException(Exception):
     """
     The base exception type for this entire package.
@@ -21,7 +24,7 @@ class HTTPException(HiRezAPIException):
         • `Unauthorized` exception when your credentials were invalid\n
         • `None` if the cause was unknown
     """
-    def __init__(self, original_exc=None):
+    def __init__(self, original_exc: Optional[Exception] = None):
         super().__init__("There was an error while processing the request!")
         self.cause = original_exc
 

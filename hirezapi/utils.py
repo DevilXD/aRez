@@ -77,6 +77,7 @@ def convert_timestamp(timestamp: str) -> Optional[datetime]:
     """
     if timestamp:
         return datetime.strptime(timestamp, "%m/%d/%Y %I:%M:%S %p")
+    return None
 
 
 def get(iterable: Iterable, **attrs):

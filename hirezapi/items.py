@@ -1,8 +1,11 @@
 import re
-from typing import Optional, Union
+from typing import Optional, Union, TYPE_CHECKING
 
-from .champion import Champion
 from .enumerations import DeviceType, Language
+
+if TYPE_CHECKING:
+    from .champion import Champion, Ability
+    from .player import PartialPlayer, Player  # noqa
 
 
 class Device:
@@ -47,7 +50,12 @@ class Device:
     _card_pattern = re.compile(r'{scale=(\d+|0\.\d+)\|(\d+|0\.\d+)}|{(\d+)}')
 
     def __init__(self, device_data: dict):
-        self.description = device_data["Description"].strip()
+        # MyPy typings
+        self.base: Optional[float]
+        self.scale: Optional[float]
+        self.ability: Optional[Union[Ability, str]]
+
+        self.description: str = device_data["Description"].strip()
         match = self._desc_pattern.match(self.description)
         if match:
             self.ability = match.group(1)
@@ -77,13 +85,14 @@ class Device:
             self.type = DeviceType["Item"]
         else:
             self.type = DeviceType["Undefined"]
-        self.champion = None  # later overwritten when the device is added to a champion
-        self.name = device_data["DeviceName"]
-        self.id = device_data["ItemId"]
-        self.icon_url = device_data["itemIcon_URL"]
-        self.cooldown = device_data["recharge_seconds"]
-        self.price = device_data["Price"]
-        self.unlocked_at = device_data["talent_reward_level"]
+        # later overwritten when the device is added to a champion
+        self.champion: Optional["Champion"] = None
+        self.name: str = device_data["DeviceName"]
+        self.id: int = device_data["ItemId"]
+        self.icon_url: str = device_data["itemIcon_URL"]
+        self.cooldown: int = device_data["recharge_seconds"]
+        self.price: int = device_data["Price"]
+        self.unlocked_at: int = device_data["talent_reward_level"]
 
     def __eq__(self, other) -> bool:
         assert isinstance(other, self.__class__)
@@ -92,11 +101,13 @@ class Device:
     def __repr__(self) -> str:
         return "{0.type.name}: {0.name}".format(self)
 
-    def _attach_champion(self, champion: Champion):
+    def _attach_champion(self, champion: "Champion"):
         self.champion = champion
-        ability = champion.get_ability(self.ability)
-        if ability:
-            self.ability = ability
+        if isinstance(self.ability, str):
+            # upgrade the ability string to a full object if possible
+            ability = champion.get_ability(self.ability)
+            if ability:
+                self.ability = ability
 
 
 class LoadoutCard:

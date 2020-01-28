@@ -43,7 +43,7 @@ class EnumGet(IntEnum):
         return None
 
 
-Platform = EnumGet("Platform", {
+Platform = EnumGet("Platform", {  # type: ignore
     "Unknown":          0,
     "unknown":          0,
     "PC":               1,
@@ -92,7 +92,7 @@ Switch
 Discord
 """
 
-Region = EnumGet("Region", {
+Region = EnumGet("Region", {  # type: ignore
     "Unknown":              0,
     "unknown":              0,
     "North America":        1,
@@ -140,7 +140,7 @@ Southeast Asia
     Aliases: ``sea``
 """
 
-Language = EnumGet("Language", {
+Language = EnumGet("Language", {  # type: ignore
     # "Unknown":        0,
     "English":          1,
     "english":          1,
@@ -207,7 +207,7 @@ Turkish
     Aliases: ``tr``, ``tur``
 """
 
-Queue = EnumGet("Queue", {
+Queue = EnumGet("Queue", {  # type: ignore
     "Unknown":                  0,
     "unknown":                  0,
     "Casual Siege":             424,
@@ -279,7 +279,7 @@ Test Maps
     Aliases: ``test``
 """
 
-Rank = EnumGet("Rank", {
+Rank = EnumGet("Rank", {  # type: ignore
     "Qualifying":   0,
     "qualifying":   0,
     "Bronze V":     1,
@@ -375,7 +375,7 @@ Master
 Grandmaster
 """
 
-DeviceType = EnumGet("DeviceType", {
+DeviceType = EnumGet("DeviceType", {  # type: ignore
     "Undefined":    0,
     "undefined":    0,
     "Item":         1,
@@ -401,7 +401,7 @@ Talent
     The device of this type is a Talent.
 """
 
-AbilityType = EnumGet("AbilityType", {
+AbilityType = EnumGet("AbilityType", {  # type: ignore
     "Undefined":        0,
     "Direct Damage":    1,
     "direct_damage":    1,
@@ -426,7 +426,7 @@ Area Damage
     The ability does Area Damage. Aliases: ``aoe``
 """
 
-Activity = EnumGet("Activity", {
+Activity = EnumGet("Activity", {  # type: ignore
     "Offline":              0,
     "offline":              0,
     "In Lobby":             1,

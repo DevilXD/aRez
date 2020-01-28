@@ -1,5 +1,6 @@
 import aiohttp
 from abc import ABC
+from typing import List
 from datetime import datetime, timezone
 
 
@@ -11,9 +12,9 @@ def convert_timestamp(stamp: str):
 
 class BaseComponent(ABC):
     def __init__(self, comp_data: dict):
-        self.id = comp_data["id"]
-        self.name = comp_data["name"]
-        self.status = comp_data["status"]
+        self.id: str = comp_data["id"]
+        self.name: str = comp_data["name"]
+        self.status: str = comp_data["status"]
         self.created_at = convert_timestamp(comp_data["created_at"])
         self.updated_at = convert_timestamp(comp_data["updated_at"])
 
@@ -39,9 +40,9 @@ class Update:
         The last time this update was updated.
     """
     def __init__(self, upd_data: dict):
-        self.id = upd_data["id"]
-        self.description = upd_data["body"]
-        self.status = upd_data["status"]
+        self.id: str = upd_data["id"]
+        self.description: str = upd_data["body"]
+        self.status: str = upd_data["status"]
         self.created_at = convert_timestamp(upd_data["created_at"])
         self.updated_at = convert_timestamp(upd_data["updated_at"])
 
@@ -72,8 +73,8 @@ class Incident(BaseComponent):
     """
     def __init__(self, inc_data: dict):
         super().__init__(inc_data)
-        self.impact = inc_data["impact"]
-        self.updates = [Update(u) for u in inc_data["incident_updates"]]
+        self.impact: str = inc_data["impact"]
+        self.updates: List[Update] = [Update(u) for u in inc_data["incident_updates"]]
 
 
 class ScheduledMaintenance(BaseComponent):
@@ -103,10 +104,10 @@ class ScheduledMaintenance(BaseComponent):
     """
     def __init__(self, main_data: dict):
         super().__init__(main_data)
-        self.impact = main_data["impact"]
+        self.impact: str = main_data["impact"]
         self.scheduled_for = convert_timestamp(main_data["scheduled_for"])
         self.scheduled_until = convert_timestamp(main_data["scheduled_until"])
-        self.updates = [Update(u) for u in main_data["incident_updates"]]
+        self.updates: List[Update] = [Update(u) for u in main_data["incident_updates"]]
 
 
 class Component(BaseComponent):
@@ -135,8 +136,8 @@ class Component(BaseComponent):
     def __init__(self, group: 'ComponentGroup', comp_data: dict):
         super().__init__(comp_data)
         self.group = group
-        self.incidents = []
-        self.scheduled_maintenances = []
+        self.incidents: List[Incident] = []
+        self.scheduled_maintenances: List[ScheduledMaintenance] = []
 
     def _add_incident(self, incident: Incident):
         self.incidents.append(incident)
@@ -174,9 +175,9 @@ class ComponentGroup(BaseComponent):
     """
     def __init__(self, group_data: dict):
         super().__init__(group_data)
-        self.components = []
-        self.incidents = []
-        self.scheduled_maintenances = []
+        self.components: List[Component] = []
+        self.incidents: List[Incident] = []
+        self.scheduled_maintenances: List[ScheduledMaintenance] = []
 
     def _add_component(self, comp: Component):
         self.components.append(comp)
@@ -278,7 +279,7 @@ class StatusPage:
         async with self._http_session.get(self.url) as response:
             return await response.json()
 
-    async def get_status(self):
+    async def get_status(self) -> Status:
         """
         Fetches the current statuspage's status.
 
