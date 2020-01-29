@@ -57,6 +57,7 @@ class MatchLoadout:
                     match_data["ItemLevel{}".format(i)]
                 )
             )
+        self.cards.sort(key=lambda c: c.points, reverse=True)
         self.talent = api.get_talent(match_data["ItemId6"], language)
 
     def __repr__(self) -> str:
