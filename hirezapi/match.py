@@ -40,10 +40,11 @@ class MatchLoadout:
     Attributes
     ----------
     cards : List[LoadoutCard]
-        A list of loadout cards used.
+        A list of loadout cards used.\n
+        Can be empty if the player haven't picked a loadout during the match.
     talent : Optional[Device]
         The talent used.\n
-        `None` with incomplete cache.
+        `None` when the player haven't picked a talent during the match, or with incomplete cache.
     """
     def __init__(self, api, language: Language, match_data: dict):
         self.cards = []
@@ -61,8 +62,12 @@ class MatchLoadout:
         self.talent = api.get_talent(match_data["ItemId6"], language)
 
     def __repr__(self) -> str:
-        talent_name = self.talent.name if self.talent else "Unknown"
-        return "{}: {}/{}/{}/{}/{}".format(talent_name, *(c.points for c in self.cards))
+        if self.cards:
+            talent_name = self.talent.name if self.talent else "Unknown"
+            return "{}: {}/{}/{}/{}/{}".format(talent_name, *(c.points for c in self.cards))
+        else:
+            # This can happen if the player haven't picked a talent / loadout during the match
+            return "No Loadout"
 
 
 class PartialMatch(KDAMixin):
