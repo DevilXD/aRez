@@ -160,7 +160,7 @@ class Duration:
     to convert it to such.
     """
     __slots__ = (
-        "_days", "_hours", "_minutes", "_seconds", "_microseconds", "_total_seconds"
+        "_delta", "_days", "_hours", "_minutes", "_seconds", "_microseconds", "_total_seconds"
     )
 
     def __init__(self, **kwargs):
