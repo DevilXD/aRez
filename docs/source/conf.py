@@ -17,8 +17,8 @@ sys.path.insert(0, os.path.abspath('../..'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'HiRezAPI'
-copyright = '2019, DevilXD'
+project = 'aRez'
+copyright = '2020, DevilXD'
 author = 'DevilXD'
 
 
@@ -61,8 +61,8 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-#
-import corlab_theme
+
+import corlab_theme  # noqa
 html_theme = 'corlab_theme'
 html_theme_path = [corlab_theme.get_theme_dir()]
 

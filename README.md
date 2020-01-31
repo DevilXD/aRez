@@ -49,20 +49,24 @@ There are plans on expanding the existing framework to incorporate the above and
 
 ### Usage
 
-Please see [example.py](https://github.com/DevilXD/HiRezAPI/blob/master/example.py) for more examples.
+Please see [example.py](https://github.com/DevilXD/aRez/blob/master/example.py) for more examples.
 
 ```py
 import asyncio
-import hirezapi  # import the API
+import arez  # import the API
 
-DEV_ID = '1234'  # your Developer ID (example)
-AUTH_KEY = 'L2U3M60A03662R24UKOMY0FIT4S2IBKU'  # your Auth Key (example)
+DEV_ID = 1234  # your Developer ID (example)
+AUTH_KEY = "L2U3M60A03662R24UKOMY0FIT4S2IBKU"  # your Auth Key (example)
 
 async def main():
-    api = hirezapi.PaladinsAPI(DEV_ID, AUTH_KEY)  # create an API instance
-    player = await api.get_player("DevilXD")  # fetch Player stats
-    print(player.ranked_keyboard.rank.name)  # display your rank
-    await api.close()  # close the API once you're done with it
+    # create an API instance
+    api = arez.PaladinsAPI(DEV_ID, AUTH_KEY)
+    # fetch Player stats
+    player = await api.get_player("DevilXD")
+    # display your rank
+    print(player.ranked_keyboard.rank.name)
+    # close the API once you're done with it
+    await api.close()
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())  # run the async loop

@@ -7,11 +7,11 @@ All enumeration members have a lowercase alias equivalent, with the spaces (if p
 with underscores - this is for attribute access and ease of use purposes only.
 Example: ``Latin America`` -> ``latin_america``
 
-.. currentmodule:: hirezapi.enumerations
+.. currentmodule:: arez.enumerations
 
 .. automethod:: EnumGet.get
 
-.. currentmodule:: hirezapi
+.. currentmodule:: arez
 
 .. autoclass:: Platform
     :members:

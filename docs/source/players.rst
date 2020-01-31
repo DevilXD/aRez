@@ -1,7 +1,7 @@
 Players
 =======
 
-.. currentmodule:: hirezapi.player
+.. currentmodule:: arez.player
 
 .. autoclass:: PartialPlayer()
     :members:
@@ -9,7 +9,7 @@ Players
 .. autoclass:: Player()
     :members:
 
-.. currentmodule:: hirezapi.match
+.. currentmodule:: arez.match
 
 .. autoclass:: MatchPlayer()
     :members:

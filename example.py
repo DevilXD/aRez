@@ -1,5 +1,5 @@
+import arez
 import asyncio
-import hirezapi
 
 
 DEV_ID = 1234  # Your Developer ID (example)
@@ -13,7 +13,7 @@ async def main():
 
     # create an API instance - normally you need to create this only when starting up your
     # application, so I recommend storing it in an easily accessible place somewhere
-    api = hirezapi.PaladinsAPI(DEV_ID, AUTH_KEY)
+    api = arez.PaladinsAPI(DEV_ID, AUTH_KEY)
 
     # get a PC player directly by their name, or any player by their Player ID
     player = await api.get_player("DevilXD")
@@ -26,7 +26,7 @@ async def main():
     # OR
 
     # get an instance of Platform (this is safe for user input, and supports multiple aliases)
-    platform = hirezapi.Platform.get("xbox")
+    platform = arez.Platform.get("xbox")
     # check if the user input matched any platform
     if not platform:
         # handle this here
@@ -62,7 +62,7 @@ async def main():
     await api.close()
 
     # Async context manager usage (automatically closes the API for you):
-    async with hirezapi.PaladinsAPI(DEV_ID, AUTH_KEY) as api:
+    async with arez.PaladinsAPI(DEV_ID, AUTH_KEY) as api:
         player = await api.get_player("DevilXD")
         print(player)
 
@@ -71,13 +71,13 @@ async def main():
     ##################################################
 
     # Standard usage:
-    api = hirezapi.StatusPage("http://status.hirezstudios.com")
+    api = arez.StatusPage("http://status.hirezstudios.com")
     status = await api.get_status()
     print(status)
     await api.close()  # don't forget to close when you'll finish using the API
 
     # Async context manager usage (automatically closes the API for you):
-    async with hirezapi.StatusPage("http://status.hirezstudios.com") as api:
+    async with arez.StatusPage("http://status.hirezstudios.com") as api:
         status = await api.get_status()
         print(status)
 

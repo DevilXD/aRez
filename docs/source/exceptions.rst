@@ -1,9 +1,9 @@
 Exceptions
 ==========
 
-.. currentmodule:: hirezapi.exceptions
+.. currentmodule:: arez.exceptions
 
-.. autoexception:: HiRezAPIException
+.. autoexception:: ArezException
     :members:
 
 .. autoexception:: HTTPException()

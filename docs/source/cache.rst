@@ -1,7 +1,7 @@
 Cache
 =====
 
-.. currentmodule:: hirezapi.cache
+.. currentmodule:: arez.cache
 
 .. autoclass:: DataCache()
     :members:

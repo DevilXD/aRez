@@ -1,7 +1,7 @@
 Matches
 =======
 
-.. currentmodule:: hirezapi.match
+.. currentmodule:: arez.match
 
 .. autoclass:: PartialMatch()
     :members:

@@ -1,7 +1,7 @@
 Miscleaneous
 ============
 
-.. currentmodule:: hirezapi.utils
+.. currentmodule:: arez.utils
 
 .. autoclass:: Duration
     :members:

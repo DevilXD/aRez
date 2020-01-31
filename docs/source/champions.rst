@@ -1,7 +1,7 @@
 Champions and Abilities
 =======================
 
-.. currentmodule:: hirezapi.champion
+.. currentmodule:: arez.champion
 
 .. autoclass:: Champion()
     :members:

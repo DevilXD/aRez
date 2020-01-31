@@ -151,13 +151,14 @@ class Duration:
     """
     Represents a duration. Allows for easy conversion between time units.
 
-    This object isn't a subclass of `timedelta`, but behaves as such - it's also immutable, and
-    anything you'd normally be able to do on a `timedelta` object, should be doable on this
-    as well. This includes addition, substraction, multiplication, division (true and floor),
-    modulo, divmod, negation and getting absolute value. Operations support the second argument
-    being a normal `timedelta`, but the return value is always an instance of this class. If you
-    prefer doing math using a normal `timedelta` object, you can use the `to_timedelta` method
-    to convert it to such.
+    This object isn't a subclass of `datetime.timedelta`, but behaves as such - it's also
+    immutable, and anything you'd normally be able to do on a `datetime.timedelta` object,
+    should be doable on this as well. This includes addition, substraction, multiplication,
+    division (true and floor), modulo, divmod, negation and getting absolute value.
+    Operations support the second argument being a normal `datetime.timedelta`,
+    but the return value is always an instance of this class.
+    If you prefer doing math using a normal `datetime.timedelta` object,
+    you can use the `to_timedelta` method to convert it to such.
     """
     __slots__ = (
         "_delta", "_days", "_hours", "_minutes", "_seconds", "_microseconds", "_total_seconds"
@@ -238,14 +239,14 @@ class Duration:
 
     def to_timedelta(self) -> timedelta:
         """
-        Converts this `Duration` object into `timedelta`.
+        Converts this `Duration` object into `datetime.timedelta`.
         """
         return self._delta
 
     @classmethod
     def from_timedelta(cls, delta: timedelta) -> "Duration":
         """
-        Returns a `Duration` instance constructed from a `timedelta` object.
+        Returns a `Duration` instance constructed from a `datetime.timedelta` object.
         """
         return cls(seconds=delta.total_seconds())
 

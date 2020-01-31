@@ -1,7 +1,7 @@
 Items and Loadouts
 ==================
 
-.. currentmodule:: hirezapi.items
+.. currentmodule:: arez.items
 
 .. autoclass:: Device()
     :members:
@@ -12,7 +12,7 @@ Items and Loadouts
 .. autoclass:: LoadoutCard()
     :members:
 
-.. currentmodule:: hirezapi.match
+.. currentmodule:: arez.match
 
 .. autoclass:: MatchLoadout()
     :members:

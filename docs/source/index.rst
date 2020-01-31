@@ -1,9 +1,9 @@
-.. HiRezAPI documentation master file, created by
+.. aRez documentation master file, created by
    sphinx-quickstart on Sat Aug 10 12:14:46 2019.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to HiRezAPI's documentation!
+Welcome to aRez's documentation!
 ====================================
 
 Models
