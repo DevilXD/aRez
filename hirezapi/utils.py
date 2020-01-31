@@ -1,63 +1,7 @@
-from datetime import datetime, timedelta
+from math import floor
 from operator import attrgetter
-from typing import Union, Optional, List, Iterable, Generator, AsyncGenerator
-
-
-# A decorator responsible for making sure a timedelta subclass survives arthmetic operations.
-# We have to do this since timedelta is normally immutable.
-# Python 3.8 does the same thing by default, but this is for backwards compatibility.
-def preserve_timedelta_subclass(subclass: timedelta):
-    @classmethod
-    def from_timedelta(cls, delta):
-        return cls(days=delta.days, seconds=delta.seconds, microseconds=delta.microseconds)
-    subclass.from_timedelta = from_timedelta
-
-    result_list = [
-        "__add__",  "__sub__",  "__mul__",  "__mod__",
-        "__radd__", "__rsub__", "__rmul__", "__rmod__",
-    ]
-    for method_name in result_list:
-        inherited_method = getattr(super(subclass, subclass), method_name)
-
-        def new_method(self, other, *, inherited_method=inherited_method):
-            return self.from_timedelta(inherited_method(self, other))
-
-        setattr(subclass, method_name, new_method)
-
-    conditional_result_list = ["__truediv__", "__floordiv__", "__rtruediv__"]
-    for method_name in conditional_result_list:
-        inherited_method = getattr(super(subclass, subclass), method_name)
-
-        def new_method(self, other, *, inherited_method=inherited_method):
-            result = inherited_method(self, other)
-            if type(result) == timedelta:
-                return self.from_timedelta(result)
-            return result
-
-        setattr(subclass, method_name, new_method)
-
-    divmod_list = ["__divmod__", "__rdivmod__"]
-    for method_name in divmod_list:
-        inherited_method = getattr(super(subclass, subclass), method_name)
-
-        def new_method(self, other, *, inherited_method=inherited_method):
-            q, r = inherited_method(self, other)
-            if type(r) == timedelta:
-                r = self.from_timedelta(r)
-            return q, r
-
-        setattr(subclass, method_name, new_method)
-
-    self_list = ["__pos__", "__neg__", "__abs__"]
-    for method_name in self_list:
-        inherited_method = getattr(super(subclass, subclass), method_name)
-
-        def new_method(self, *, inherited_method=inherited_method):
-            return self.from_timedelta(inherited_method(self))
-
-        setattr(subclass, method_name, new_method)
-
-    return subclass
+from datetime import datetime, timedelta
+from typing import Optional, Union, List, Tuple, Iterable, Generator, AsyncGenerator, overload
 
 
 def convert_timestamp(timestamp: str) -> Optional[datetime]:
@@ -198,31 +142,230 @@ async def expand_partial(iterable: Iterable) -> AsyncGenerator:
             yield element
 
 
-@preserve_timedelta_subclass
-class Duration(timedelta):
+def _int_divmod(base: Union[int, float], div: Union[int, float]) -> Tuple[int, int]:
+    result = divmod(base, div)
+    return (int(result[0]), int(result[1]))
+
+
+class Duration:
     """
     Represents a duration. Allows for easy conversion between time units.
+
+    This object isn't a subclass of `timedelta`, but behaves as such - it's also immutable, and
+    anything you'd normally be able to do on a `timedelta` object, should be doable on this
+    as well. This includes addition, substraction, multiplication, division (true and floor),
+    modulo, divmod, negation and getting absolute value. Operations support the second argument
+    being a normal `timedelta`, but the return value is always an instance of this class. If you
+    prefer doing math using a normal `timedelta` object, you can use the `to_timedelta` method
+    to convert it to such.
     """
+    __slots__ = (
+        "_days", "_hours", "_minutes", "_seconds", "_microseconds", "_total_seconds"
+    )
+
+    def __init__(self, **kwargs):
+        self._delta = timedelta(**kwargs)
+        self._total_seconds = self._delta.total_seconds()
+        self._seconds, self._microseconds = divmod(self._total_seconds, 1)
+        self._microseconds = round(self._microseconds * 1e6)  # convert the fractional seconds
+        self._minutes, self._seconds = _int_divmod(self._total_seconds, 60)
+        self._hours, self._minutes = _int_divmod(self._minutes, 60)
+        self._days, self._hours = _int_divmod(self._hours, 24)
+        # Typings
+        self._microseconds: int
+        self._seconds: int
+        self._minutes: int
+        self._hours: int
+        self._days: int
+
+    @property
+    def days(self) -> int:
+        """
+        Returns days as a positive integer.
+        """
+        return self._days
+
+    @property
+    def hours(self) -> int:
+        """
+        Returns hours in range 0-23.
+        """
+        return self._hours
+
+    @property
+    def minutes(self) -> int:
+        """
+        Returns minutes in range 0-59.
+        """
+        return self._minutes
+
+    @property
+    def seconds(self) -> int:
+        """
+        Returns seconds in range of 0-59.
+        """
+        return self._seconds
+
+    def microseconds(self) -> int:
+        """
+        Returns microseconds in range 0-999999
+        """
+        return self._microseconds
+
     def total_days(self) -> float:
         """
         The total amount of days within the duration, as a `float`.
         """
-        return super().total_seconds() / 86400
+        return self._total_seconds / 86400
 
     def total_hours(self) -> float:
         """
         The total amount of hours within the duration, as a `float`.
         """
-        return super().total_seconds() / 3600
+        return self._total_seconds / 3600
 
     def total_minutes(self) -> float:
         """
         The total amount of minutes within the duration, as a `float`.
         """
-        return super().total_seconds() / 60
+        return self._total_seconds / 60
 
     def total_seconds(self) -> float:
         """
         The total amount of seconds within the duration, as a `float`.
         """
-        return super().total_seconds()
+        return self._total_seconds
+
+    def to_timedelta(self) -> timedelta:
+        """
+        Converts this `Duration` object into `timedelta`.
+        """
+        return self._delta
+
+    @classmethod
+    def from_timedelta(cls, delta: timedelta) -> "Duration":
+        """
+        Returns a `Duration` instance constructed from a `timedelta` object.
+        """
+        return cls(seconds=delta.total_seconds())
+
+    def __repr__(self) -> str:
+        args = []
+        if self._days:
+            args.append(("days", self._days))
+        if self._hours or self._minutes or self._seconds:
+            args.append(("seconds", self._hours * 3600 + self._minutes * 60 + self._seconds))
+        if self._microseconds:
+            args.append(("microseconds", self._microseconds))
+        return "Duration({})".format(", ".join("{}={}".format(*a) for a in args))
+
+    def __str__(self) -> str:
+        if self._days:
+            s = 's' if abs(self._days) > 1 else ''
+            days = "{} day{}, ".format(self._days, s)
+        else:
+            days = ''
+        if self._hours:
+            hours = "{}:".format(self._hours)
+        else:
+            hours = ''
+        if self._microseconds:
+            ms = ".{:06}".format(self._microseconds)
+        else:
+            ms = ''
+        return "{}{}{:02}:{:02}{}".format(days, hours, self._minutes, self._seconds, ms)
+
+    def _get_delta(self, other) -> timedelta:
+        if isinstance(other, type(self)):
+            return other._delta
+        elif isinstance(other, timedelta):
+            return other
+        else:
+            return NotImplemented
+
+    def __add__(self, other: Union["Duration", timedelta]) -> "Duration":
+        delta = self._get_delta(other)
+        return Duration(seconds=self._total_seconds + delta.total_seconds())
+
+    __radd__ = __add__
+
+    def __sub__(self, other: Union["Duration", timedelta]) -> "Duration":
+        delta = self._get_delta(other)
+        return Duration(seconds=self._total_seconds - delta.total_seconds())
+
+    def __rsub__(self, other: Union["Duration", timedelta]) -> "Duration":
+        delta = self._get_delta(other)
+        return Duration(seconds=delta.total_seconds() - self._total_seconds)
+
+    def __mul__(self, other: Union[int, float]) -> "Duration":
+        if not isinstance(other, (int, float)):
+            return NotImplemented
+        return Duration(seconds=self._total_seconds * other)
+
+    __rmul__ = __mul__
+
+    @overload
+    def __truediv__(self, other: Union["Duration", timedelta]) -> float:
+        ...
+
+    @overload
+    def __truediv__(self, other: Union[int, float]) -> "Duration":
+        ...
+
+    def __truediv__(self, other):
+        if isinstance(other, (int, float)):
+            return Duration(seconds=self._total_seconds / other)
+        delta = self._get_delta(other)
+        return self._total_seconds / delta.total_seconds()
+
+    def __rtruediv__(self, other: timedelta) -> float:
+        if not isinstance(other, timedelta):
+            return NotImplemented
+        return other.total_seconds() / self._total_seconds
+
+    @overload
+    def __floordiv__(self, other: Union["Duration", timedelta]) -> int:
+        ...
+
+    @overload
+    def __floordiv__(self, other: int) -> "Duration":
+        ...
+
+    def __floordiv__(self, other):
+        if isinstance(other, int):
+            return Duration(microseconds=floor(self._total_seconds * 1e6 // other))
+        delta = self._get_delta(other)
+        return int(self._total_seconds // delta.total_seconds())
+
+    def __rfloordiv__(self, other: timedelta) -> int:
+        if not isinstance(other, timedelta):
+            return NotImplemented
+        return int(other.total_seconds() // self._total_seconds)
+
+    def __mod__(self, other: Union["Duration", timedelta]) -> "Duration":
+        delta = self._get_delta(other)
+        return Duration(seconds=(self._total_seconds % delta.total_seconds()))
+
+    def __rmod__(self, other: Union["Duration", timedelta]) -> "Duration":
+        delta = self._get_delta(other)
+        return Duration(seconds=(delta.total_seconds() % self._total_seconds))
+
+    def __divmod__(self, other: Union["Duration", timedelta]) -> Tuple[int, "Duration"]:
+        delta = self._get_delta(other)
+        q, r = divmod(self._total_seconds, delta.total_seconds())
+        return (int(q), Duration(seconds=r))
+
+    def __rdivmod__(self, other: timedelta) -> Tuple[int, "Duration"]:
+        q, r = divmod(other.total_seconds(), self._total_seconds)
+        return (int(q), Duration(seconds=r))
+
+    def __pos__(self):
+        return Duration(seconds=self._total_seconds)
+
+    def __neg__(self):
+        return Duration(seconds=-self._total_seconds)
+
+    def __abs__(self):
+        if self._total_seconds < 0:
+            return Duration(seconds=-self._total_seconds)
+        return Duration(seconds=self._total_seconds)
