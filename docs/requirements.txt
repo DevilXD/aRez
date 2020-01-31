@@ -1,0 +1,3 @@
+sphinx
+sphinxcontrib-trio
+sphinx-corlab-theme
