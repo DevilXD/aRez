@@ -260,7 +260,7 @@ class Player(PartialPlayer):
         The in-game level of this profile.
     playtime : Duration
         The amount of time spent playing on this profile.
-    champions_count : int
+    champion_count : int
         The amount of champions this player unlocked.
     region : Region
         The player's currently set Region.
@@ -295,7 +295,7 @@ class Player(PartialPlayer):
         self.last_login = convert_timestamp(player_data["Last_Login_Datetime"])
         self.level: int = player_data["Level"]
         self.playtime = Duration(hours=player_data["HoursPlayed"])
-        self.champions_count: int = player_data["MasteryLevel"]
+        self.champion_count: int = player_data["MasteryLevel"]
         self.region = Region.get(player_data["Region"]) or Region(0)
         self.total_achievements: int = player_data["Total_Achievements"]
         self.total_exp: int = player_data["Total_Worshippers"]
