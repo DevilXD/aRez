@@ -1,4 +1,24 @@
 from math import nan
+from abc import ABC, abstractmethod
+
+
+class Expandable(ABC):
+    """
+    An abstract class that can be used to make partial objects "expandable" to their full version.
+
+    Subclasses should overwrite the `_expand` method with proper implementation, returning
+    the full expanded object.
+    """
+    # Subclasses will have their `_expand` method doc linked as the `__await__` doc.
+    def __init_subclass__(cls):
+        cls.__await__.__doc__ = cls._expand.__doc__
+
+    def __await__(self):
+        return self._expand().__await__()
+
+    @abstractmethod
+    async def _expand(self):
+        raise NotImplementedError
 
 
 class WinLoseMixin:

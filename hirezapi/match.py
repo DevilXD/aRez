@@ -1,8 +1,8 @@
 from typing import Optional, Union, List, Tuple, Literal, Generator, TYPE_CHECKING
 
 from .items import LoadoutCard
-from .mixins import KDAMixin, WinLoseMixin
 from .utils import convert_timestamp, Duration
+from .mixins import Expandable, KDAMixin, WinLoseMixin
 from .enumerations import Queue, Language, Region, Rank
 
 if TYPE_CHECKING:
@@ -70,7 +70,7 @@ class MatchLoadout:
             return "No Loadout"
 
 
-class PartialMatch(KDAMixin):
+class PartialMatch(KDAMixin, Expandable):
     """
     Represents a match from a single player's perspective only.
 
@@ -184,6 +184,18 @@ class PartialMatch(KDAMixin):
             self.items.append(MatchItem(item, level))
         self.loadout = MatchLoadout(self._api, language, match_data)
 
+    async def _expand(self) -> 'Match':
+        """
+        Expands this object into a full Match, containing all match players and information.
+
+        Returns
+        -------
+        Match
+            The expanded match object.
+        """
+        response = await self._api.request("getmatchdetails", self.id)
+        return Match(self._api, self.language, response)
+
     def __repr__(self) -> str:
         champion_name = self.champion.name if self.champion is not None else "Unknown"
         return "{0.queue.name}: {1}: {0.kda_text}".format(self, champion_name)
@@ -200,18 +212,6 @@ class PartialMatch(KDAMixin):
             `True` if the player got disconnected, `False` otherwise.
         """
         return self.damage_bot > 0 or self.healing_bot > 0
-
-    async def expand(self) -> 'Match':
-        """
-        Expands this object into a full Match, containing all match players and information.
-
-        Returns
-        -------
-        Match
-            The expanded match object.
-        """
-        response = await self._api.request("getmatchdetails", self.id)
-        return Match(self._api, self.language, response)
 
 
 class MatchPlayer(KDAMixin):

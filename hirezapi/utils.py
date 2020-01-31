@@ -136,7 +136,7 @@ async def expand_partial(iterable: Iterable) -> AsyncGenerator:
     from .match import PartialMatch  # cyclic imports
     for element in iterable:
         if isinstance(element, (PartialPlayer, PartialMatch)):
-            expanded = await element.expand()
+            expanded = await element
             yield expanded
         else:
             yield element

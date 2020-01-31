@@ -1,6 +1,7 @@
 from typing import Union, List, Optional, SupportsInt, TYPE_CHECKING
 
 from .items import Loadout
+from .mixins import Expandable
 from .exceptions import Private
 from .match import PartialMatch
 from .status import PlayerStatus
@@ -12,7 +13,7 @@ if TYPE_CHECKING:
     from .api import PaladinsAPI  # noqa
 
 
-class PartialPlayer:
+class PartialPlayer(Expandable):
     """
     This object stores basic information about a player, such as their Player ID, Player Name
     and their Platform. Depending on the way it was created, only the Player ID is guaranteed
@@ -45,29 +46,7 @@ class PartialPlayer:
             platform = int(platform)
         self.platform = Platform.get(platform) or Platform(0)
 
-    def __eq__(self, other) -> bool:
-        assert isinstance(other, self.__class__)
-        return self.id != 0 and other.id != 0 and self.id == other.id
-
-    def __repr__(self):
-        platform = self.platform.name if self.platform else None
-        return "{0.__class__.__name__}: {0.name}({0.id} / {1})".format(self, platform)
-
-    @property
-    def private(self) -> bool:
-        """
-        Checks to see if this profile is Private or not.
-
-        Trying to fetch any information for a Private profile will raise the `Private` exception.
-
-        Returns
-        -------
-        bool
-            `True` if this player profile is considered Private, `False` otherwise.
-        """
-        return self.id == 0
-
-    async def expand(self) -> Optional['Player']:
+    async def _expand(self) -> Optional['Player']:
         """
         Expands and refreshes the information stored inside this object.
 
@@ -90,6 +69,28 @@ class PartialPlayer:
         if response:
             return Player(self._api, response[0])
         return None
+
+    def __eq__(self, other) -> bool:
+        assert isinstance(other, self.__class__)
+        return self.id != 0 and other.id != 0 and self.id == other.id
+
+    def __repr__(self):
+        platform = self.platform.name if self.platform else None
+        return "{0.__class__.__name__}: {0.name}({0.id} / {1})".format(self, platform)
+
+    @property
+    def private(self) -> bool:
+        """
+        Checks to see if this profile is Private or not.
+
+        Trying to fetch any information for a Private profile will raise the `Private` exception.
+
+        Returns
+        -------
+        bool
+            `True` if this player profile is considered Private, `False` otherwise.
+        """
+        return self.id == 0
 
     async def get_status(self) -> Optional[PlayerStatus]:
         """
