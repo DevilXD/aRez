@@ -29,7 +29,7 @@ Currently supported:
 
 There are plans on expanding the existing framework to incorporate the above and below:
 
-- [ ] Adding documentation
+- [x] Adding documentation
 - [ ] Making PaladinsAPI inherit from BaseAPI
     - [ ] Support for SmiteAPI (support Smite endpoint URL)
         - [ ] Support for Teams
@@ -53,6 +53,7 @@ Please see [example.py](https://github.com/DevilXD/aRez/blob/master/example.py) 
 
 ```py
 import asyncio
+
 import arez  # import the API
 
 DEV_ID = 1234  # your Developer ID (example)
