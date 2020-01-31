@@ -9,6 +9,11 @@
 # exclude Python's cache files
 __pycache__/
 
+# Distribution / Packaging
+build/
+dist/
+*.egg-info/
+
 ################
 # VSCode stuff #
 ################
