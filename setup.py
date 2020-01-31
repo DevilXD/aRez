@@ -2,10 +2,15 @@ from setuptools import setup, find_packages
 
 import arez
 
+with open("README.md", 'r') as f:
+    long_description = f.read()
+
 setup(
     name="aRez",
     version=arez.__version__,
     description="Async Python HiRez API wrapper",
+    long_description=long_description,
+    long_description_content_type="text/markdown; charset=UTF-8; variant=GFM",
     url="https://github.com/DevilXD/aRez",
     author="DevilXD",
     license='GPLv3',
@@ -25,4 +30,7 @@ setup(
         "aiohttp>=2.0",
     ],
     python_requires=">=3.8",
+    package_data={
+        "arez": ["py.typed"],
+    },
 )
