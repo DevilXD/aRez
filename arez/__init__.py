@@ -6,4 +6,4 @@ from .api import PaladinsAPI
 from .endpoint import Endpoint
 from .statuspage import StatusPage
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
