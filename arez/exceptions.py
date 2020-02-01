@@ -19,13 +19,15 @@ class HTTPException(ArezException):
     ----------
     cause : Optional[Exception]
         The original exception cause. This is usually:\n
-        • `aiohttp.ClientResponseError` or it's derivatives\n
-        • `asyncio.TimeoutError` when the request times out\n
-        • `Unauthorized` exception when your credentials were invalid\n
-        • `None` if the cause was unknown
+        • `aiohttp.ClientResponseError` or it's subclasses.\n
+        • `asyncio.TimeoutError` when the request times out.\n
+        • `Unauthorized` exception when your credentials were invalid.\n
+        • `None` if the cause was unknown.
     """
     def __init__(self, original_exc: Optional[Exception] = None):
-        super().__init__("There was an error while processing the request!")
+        super().__init__(
+            "There was an error while processing the request: {!r}".format(original_exc)
+        )
         self.cause = original_exc
 
 
