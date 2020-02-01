@@ -23,23 +23,12 @@ class Endpoint:
         Your developer's ID (devId).
     auth_key : str
         Your developer's authentication key (authKey).
-    loop : Optional[asyncio.AbstractEventLoop]
-        The loop you want to use for this Endpoint.\n
-        Default loop is used when not provided.
 
     .. note:: You can request your developer ID and authorization key here:
         https://fs12.formsite.com/HiRez/form48/secure_index.html
     """
-    def __init__(
-        self,
-        url: str,
-        dev_id: Union[int, str],
-        auth_key: str,
-        *,
-        loop: asyncio.AbstractEventLoop = None,
-    ):
-        if loop is None:
-            loop = asyncio.get_event_loop()
+    def __init__(self, url: str, dev_id: Union[int, str], auth_key: str):
+        loop = asyncio.get_running_loop()
         self.url = url.rstrip('/')
         self._session_key = ''
         self._session_expires = datetime.utcnow()

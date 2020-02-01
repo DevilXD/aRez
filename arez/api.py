@@ -1,5 +1,4 @@
-﻿import asyncio
-from datetime import datetime, timedelta, timezone
+﻿from datetime import datetime, timedelta, timezone
 from typing import Optional, Union, List, Dict, AsyncGenerator
 
 from .match import Match
@@ -21,22 +20,15 @@ class PaladinsAPI:
         Your developer's ID (devId).
     auth_key : str
         Your developer's authentication key (authKey).
-    loop : Optional[asyncio.AbstractEventLoop]
-        The loop you want to use for this API.\n
-        Default loop is used when not provided.
     """
     def __init__(
         self,
         dev_id: Union[int, str],
         auth_key: str,
-        *,
-        loop: Optional[asyncio.AbstractEventLoop] = None,
     ):
-        if loop is None:
-            loop = asyncio.get_event_loop()
         # don't store the endpoint - the API should have no access to it's instance other than
         # the request and close methods
-        endpoint = Endpoint("http://api.paladins.com/paladinsapi.svc", dev_id, auth_key, loop=loop)
+        endpoint = Endpoint("http://api.paladins.com/paladinsapi.svc", dev_id, auth_key)
         self._server_status: Optional[ServerStatus] = None
         self._cache = DataCache()
         # forward endpoint request and close methods
