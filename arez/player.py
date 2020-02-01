@@ -20,7 +20,12 @@ class PartialPlayer(Expandable):
     to exist - both ``name`` and ``platform`` can be an empty string and `Platform.Unknown`
     respectively.
 
-    To ensure all attributes are filled up correctly before processing, use the `expand` method.
+    To ensure all attributes are filled up correctly before processing, you can upgrade this
+    object to `Player` by awaiting on it and using the result:
+
+    .. code-block:: py
+
+        player = await partial_player
 
     Attributes
     ----------

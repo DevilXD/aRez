@@ -75,7 +75,11 @@ class PartialMatch(KDAMixin, Expandable):
     Represents a match from a single player's perspective only.
 
     This partial object is returned by the `get_match_history` player's method.
-    To obtain a full object, try using `expand`.
+    To obtain an object with all match information, try awaiting on this object like so:
+
+    .. code-block:: py
+
+        match = await partial_match
 
     Attributes
     ----------
