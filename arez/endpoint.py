@@ -1,13 +1,14 @@
 import aiohttp
 import asyncio
 from hashlib import md5
+from random import gauss
 from typing import Union
 from datetime import datetime, timedelta
 
 from .exceptions import HTTPException, Unauthorized
 
-# off by 10s because of a rare race condition
-session_lifetime = timedelta(minutes=14, seconds=50)
+session_lifetime = timedelta(minutes=15)
+timeout = aiohttp.ClientTimeout(total=5)
 
 
 class Endpoint:
@@ -32,7 +33,9 @@ class Endpoint:
         self.url = url.rstrip('/')
         self._session_key = ''
         self._session_expires = datetime.utcnow()
-        self._http_session = aiohttp.ClientSession(raise_for_status=True, loop=loop)
+        self._http_session = aiohttp.ClientSession(
+            raise_for_status=True, timeout=timeout, loop=loop
+        )
         self.__dev_id = str(dev_id)
         self.__auth_key = auth_key.upper()
 
@@ -86,15 +89,15 @@ class Endpoint:
             Check the ``cause`` attribute for the original exception that lead to this.
         """
         method_name = method_name.lower()
-        req_stack = [self.url, "{}json".format(method_name)]
 
-        tries = 3
-        for tries_left in reversed(range(tries)):
+        last_exc = None
+        for tries in range(5):
             try:
+                now = datetime.utcnow()
+                req_stack = [self.url, "{}json".format(method_name)]
                 if method_name != "ping":
-                    now = datetime.utcnow()
                     timestamp = now.strftime("%Y%m%d%H%M%S")
-                    req_stack.extend([self.__dev_id, self._get_signature(method_name, timestamp)])
+                    req_stack.extend((self.__dev_id, self._get_signature(method_name, timestamp)))
                     if method_name == "createsession":
                         req_stack.append(timestamp)
                     else:
@@ -105,29 +108,51 @@ class Endpoint:
                                 raise Unauthorized
                             self._session_key = session_id
                         self._session_expires = now + session_lifetime
-                        req_stack.extend([self._session_key, timestamp])
+                        req_stack.extend((self._session_key, timestamp))
                 if data:
                     req_stack.extend(map(str, data))
 
                 req_url = '/'.join(req_stack)
 
-                async with self._http_session.get(req_url, timeout=5) as response:
-                    # if response and "ret_msg" in response[0] and response[0]["ret_msg"]:
-                    #     # we've got some Hi-Rez API error
-                    #     pass # TODO: Maybe process this here?
-                    return await response.json()
+                async with self._http_session.get(req_url) as response:
+                    res_data: Union[list, dict] = await response.json()
+
+                    if res_data:
+                        if isinstance(res_data, list) and isinstance(res_data[0], dict):
+                            error = res_data[0].get("ret_msg")
+                        elif isinstance(res_data, dict):
+                            error = res_data.get("ret_msg")
+                        else:
+                            error = None
+                        if error:
+                            # we've got some Hi-Rez API error, handle some of them here
+
+                            # Invalid session
+                            if error == "Invalid session id.":
+                                # Invalidate the current session by expiring it
+                                self._session_expires = now
+                                continue  # retry
+
+                    return res_data
 
             # For some reason, sometimes we get disconnected or timed out here.
             # If this happens, just give the api a short break and try again.
             except (aiohttp.ServerDisconnectedError, asyncio.TimeoutError) as exc:
-                if not tries_left:  # no more breaks ¯\_(ツ)_/¯
-                    raise HTTPException(exc)
-                print("Got {}, retrying...".format(exc.__class__))
-                await asyncio.sleep((tries - tries_left) * 0.5)
+                last_exc = exc  # store for the last iteration raise
+                if isinstance(exc, aiohttp.ServerDisconnectedError):
+                    print("Server disconnected, retrying...")
+                elif isinstance(exc, asyncio.TimeoutError):
+                    print("Timed out, retrying...")
+                else:
+                    print("Unknown error, retrying...")
+                await asyncio.sleep(tries * 0.5 * gauss(1, 0.1))
+            # For the case where 'createsession' raises this - just pass it along
+            except HTTPException:
+                raise
             # Some other exception happened, so just wrap it and propagate along
             except Exception as exc:
                 raise HTTPException(exc)
 
         # we've run out of tries, so ¯\_(ツ)_/¯
         # we shouldn't ever end up here, this is a fail-safe
-        raise HTTPException
+        raise HTTPException(last_exc)
