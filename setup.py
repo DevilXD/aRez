@@ -25,6 +25,10 @@ setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Typing :: Typed",
     ],
+    project_urls={
+        "Source": "https://github.com/DevilXD/aRez",
+        "Documentation": "https://arez.readthedocs.io/en/latest/",
+    },
     packages=find_packages(include=["arez"]),
     install_requires=[
         "aiohttp>=2.0",
