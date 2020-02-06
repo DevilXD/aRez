@@ -1,13 +1,24 @@
+import re
+from typing import Optional
 from setuptools import setup, find_packages
 
-import arez
+
+# Parse the version string out of the init file
+version: Optional[str] = None
+with open("arez/__init__.py", 'r') as f:
+    match = re.search(r'__version__ = "(\d+\.\d+\.\d+)"', f.read())
+    if match:
+        version = match.group(1)
+if not version:
+    raise RuntimeError("Unable to parse version!")
 
 with open("README.md", 'r') as f:
     long_description = f.read()
 
+
 setup(
     name="aRez",
-    version=arez.__version__,
+    version=version,
     description="Async Python HiRez API wrapper",
     long_description=long_description,
     long_description_content_type="text/markdown; charset=UTF-8; variant=GFM",
