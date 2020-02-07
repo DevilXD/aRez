@@ -42,6 +42,10 @@ There are plans on expanding the existing framework to incorporate the above and
             - [ ] Support for `searchteams` endpoint
     - [ ] \(Maybe) Support for RealmRoyaleAPI (support Realm Royale endpoint URL)
 
+If you have some experience with Smite and it's API, and would be interested in working with me
+together on expanding this project, please don't hessitate to contact me
+(you can find contact information below).
+
 ### Requirements
 
 - Python 3.8+
@@ -76,6 +80,30 @@ async def main():
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())  # run the async loop
 ```
+
+### Support
+
+<center>
+<a href="https://www.buymeacoffee.com/DevilXD" target="_blank">
+<img
+    src="https://cdn.buymeacoffee.com/buttons/default-green.png"
+    alt="Buy Me A Coffee"
+    style="height: 51px !important; width: 217px !important; border-radius: 12px"
+>
+</a>
+<a href="https://www.patreon.com/bePatron?u=26937862">
+<img
+    src="https://cloakandmeeple.files.wordpress.com/2017/06/become_a_patron_button3x.png"
+    alt="Become a patron!"
+    style="height: 51px !important; width: 217px !important; border-radius: 12px"
+>
+</a>
+</center>
+
+### Contact
+
+Reddit: https://www.reddit.com/u/DevilXD
+Discord: `DevilXD#4437`
 
 ### Notes
 
