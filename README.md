@@ -53,7 +53,10 @@ together on expanding this project, please don't hessitate to contact me
 
 ### Resources
 
-- [HiRez API documentation](https://docs.google.com/document/d/1OFS-3ocSx-1Rvg4afAnEHlT3917MAK_6eJTR6rzr-BM)
+- [aRez Documentation](https://arez.readthedocs.io/en/latest/)
+- [Official HiRez API Documentation](
+    https://docs.google.com/document/d/1OFS-3ocSx-1Rvg4afAnEHlT3917MAK_6eJTR6rzr-BM
+)
 
 ### Usage
 
@@ -62,7 +65,7 @@ Please see [example.py](https://github.com/DevilXD/aRez/blob/master/example.py) 
 ```py
 import asyncio
 
-import arez  # import the API
+import arez  # import the wrapper
 
 DEV_ID = 1234  # your Developer ID (example)
 AUTH_KEY = "L2U3M60A03662R24UKOMY0FIT4S2IBKU"  # your Auth Key (example)
@@ -73,7 +76,7 @@ async def main():
     # fetch Player stats
     player = await api.get_player("DevilXD")
     # display your rank
-    print(player.ranked_keyboard.rank.name)
+    print(player.ranked_best.rank.name)
     # close the API once you're done with it
     await api.close()
 
