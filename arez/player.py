@@ -1,4 +1,4 @@
-from typing import Union, List, Optional, SupportsInt, TYPE_CHECKING
+from typing import Optional, Union, List, SupportsInt, TYPE_CHECKING
 
 from .items import Loadout
 from .mixins import Expandable
