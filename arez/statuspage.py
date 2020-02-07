@@ -463,7 +463,4 @@ class StatusPage:
             When there was an error while fetching the current status.
         """
         response = await self.request("summary.json")
-        import json  # TEMP
-        with open("C:/Users/DevilXD/Dropbox/test_output.json", 'r') as f:
-            response = json.load(f)
         return CurrentStatus(response)
