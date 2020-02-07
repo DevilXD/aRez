@@ -1,28 +1,101 @@
 import aiohttp
-from abc import ABC
-from typing import List
 from datetime import datetime, timezone
+from typing import Optional, List, Dict, Literal, cast
 
 
-def convert_timestamp(stamp: str):
+def _convert_timestamp(stamp: str) -> datetime:
     return datetime.strptime(
         stamp[:-3] + stamp[-2:], "%Y-%m-%dT%H:%M:%S.%f%z"
     ).astimezone(timezone.utc).replace(tzinfo=None).replace(microsecond=0)
 
 
-class BaseComponent(ABC):
-    def __init__(self, comp_data: dict):
-        self.id: str = comp_data["id"]
-        self.name: str = comp_data["name"]
-        self.status: str = comp_data["status"]
-        self.created_at = convert_timestamp(comp_data["created_at"])
-        self.updated_at = convert_timestamp(comp_data["updated_at"])
+def _convert_title(text: str) -> str:
+    return text.replace('_', ' ').title()
+
+
+# These has been taken from the status page CSS sheet
+_colors: Dict[str, int] = {
+    # Component statuses:
+    "operational": 0x26935C,           # green
+    "under_maintenance": 0x3498DB,     # blue
+    "degraded_performance": 0xFCCF2C,  # yellow
+    "partial_outage": 0xE8740F,        # orange
+    "major_outage": 0xE74C3C,          # red
+
+    # Incident and Scheduled Maintenance impacts:
+    "none": 0x26935C,         # green
+    "maintenance": 0x3498DB,  # blue
+    "minor": 0xFCCF2C,        # yellow
+    "major": 0xE8740F,        # orange
+    "critical": 0xE74C3C,     # red
+}
+
+
+class _Base:
+    """
+    Represents basic data class.
+    """
+    def __init__(self, base_data: dict):
+        self.id: str = base_data["id"]
+        self.created_at = _convert_timestamp(base_data["created_at"])
+        self.updated_at = _convert_timestamp(base_data["updated_at"])
+
+
+class _NameBase(_Base):
+    """
+    Represents basic named data class.
+    """
+    color = 0
+
+    def __init__(self, base_data: dict):
+        super().__init__(base_data)
+        self.name: str = base_data["name"]
 
     def __repr__(self) -> str:
         return "{0.__class__.__name__}: {0.name}".format(self)
 
+    @property
+    def colour(self) -> int:
+        """
+        Color attribute alias.
+        """
+        return self.color
 
-class Update:
+
+class _BaseComponent(_NameBase):
+    """
+    Represents basic component data class.
+    """
+    def __init__(self, comp_data: dict):
+        super().__init__(comp_data)
+        self.status = cast(
+            Literal[
+                "Operational",
+                "Under Maintenance",
+                "Degraded Performance",
+                "Partial Outage",
+                "Major Outage",
+            ],
+            _convert_title(comp_data["status"]),
+        )
+        self.color = _colors[comp_data["status"]]
+        self.incidents: List["Incident"] = []
+        self.scheduled_maintenances: List["ScheduledMaintenance"] = []
+
+
+class _BaseEvent(_NameBase):
+    """
+    Represents basic event data class.
+    """
+    def __init__(self, event_data: dict):
+        super().__init__(event_data)
+        self.status = _convert_title(event_data["status"])
+        self.impact = _convert_title(event_data["impact"])
+        self.color = _colors[event_data["impact"]]
+        self.components: List["Component"] = []
+
+
+class Update(_Base):
     """
     Represents an incident or scheduled maintenance status update.
 
@@ -30,27 +103,25 @@ class Update:
     ----------
     id : str
         The ID of the update.
-    description : str
-        Description explaining what this update is about.
-    status : str
-        The component's status of this update.
     created_at : datetime
         The time when this update was created.
     updated_at : datetime
         The last time this update was updated.
+    description : str
+        Description explaining what this update is about.
+    status : str
+        The status of this update.
     """
     def __init__(self, upd_data: dict):
-        self.id: str = upd_data["id"]
+        super().__init__(upd_data)
         self.description: str = upd_data["body"]
-        self.status: str = upd_data["status"]
-        self.created_at = convert_timestamp(upd_data["created_at"])
-        self.updated_at = convert_timestamp(upd_data["updated_at"])
+        self.status: str = _convert_title(upd_data["status"])
 
     def __repr__(self) -> str:
-        return "{}: {}".format(self.status.replace('_', ' ').title(), self.description)
+        return "{0.status}: {0.description}".format(self)
 
 
-class Incident(BaseComponent):
+class Incident(_BaseEvent):
     """
     Represents an incident.
 
@@ -58,26 +129,40 @@ class Incident(BaseComponent):
     ----------
     id : str
         The ID of the incident.
-    name : str
-        The name of the incident.
-    status : str
-        The current incident's status.
     created_at : datetime
         The time when this incident was created.
     updated_at : datetime
         The last time this incident was updated.
-    impact : str
+    name : str
+        The name of the incident.
+    status : Literal["Investigating", "Identified", "Monitoring", "Resolved", "Postmortem"]
+        The current incident's status.
+    impact : Literal["None", "Minor", "Major", "Critical"]
         The impact of this incident.
+    color : int
+        The color associated with this incident (based on impact).\n
+        There is an alias for this under `colour`.
+    components : List[Component]
+        A list of componnets affected by this incident.
     updates : List[Update]
         A list of updates this incident has.
+    last_update : Update
+        The most recent update this incident has.
     """
-    def __init__(self, inc_data: dict):
+    def __init__(self, inc_data: dict, comp_mapping: Dict[str, "Component"]):
         super().__init__(inc_data)
-        self.impact: str = inc_data["impact"]
+        self.status: Literal["Investigating", "Identified", "Monitoring", "Resolved", "Postmortem"]
+        self.impact: Literal["None", "Minor", "Major", "Critical"]
         self.updates: List[Update] = [Update(u) for u in inc_data["incident_updates"]]
+        self.last_update = self.updates[0]
+        for comp_data in inc_data["components"]:
+            comp = comp_mapping.get(comp_data["id"])
+            if comp:
+                self.components.append(comp)
+                comp._add_incident(self)
 
 
-class ScheduledMaintenance(BaseComponent):
+class ScheduledMaintenance(_BaseEvent):
     """
     Represents a scheduled maintenance.
 
@@ -85,32 +170,46 @@ class ScheduledMaintenance(BaseComponent):
     ----------
     id : str
         The ID of the scheduled maintenance.
-    name : str
-        The name of the scheduled maintenance.
-    status : str
-        The current scheduled maintenance's status.
     created_at : datetime
         The time when this scheduled maintenance was created.
     updated_at : datetime
         The last time this scheduled maintenance was updated.
-    impact : str
+    name : str
+        The name of the scheduled maintenance.
+    status : Literal["Scheduled", "In Progress", "Verifying", "Completed"]
+        The current scheduled maintenance's status.
+    impact : Literal["Maintenance"]
         The impact of this scheduled maintenance.
+    color : int
+        The color associated with this scheduled maintenance (based on impact).\n
+        There is an alias for this under `colour`.
+    components : List[Component]
+        A list of componnets affected by this scheduled maintenance.
     scheduled_for : datetime
         The planned time this maintenance is scheduled to start.
     scheduled_until : datetime
         The planned time this maintenance is scheduled to end.
     updates : List[Update]
         A list of updates this scheduled maintenance has.
+    last_update : Update
+        The most recent update this scheduled maintenance has.
     """
-    def __init__(self, main_data: dict):
+    def __init__(self, main_data: dict, comp_mapping: Dict[str, "Component"]):
         super().__init__(main_data)
-        self.impact: str = main_data["impact"]
-        self.scheduled_for = convert_timestamp(main_data["scheduled_for"])
-        self.scheduled_until = convert_timestamp(main_data["scheduled_until"])
+        self.status: Literal["Scheduled", "In Progress", "Verifying", "Completed"]
+        self.impact: Literal["Maintenance"]
+        self.scheduled_for = _convert_timestamp(main_data["scheduled_for"])
+        self.scheduled_until = _convert_timestamp(main_data["scheduled_until"])
         self.updates: List[Update] = [Update(u) for u in main_data["incident_updates"]]
+        self.last_update = self.updates[0]
+        for comp_data in main_data["components"]:
+            comp = comp_mapping.get(comp_data["id"])
+            if comp:
+                self.components.append(comp)
+                comp._add_scheduled_mainenance(self)
 
 
-class Component(BaseComponent):
+class Component(_BaseComponent):
     """
     Represents a status component.
 
@@ -118,26 +217,36 @@ class Component(BaseComponent):
     ----------
     id : str
         The ID of the component.
-    name : str
-        The name of the component.
-    status : str
-        The current component's status.
     created_at : datetime
         The time when this component was created.
     updated_at : datetime
         The last time this component was updated.
-    group : ComponentGroup
-        The group this component belongs to.
+    name : str
+        The name of the component.
+    status : Literal[
+        "Operational",
+        "Under Maintenance",
+        "Degraded Performance",
+        "Partial Outage",
+        "Major Outage",
+    ]
+        The current component's status.
+    color : int
+        The color associated with this component (based on status).\n
+        There is an alias for this under `colour`.
+    group : Optional[ComponentGroup]
+        The component group this component belongs to.\n
+        Can be `None` if it belongs to no group.
     incidents : List[Incident]
         A list of incidents referring to this component.
     scheduled_maintenances : List[ScheduledMaintenance]
         A list of scheduled maintenances referring to this component.
     """
-    def __init__(self, group: 'ComponentGroup', comp_data: dict):
+    def __init__(self, group: Optional['ComponentGroup'], comp_data: dict):
         super().__init__(comp_data)
         self.group = group
-        self.incidents: List[Incident] = []
-        self.scheduled_maintenances: List[ScheduledMaintenance] = []
+        if group:
+            group._add_component(self)
 
     def _add_incident(self, incident: Incident):
         self.incidents.append(incident)
@@ -150,7 +259,7 @@ class Component(BaseComponent):
             self.group._add_scheduled_mainenance(scheduled_maintenance)
 
 
-class ComponentGroup(BaseComponent):
+class ComponentGroup(_BaseComponent):
     """
     Represents a component's group.
 
@@ -158,14 +267,25 @@ class ComponentGroup(BaseComponent):
     ----------
     id : str
         The ID of the component group.
-    name : str
-        The name of the component group.
-    status : str
-        The current component group's status.
     created_at : datetime
         The time when this component group was created.
     updated_at : datetime
         The last time this component group was updated.
+    name : str
+        The name of the component group.
+    status : Literal[
+        "Operational",
+        "Under Maintenance",
+        "Degraded Performance",
+        "Partial Outage",
+        "Major Outage",
+    ]
+        The current component group's status.\n
+        This represents the worst status of all of the components in a group.\n
+        ``Under Maintenance`` is considered second worst.
+    color : int
+        The color associated with this component (based on status).\n
+        There is an alias for this under `colour`.
     components : List[Component]
         A list of components this group has.
     incidents : List[Incident]
@@ -176,8 +296,6 @@ class ComponentGroup(BaseComponent):
     def __init__(self, group_data: dict):
         super().__init__(group_data)
         self.components: List[Component] = []
-        self.incidents: List[Incident] = []
-        self.scheduled_maintenances: List[ScheduledMaintenance] = []
 
     def _add_component(self, comp: Component):
         self.components.append(comp)
@@ -201,12 +319,25 @@ class CurrentStatus:
         The ID of the status page.
     name : str
         The name of the status page.
-    url : str
-        The URL of the status page.
     timezone : str
         The timezone of the status page.
     updated_at : datetime
-        The timestamp of when the current status was updated last.
+        The timestamp of when the current status was last updated.
+    status : Literal[
+        "All Systems Operational",
+        "Major System Outage",
+        "Partial System Outage",
+        "Minor Service Outage",
+        "Degraded System Service",
+        "Partially Degraded Service",
+        "Service Under Maintenance",
+    ]
+        The current overall page's status.
+    impact : Literal["None", "Minor", "Major", "Critical"]
+        The current overall page's impact.
+    color : int
+        The color associated with this status (based on impact).\n
+        There is an alias for this under `colour`.
     components : List[Component]
         A list of components this status page contains.
         This doesn't include groups.
@@ -219,42 +350,79 @@ class CurrentStatus:
         A list of scheduled maintenances.
     """
     def __init__(self, page_data):
+        status = page_data["status"]
+        self.status: Literal[
+            "All Systems Operational",
+            "Major System Outage",
+            "Partial System Outage",
+            "Minor Service Outage",
+            "Degraded System Service",
+            "Partially Degraded Service",
+            "Service Under Maintenance",
+        ] = status["description"]
+        self.impact: Literal[
+            "None", "Minor", "Major", "Critical"
+        ] = _convert_title(status["indicator"])
+        self.color = _colors[status["indicator"]]
+        self.colour = self.color  # color alias
         page = page_data["page"]
         self.name = page["name"]
         self.id = page["id"]
-        self.url = page["url"]
         self.timezone = page["time_zone"]
-        self.updated_at = convert_timestamp(page["updated_at"])
+        self.updated_at = _convert_timestamp(page["updated_at"])
 
-        groups = {c["id"]: ComponentGroup(c) for c in page_data["components"] if c["group"]}
-        self.components = []
-        for c in page_data["components"]:
-            if c["group"]:
-                continue
-            group = groups[c["group_id"]]
-            comp = Component(group, c)
-            group._add_component(comp)
-            self.components.append(comp)
-        self.groups = list(groups.values())
+        self.groups = [ComponentGroup(c) for c in page_data["components"] if c["group"]]
+        id_groups = {g.id: g for g in self.groups}
+        self.components = [
+            Component(id_groups.get(c["group_id"]), c)  # group can be None
+            for c in page_data["components"]
+            if not c["group"]
+        ]
+        id_components = {c.id: c for c in self.components}
 
-        components_mapping = {c.id: c for c in self.components}
+        self._groups = {g.name: g for g in self.groups}  # lookup mapping
+        self._groups.update(id_groups)
+        self._components = {c.name: c for c in self.components}  # lookup mapping
+        self._components.update(id_components)
 
-        self.incidents = []
-        self.scheduled_maintenances = []
-        for incident_data in page_data["incidents"]:
-            i = Incident(incident_data)
-            self.incidents.append(i)
-            for comp_data in incident_data["components"]:
-                comp = components_mapping.get(comp_data["id"])
-                if comp:
-                    comp._add_incident(i)
-        for sm_data in page_data["scheduled_maintenances"]:
-            sm = ScheduledMaintenance(sm_data)
-            self.scheduled_maintenances.append(sm)
-            for comp_data in sm_data["components"]:
-                comp = components_mapping.get(comp_data["id"])
-                if comp:
-                    comp._add_scheduled_mainenance(sm)
+        self.incidents = [Incident(i, id_components) for i in page_data["incidents"]]
+        self.scheduled_maintenances = [
+            ScheduledMaintenance(sm, id_components) for sm in page_data["scheduled_maintenances"]
+        ]
+
+    def component(self, component: str) -> Optional[Component]:
+        """
+        Lookup a component of this status by either it's ID or Name.
+
+        Parameters
+        ----------
+        component : str
+            The component's ID or Name you want to get.
+
+        Returns
+        -------
+        Optional[Component]
+            The component requested.\n
+            `None` is returned if no components matched.
+        """
+        return self._components.get(component)
+
+    def group(self, group: str) -> Optional[ComponentGroup]:
+        """
+        Lookup a component group of this status by either it's ID or Name.
+
+        Parameters
+        ----------
+        group : str
+            The component group's ID or Name you want to get.
+
+        Returns
+        -------
+        Optional[ComponentGroup]
+            The component group requested.\n
+            `None` is returned if no component groups matched.
+        """
+        return self._groups.get(group)
 
 
 class StatusPage:
@@ -295,4 +463,7 @@ class StatusPage:
             When there was an error while fetching the current status.
         """
         response = await self.request("summary.json")
+        import json  # TEMP
+        with open("C:/Users/DevilXD/Dropbox/test_output.json", 'r') as f:
+            response = json.load(f)
         return CurrentStatus(response)
