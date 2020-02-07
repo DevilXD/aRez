@@ -191,7 +191,7 @@ class ComponentGroup(BaseComponent):
             self.scheduled_maintenances.append(scheduled_maintenance)
 
 
-class Status:
+class CurrentStatus:
     """
     Represents the current server's status.
 
@@ -259,34 +259,40 @@ class Status:
 
 class StatusPage:
     def __init__(self, url: str):
-        self.url = "{}/api/v2/summary.json".format(url.rstrip('/'))
-        self._http_session = aiohttp.ClientSession(raise_for_status=True)
+        self.url = "{}/api/v2".format(url.rstrip('/'))
+        self._session = aiohttp.ClientSession(raise_for_status=True)
 
     def __del__(self):
-        self._http_session.detach()
+        self._session.detach()
 
     async def close(self):
-        await self._http_session.close()
+        await self._session.close()
 
     # async with integration
     async def __aenter__(self):
         return self
 
     async def __aexit__(self, exc_type, exc, traceback):
-        await self._http_session.close()
+        await self._session.close()
 
-    async def request(self):
-        async with self._http_session.get(self.url) as response:
+    async def request(self, endpoint: str):
+        route = "{}/{}".format(self.url, endpoint)
+        async with self._session.get(route) as response:
             return await response.json()
 
-    async def get_status(self) -> Status:
+    async def get_status(self) -> CurrentStatus:
         """
         Fetches the current statuspage's status.
 
         Returns
         -------
-        Status
-            The requested status.
+        CurrentStatus
+            The current status requested.
+
+        Raises
+        ------
+        aiohttp.ClientError
+            When there was an error while fetching the current status.
         """
-        response = await self.request()
-        return Status(response)
+        response = await self.request("summary.json")
+        return CurrentStatus(response)
