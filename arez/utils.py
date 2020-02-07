@@ -182,7 +182,10 @@ class Duration:
     @property
     def days(self) -> int:
         """
-        Returns days as a positive integer.
+        Returns days as an integer.
+
+        Note: It is possible for this number to be negative, if it's been constructed from a
+        negative `datetime.timedelta`.
         """
         return self._days
 
