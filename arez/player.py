@@ -26,15 +26,6 @@ class PartialPlayer(Expandable):
     .. code-block:: py
 
         player = await partial_player
-
-    Attributes
-    ----------
-    id : int
-        ID of the player.
-    name : str
-        Name of the player.
-    platform : Platform
-        The player's platform.
     """
     def __init__(
         self,
@@ -43,13 +34,15 @@ class PartialPlayer(Expandable):
         id: SupportsInt,
         name: str = '',
         platform: Union[str, int] = 0,
+        private: bool = False,
     ):
         self._api = api
-        self.id = int(id)
-        self.name = name
+        self._id = int(id)
+        self._name = str(name)
         if isinstance(platform, str) and platform.isdecimal():
             platform = int(platform)
-        self.platform = Platform.get(platform) or Platform(0)
+        self._platform = Platform.get(platform) or Platform(0)
+        self._private = bool(private)
 
     async def _expand(self) -> Optional['Player']:
         """
@@ -70,18 +63,39 @@ class PartialPlayer(Expandable):
         """
         if self.private:
             raise Private
-        response = await self._api.request("getplayer", self.id)
+        response = await self._api.request("getplayer", self._id)
         if response:
             return Player(self._api, response[0])
         return None
 
     def __eq__(self, other) -> bool:
         assert isinstance(other, self.__class__)
-        return self.id != 0 and other.id != 0 and self.id == other.id
+        return self._id != 0 and other.id != 0 and self._id == other.id
 
     def __repr__(self):
         platform = self.platform.name if self.platform else None
         return "{0.__class__.__name__}: {0.name}({0.id} / {1})".format(self, platform)
+
+    @property
+    def id(self) -> int:
+        """
+        ID of the player. An value of 0 indicates a Private Player account.
+        """
+        return self._id
+
+    @property
+    def name(self) -> str:
+        """
+        Name of the player.
+        """
+        return self._name
+
+    @property
+    def platform(self) -> Platform:
+        """
+        The player's platform.
+        """
+        return self._platform
 
     @property
     def private(self) -> bool:
@@ -95,7 +109,7 @@ class PartialPlayer(Expandable):
         bool
             `True` if this player profile is considered Private, `False` otherwise.
         """
-        return self.id == 0
+        return self._private or self._id == 0
 
     async def get_status(self) -> Optional[PlayerStatus]:
         """
@@ -116,7 +130,7 @@ class PartialPlayer(Expandable):
         """
         if self.private:
             raise Private
-        response = await self._api.request("getplayerstatus", self.id)
+        response = await self._api.request("getplayerstatus", self._id)
         if response and response[0]["status"] != 5:
             return PlayerStatus(self, response[0])
         return None
@@ -139,7 +153,7 @@ class PartialPlayer(Expandable):
         """
         if self.private:
             raise Private
-        response = await self._api.request("getfriends", self.id)
+        response = await self._api.request("getfriends", self._id)
         return [PartialPlayer(self._api, id=p["player_id"], name=p["name"]) for p in response]
 
     async def get_loadouts(self, language: Language = Language.English) -> List[Loadout]:
@@ -169,7 +183,7 @@ class PartialPlayer(Expandable):
             raise Private
         # ensure we have champion information first
         await self._api.get_champion_info(language)
-        response = await self._api.request("getplayerloadouts", self.id, language.value)
+        response = await self._api.request("getplayerloadouts", self._id, language.value)
         if not response or response and not response[0]["playerId"]:
             return []
         return [Loadout(self, language, l) for l in response]
@@ -203,7 +217,7 @@ class PartialPlayer(Expandable):
             raise Private
         # ensure we have champion information first
         await self._api.get_champion_info(language)
-        response = await self._api.request("getgodranks", self.id)
+        response = await self._api.request("getgodranks", self._id)
         return [ChampionStats(self, language, s) for s in response]
 
     async def get_match_history(self, language: Language = Language.English) -> List[PartialMatch]:
@@ -233,7 +247,7 @@ class PartialPlayer(Expandable):
             raise Private
         # ensure we have champion information first
         await self._api.get_champion_info(language)
-        response = await self._api.request("getmatchhistory", self.id)
+        response = await self._api.request("getmatchhistory", self._id)
         if not response or response and response[0]["ret_msg"]:
             return []
         return [PartialMatch(self, language, m) for m in response]
@@ -247,12 +261,6 @@ class Player(PartialPlayer):
 
     Attributes
     ----------
-    id : int
-        ID of the player.
-    name : str
-        Name of the player.
-    platform : Platform
-        The player's platform.
     active_player : Optional[PartialPlayer]
         The current active player between merged profiles.\n
         `None` if the current profile is the active profile.
@@ -287,9 +295,10 @@ class Player(PartialPlayer):
             id=player_data["Id"],
             name=player_data["Name"],
             platform=player_data["Platform"],
+            # No private kwarg here, since this object can only exist for non-private accounts
         )
         self.active_player: Optional[PartialPlayer] = None
-        if player_data["ActivePlayerId"] != self.id:
+        if player_data["ActivePlayerId"] != self._id:
             self.active_player = PartialPlayer(api, id=player_data["ActivePlayerId"])
         self.merged_players: List[PartialPlayer] = []
         if player_data["MergedPlayers"]:
