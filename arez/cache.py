@@ -188,7 +188,7 @@ class DataCache:
             The Name or ID of the champion you want to get.
         language : Language
             The `Language` you want to get the champion in.\n
-            Defaults to `Language.English`
+            Defaults to `Language.English`.
         fuzzy : bool
             When set to `True`, makes the Name search case insensitive.\n
             Defaults to `False`.
@@ -226,7 +226,7 @@ class DataCache:
             The Name or ID of the card you want to get.
         language : Language
             The `Language` you want to get the card in.\n
-            Defaults to `Language.English`
+            Defaults to `Language.English`.
         fuzzy : bool
             When set to `True`, makes the Name search case insensitive.\n
             Defaults to `False`.
@@ -262,9 +262,9 @@ class DataCache:
         ----------
         talent : Union[str, int]
             The Name or ID of the talent you want to get.
-        language : Language, optional
+        language : Language
             The `Language` you want to get the talent in.\n
-            Defaults to `Language.English`
+            Defaults to `Language.English`.
         fuzzy : bool
             When set to `True`, makes the Name search case insensitive.\n
             Defaults to `False`.
@@ -302,7 +302,7 @@ class DataCache:
             The Name or ID of the item you want to get.
         language : Language
             The `Language` you want to get the shop item in.\n
-            Defaults to `Language.English`
+            Defaults to `Language.English`.
         fuzzy : bool
             When set to `True`, makes the Name search case insensitive.\n
             Defaults to `False`.

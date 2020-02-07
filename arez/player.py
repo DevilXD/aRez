@@ -152,7 +152,7 @@ class PartialPlayer(Expandable):
         ----------
         language : Language
             The `Language` you want to fetch the information in.
-            Defaults to `Language.English`
+            Defaults to `Language.English`.
 
         Returns
         -------
@@ -186,7 +186,7 @@ class PartialPlayer(Expandable):
         ----------
         language : Language
             The `Language` you want to fetch the information in.
-            Defaults to `Language.English`
+            Defaults to `Language.English`.
 
         Returns
         -------
@@ -216,7 +216,7 @@ class PartialPlayer(Expandable):
         ----------
         language : Language
             The `Language` you want to fetch the information in.
-            Defaults to `Language.English`
+            Defaults to `Language.English`.
 
         Returns
         -------

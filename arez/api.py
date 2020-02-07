@@ -1,4 +1,4 @@
-﻿from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Optional, Union, List, Dict, AsyncGenerator
 
 from .match import Match
@@ -95,7 +95,7 @@ class PaladinsAPI:
         ----------
         language : Language
             The `Language` you want to fetch the information in.\n
-            Defaults to `Language.English`
+            Defaults to `Language.English`.
         force_refresh : bool
             Bypasses the cache, forcing a fetch and returning a new object.\n
             Defaults to `False`.
@@ -310,7 +310,7 @@ class PaladinsAPI:
             Match ID you want to get a match for.
         language : Language
             The `Language` you want to fetch the information in.\n
-            Defaults to `Language.English`
+            Defaults to `Language.English`.
 
         Returns
         -------
@@ -341,7 +341,7 @@ class PaladinsAPI:
             The list of Match IDs you want to fetch.
         language : Language
             The `Language` you want to fetch the information in.\n
-            Defaults to `Language.English`
+            Defaults to `Language.English`.
 
         Returns
         -------
@@ -395,7 +395,7 @@ class PaladinsAPI:
             The `Queue` you want to fetch the matches for.
         language : Language
             The `Language` you want to fetch the information in.\n
-            Defaults to `Language.English`
+            Defaults to `Language.English`.
         start : datetime
             A UTC timestamp indicating the starting point of a time slice you want to
             fetch the matches in.
