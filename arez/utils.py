@@ -210,6 +210,7 @@ class Duration:
         """
         return self._seconds
 
+    @property
     def microseconds(self) -> int:
         """
         Returns microseconds in range 0-999999
