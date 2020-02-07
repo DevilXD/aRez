@@ -154,7 +154,11 @@ class PartialPlayer(Expandable):
         if self.private:
             raise Private
         response = await self._api.request("getfriends", self._id)
-        return [PartialPlayer(self._api, id=p["player_id"], name=p["name"]) for p in response]
+        return [
+            PartialPlayer(self._api, id=p["player_id"], name=p["name"])
+            for p in response
+            if p["status"] == "Friend"
+        ]
 
     async def get_loadouts(self, language: Language = Language.English) -> List[Loadout]:
         """
