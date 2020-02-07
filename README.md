@@ -1,19 +1,23 @@
 ## Async Python HiRez API wrapper
 
-This project was created to simplify access to the API, as well as incorporate some data pre-processing and consistency.
-I am aware that [PyRez](https://github.com/luissilva1044894/Pyrez) already exists, however this project aims to do couple of things differently:
+This project was created to simplify access to the API, as well as incorporate some data
+pre-processing and consistency. I am aware that [PyRez](https://github.com/luissilva1044894/Pyrez)
+already exists, however this project aims to do couple of things differently:
 
 - It's entirely async from the ground up, built using 'aiohttp'
 - Uses modern objective programming approach
 - Utilizes a local data cache to return data-rich objects
 
-This library is supposed to be used as a module. **As of right now, only PaladinsAPI is supported.** Smite support is planned - read below.
+This library is supposed to be used as a module.
+**As of right now, only PaladinsAPI is supported.** Smite support is planned - please read below.
 
 Currently supported:
 
-- [x] `getgods / getchampions` and `getitems` regarding god / champion and card / talent / shop item information
+- [x] `getgods / getchampions` and `getitems` regarding god / champion
+and card / talent / shop item information
 - [x] `getplayer` (Player stats)
-- [x] `getplayeridbyname`, `getplayeridsbygamertag` and `searchplayers` under a single, intuitive method (Finding the players)
+- [x] `getplayeridbyname`, `getplayeridsbygamertag` and `searchplayers` under a single,
+intuitive method (Finding the players)
 - [x] `getfriends` (Player friends)
 - [x] `getgodranks / getchampionranks` (God / Champion stats)
 - [x] `getplayerloadouts` (Player loadouts for each god / champion)
@@ -76,4 +80,5 @@ loop.run_until_complete(main())  # run the async loop
 ### Notes
 
 This is an alpha version - as of right now, everything is a subject to change.
-Once both Paladins and Smite (and maybe Realm Royale) APIs are supported, this wrapper is going to have it's v1.0 release, and I will try to manage the versioning the proper way from there.
+Once both Paladins and Smite (and maybe Realm Royale) APIs are supported, this wrapper is going to
+have it's v1.0 release, and I will try to manage the versioning the proper way from there.
