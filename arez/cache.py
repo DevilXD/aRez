@@ -2,8 +2,8 @@ from datetime import datetime, timedelta
 from typing import Optional, Union, List, Dict, Iterator
 
 from .items import Device
-from .champion import Champion
-from .utils import get_name_or_id
+from .utils import Lookup
+from .champion import Champion, Ability
 from .enumerations import Language, DeviceType
 
 
@@ -15,25 +15,52 @@ class ChampionInfo:
     ----------
     language : Language
         The language of this entry.
-    devices : List[Device]
-        Returns a list of all cards, talents and shop items.\n
-        This list also contains other devices that are returned from the API,
-        but are considered invalid.
-    champions : List[Champion]
-        Returns a list of all champions.
     """
     def __init__(
-        self, cache: "DataCache", language: Language, champions_data: dict, items_data: dict
+        self, language: Language, expires_at: datetime, champions_data: dict, items_data: dict
     ):
         self.language = language
-        self._expires_at: datetime = datetime.utcnow() + cache.refresh_every
+        self._expires_at = expires_at
         sorted_devices: Dict[int, List[Device]] = {}
         for d in items_data:
-            sorted_devices.setdefault(d["champion_id"], []).append(Device(d))
-        self.devices: List[Device] = [d for dl in sorted_devices.values() for d in dl]
-        self.champions: List[Champion] = [
+            champ_list = sorted_devices.setdefault(d["champion_id"], [])
+            champ_list.append(Device(d))
+        self._devices = Lookup(d for dl in sorted_devices.values() for d in dl)
+        self._champions = Lookup(
             Champion(sorted_devices.get(c["id"], []), c) for c in champions_data
-        ]
+        )
+        self._abilities = Lookup(
+            a for c in self._champions for a in c.abilities
+        )
+
+    @property
+    def champions(self) -> Iterator[Champion]:
+        """
+        An iterator that lets you iterate over all champions.
+
+        Use ``list()`` to get a list instead.
+        """
+        return iter(self._champions)
+
+    @property
+    def abilities(self) -> Iterator[Ability]:
+        """
+        An iterator that lets you iterate over all champion's abilities.
+
+        Use ``list()`` to get a list instead.
+        """
+        return iter(self._abilities)
+
+    @property
+    def devices(self) -> Iterator[Device]:
+        """
+        An iterator that lets you iterate over all devices (cards, talents and shop items).\n
+        This also includes other devices that are returned from the API,
+        but are considered invalid.
+
+        Use ``list()`` to get a list instead.
+        """
+        return iter(self._devices)
 
     @property
     def cards(self) -> Iterator[Device]:
@@ -43,7 +70,7 @@ class ChampionInfo:
         Use ``list()`` to get a list instead.
         """
         dt = DeviceType["Card"]
-        return filter(lambda d: d.type == dt, self.devices)
+        return filter(lambda d: d.type == dt, self._devices)
 
     @property
     def talents(self) -> Iterator[Device]:
@@ -53,7 +80,7 @@ class ChampionInfo:
         Use ``list()`` to get a list instead.
         """
         dt = DeviceType["Talent"]
-        return filter(lambda d: d.type == dt, self.devices)
+        return filter(lambda d: d.type == dt, self._devices)
 
     @property
     def items(self) -> Iterator[Device]:
@@ -63,7 +90,7 @@ class ChampionInfo:
         Use ``list()`` to get a list instead.
         """
         dt = DeviceType["Item"]
-        return filter(lambda d: d.type == dt, self.devices)
+        return filter(lambda d: d.type == dt, self._devices)
 
     def get_champion(
         self, champion: Union[str, int], *, fuzzy: bool = False
@@ -86,7 +113,7 @@ class ChampionInfo:
             The champion you requested.\n
             `None` is returned if a champion with the requested Name or ID couldn't be found.
         """
-        return get_name_or_id(self.champions, champion, fuzzy=fuzzy)
+        return self._champions.lookup(champion, fuzzy=fuzzy)
 
     def get_card(self, card: Union[str, int], *, fuzzy: bool = False) -> Optional[Device]:
         """
@@ -107,7 +134,7 @@ class ChampionInfo:
             The card you requested.\n
             `None` is returned if a card with the requested Name or ID couldn't be found.
         """
-        return get_name_or_id(self.cards, card, fuzzy=fuzzy)
+        return self._devices.lookup(card, fuzzy=fuzzy)
 
     def get_talent(self, talent: Union[str, int], *, fuzzy: bool = False) -> Optional[Device]:
         """
@@ -128,7 +155,7 @@ class ChampionInfo:
             The talent you requested.\n
             `None` is returned if a talent with the requested Name or ID couldn't be found.
         """
-        return get_name_or_id(self.talents, talent, fuzzy=fuzzy)
+        return self._devices.lookup(talent, fuzzy=fuzzy)
 
     def get_item(self, item: Union[str, int], *, fuzzy: bool = False) -> Optional[Device]:
         """
@@ -149,7 +176,7 @@ class ChampionInfo:
             The shop item you requested.\n
             `None` is returned if a shop item with the requested Name or ID couldn't be found.
         """
-        return get_name_or_id(self.items, item, fuzzy=fuzzy)
+        return self._devices.lookup(item, fuzzy=fuzzy)
 
 
 class DataCache:
@@ -157,20 +184,21 @@ class DataCache:
         self._cache: Dict[Language, ChampionInfo] = {}
         self.refresh_every = timedelta(hours=12)
 
-    def _create_entry(self, language: Language, champions_data, items_data):
-        self._cache[language] = ChampionInfo(self, language, champions_data, items_data)
+    def _create_entry(self, language: Language, champions_data: dict, items_data: dict):
+        expires_at = datetime.utcnow() + self.refresh_every
+        self._cache[language] = ChampionInfo(language, expires_at, champions_data, items_data)
 
     def __getitem__(self, language: Language):
         return self._cache.get(language)
 
-    def _needs_refreshing(self, language: Language = Language["english"]) -> bool:
+    def _needs_refreshing(self, language: Language = Language.English) -> bool:
         entry = self._cache.get(language)
         return entry is None or datetime.utcnow() >= entry._expires_at
 
     def get_champion(
         self,
         champion: Union[str, int],
-        language: Language = Language["english"],
+        language: Language = Language.English,
         *,
         fuzzy: bool = False,
     ) -> Optional[Champion]:
@@ -208,7 +236,7 @@ class DataCache:
     def get_card(
         self,
         card: Union[str, int],
-        language: Language = Language["english"],
+        language: Language = Language.English,
         *,
         fuzzy: bool = False,
     ) -> Optional[Device]:
@@ -246,7 +274,7 @@ class DataCache:
     def get_talent(
         self,
         talent: Union[str, int],
-        language: Language = Language["english"],
+        language: Language = Language.English,
         *,
         fuzzy: bool = False,
     ) -> Optional[Device]:
@@ -284,7 +312,7 @@ class DataCache:
     def get_item(
         self,
         item: Union[str, int],
-        language: Language = Language["english"],
+        language: Language = Language.English,
         *,
         fuzzy: bool = False,
     ) -> Optional[Device]:
