@@ -30,12 +30,12 @@ class Device:
     champion : Optional[Champion]
         The champion this device belongs to.\n
         `None` for shop items.
-    base : Optional[float]
-        The base value of the card's scaling.\n
-        `None` for talents.
-    scale : Optional[float]
-        The scale value of the card's scaling.\n
-        `None` for talents.
+    base : float
+        The base value of the card's or shop item's scaling.\n
+        `0` for talents.
+    scale : float
+        The scale value of the card's or shop item's scaling.\n
+        `0` for talents.
     cooldown : int
         The cooldown of this device, in seconds.
         ``0`` if there is no cooldown.
@@ -50,29 +50,23 @@ class Device:
     _card_pattern = re.compile(r'{scale=(\d+|0\.\d+)\|(\d+|0\.\d+)}|{(\d+)}')
 
     def __init__(self, device_data: dict):
-        # MyPy typings
-        self.base: Optional[float]
-        self.scale: Optional[float]
-        self.ability: Optional[Union[Ability, str]]
-
         self.description: str = device_data["Description"].strip()
+        self.ability: Optional[Union[Ability, str]] = None
         match = self._desc_pattern.match(self.description)
         if match:
             self.ability = match.group(1)
             self.description = match.group(2)
-        else:
-            self.ability = None
+        self.base: float = 0.0
+        self.scale: float = 0.0
         match = self._card_pattern.search(self.description)
         if match:
-            if match.group(3):
-                self.base = float(match.group(3))
-                self.scale = float(match.group(3))
+            group3 = match.group(3)
+            if group3:
+                self.base = float(group3)
+                self.scale = float(group3)
             else:
                 self.base = float(match.group(1))
                 self.scale = float(match.group(2))
-        else:
-            self.base = None
-            self.scale = None
         item_type = device_data["item_type"]
         if item_type == "Inventory Vendor - Talents":
             self.type = DeviceType["Talent"]
