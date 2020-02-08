@@ -1,6 +1,6 @@
-from typing import Union, List, TYPE_CHECKING
+from typing import Optional, Union, List, Iterator, TYPE_CHECKING
 
-from .utils import get_name_or_id
+from .utils import Lookup
 from .enumerations import DeviceType, AbilityType
 
 if TYPE_CHECKING:
@@ -35,13 +35,13 @@ class Ability:
         A URL of this ability's icon.
     """
     def __init__(self, champion: 'Champion', ability_data: dict):
-        self.name = ability_data["Summary"]
-        self.id = ability_data["Id"]
+        self.name: str = ability_data["Summary"]
+        self.id: int = ability_data["Id"]
         self.champion = champion
-        self.description = ability_data["Description"].strip().replace('\r', '')
+        self.description: str = ability_data["Description"].strip().replace('\r', '')
         self.type = AbilityType.get(ability_data["damageType"]) or AbilityType(0)
-        self.cooldown = ability_data["rechargeSeconds"]
-        self.icon_url = ability_data["URL"]
+        self.cooldown: int = ability_data["rechargeSeconds"]
+        self.icon_url: str = ability_data["URL"]
 
     def __repr__(self) -> str:
         return "{0.__class__.__name__}: {0.name}({0.id})".format(self)
@@ -69,41 +69,39 @@ class Champion:
         The amount of health points this champion has at base.
     speed : int
         The champion's speed.
-    abilities : List[Ability]
-        A list of abilities the champion has.
-    talents : List[Device]
-        A list of talents the champion has.
-    cards : List[Device]
-        A list of cards the champion has.
     """
     def __init__(self, devices: List['Device'], champion_data: dict):
-        self.name = champion_data["Name"]
-        self.id = champion_data["id"]
-        self.title = champion_data["Title"]
-        self.role = champion_data["Roles"][9:].replace("er", "")
-        self.icon_url = champion_data["ChampionIcon_URL"]
-        self.lore = champion_data["Lore"]
-        self.health = champion_data["Health"]
-        self.speed = champion_data["Speed"]
+        self.name: str = champion_data["Name"]
+        self.id: int = champion_data["id"]
+        self.title: str = champion_data["Title"]
+        self.role: str = champion_data["Roles"][9:].replace("er", "")
+        self.icon_url: str = champion_data["ChampionIcon_URL"]
+        self.lore: str = champion_data["Lore"]
+        self.health: int = champion_data["Health"]
+        self.speed: int = champion_data["Speed"]
 
-        self.abilities = [
+        # Abilities
+        self._abilities = Lookup(
             Ability(self, champion_data["Ability_{}".format(i)])
             for i in range(1, 6)
-        ]
-        self.talents: List['Device'] = []
-        self.cards: List['Device'] = []
+        )
 
+        # Talents and Cards
+        talents: List["Device"] = []
+        cards: List["Device"] = []
         for d in devices:
             if d.type == DeviceType["Undefined"]:
                 continue
             elif d.type == DeviceType["Card"]:
-                self.cards.append(d)
+                cards.append(d)
             elif d.type == DeviceType["Talent"]:
-                self.talents.append(d)
+                talents.append(d)
             d._attach_champion(self)
-        self.talents.sort(key=lambda d: d.unlocked_at)
-        self.cards.sort(key=lambda d: d.name)
-        self.cards.sort(key=_card_ability_sort)
+        talents.sort(key=lambda d: d.unlocked_at)
+        cards.sort(key=lambda d: d.name)
+        cards.sort(key=_card_ability_sort)
+        self._talents = Lookup(talents)
+        self._cards = Lookup(cards)
 
     def __eq__(self, other) -> bool:
         assert isinstance(other, self.__class__)
@@ -113,9 +111,36 @@ class Champion:
         return "{0.__class__.__name__}: {0.name}({0.id})".format(self)
 
     def __bool__(self) -> bool:
-        return len(self.cards) == 16 and len(self.talents) == 3
+        return len(self._cards) == 16 and len(self._talents) == 3
 
-    def get_ability(self, ability: Union[str, int]) -> Ability:
+    @property
+    def abilities(self) -> Iterator[Ability]:
+        """
+        An iterator that lets you iterate over all abilities this champion has.
+
+        Use ``list()`` to get a list instead.
+        """
+        return iter(self._abilities)
+
+    @property
+    def talents(self) -> Iterator["Device"]:
+        """
+        An iterator that lets you iterate over all talents this champion has.
+
+        Use ``list()`` to get a list instead.
+        """
+        return iter(self._talents)
+
+    @property
+    def cards(self) -> Iterator["Device"]:
+        """
+        An iterator that lets you iterate over all cards this champion has.
+
+        Use ``list()`` to get a list instead.
+        """
+        return iter(self._cards)
+
+    def get_ability(self, ability: Union[str, int], *, fuzzy: bool = False) -> Optional[Ability]:
         """
         Returns an ability for this champion with the given Name or ID.
 
@@ -123,6 +148,9 @@ class Champion:
         ----------
         ability : Union[str, int]
             The ability's Name or ID you want to get.
+        fuzzy : bool
+            When set to `True`, makes the Name search case insensitive.\n
+            Defaults to `False`.
 
         Returns
         -------
@@ -130,9 +158,9 @@ class Champion:
             The ability you requested.\n
             `None` is returned if the ability couldn't be found.
         """
-        return get_name_or_id(self.abilities, ability)
+        return self._abilities.lookup(ability, fuzzy=fuzzy)
 
-    def get_card(self, card: Union[str, int]) -> 'Device':
+    def get_card(self, card: Union[str, int], *, fuzzy: bool = False) -> Optional["Device"]:
         """
         Returns a card for this champion with the given Name or ID.
 
@@ -140,6 +168,9 @@ class Champion:
         ----------
         card : Union[str, int]
             The card's Name or ID you want to get.
+        fuzzy : bool
+            When set to `True`, makes the Name search case insensitive.\n
+            Defaults to `False`.
 
         Returns
         -------
@@ -147,9 +178,9 @@ class Champion:
             The card you requested.\n
             `None` is returned if the card couldn't be found.
         """
-        return get_name_or_id(self.cards, card)
+        return self._cards.lookup(card, fuzzy=fuzzy)
 
-    def get_talent(self, talent: Union[str, int]) -> 'Device':
+    def get_talent(self, talent: Union[str, int], *, fuzzy: bool = False) -> Optional["Device"]:
         """
         Returns a talent for this champion with the given Name or ID.
 
@@ -157,6 +188,9 @@ class Champion:
         ----------
         talent : Union[str, int]
             The talent's Name or ID you want to get.
+        fuzzy : bool
+            When set to `True`, makes the Name search case insensitive.\n
+            Defaults to `False`.
 
         Returns
         -------
@@ -164,4 +198,4 @@ class Champion:
             The talent you requested.\n
             `None` is returned if the talent couldn't be found.
         """
-        return get_name_or_id(self.talents, talent)
+        return self._talents.lookup(talent, fuzzy=fuzzy)
