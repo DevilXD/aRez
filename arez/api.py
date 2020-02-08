@@ -1,9 +1,10 @@
-from datetime import datetime, timedelta, timezone
+﻿from datetime import datetime, timedelta, timezone
 from typing import Optional, Union, List, Dict, AsyncGenerator
 
 from .match import Match
 from .utils import chunk
 from .endpoint import Endpoint
+from .exceptions import Private
 from .status import ServerStatus
 from .player import Player, PartialPlayer
 from .cache import DataCache, ChampionInfo
@@ -123,7 +124,8 @@ class PaladinsAPI:
         self,
         player_id: int,
         player_name: str = '',
-        platform: Union[str, int] = 0
+        platform: Union[str, int] = 0,
+        private: bool = False,
     ) -> PartialPlayer:
         """
         Wraps player ID, Name and Platform into a `PartialPlayer` object.
@@ -140,7 +142,10 @@ class PaladinsAPI:
             Defaults to an empty string.
         platform : Union[str, int]
             The platform you want the object to have.\n
-            Defaults to `Platform.Unknown`
+            Defaults to `Platform.Unknown`.
+        private : bool
+            A boolean flag indicating if this profile should be considered private or not.\n
+            Defaults to `False`.
 
         Returns
         -------
@@ -148,7 +153,9 @@ class PaladinsAPI:
             The wrapped player object.
         """
         assert isinstance(player_id, int)
-        return PartialPlayer(self, id=player_id, name=player_name, platform=platform)
+        return PartialPlayer(
+            self, id=player_id, name=player_name, platform=platform, private=private
+        )
 
     async def get_player(self, player: Union[int, str]) -> Optional[Player]:
         """
@@ -170,15 +177,28 @@ class PaladinsAPI:
         Optional[Player]
             An object containing basic information about the player requested.\n
             `None` is returned if a Player for the given ID or Name could not be found.
+
+        Raises
+        ------
+        Private
+            The player's profile was Private.
         """
         assert isinstance(player, (int, str))
-        if player in [0, '0']:
-            # save on the requests by returning None straight away
+        player = str(player)  # explicit cast to str
+        # save on the request by returning None for zero straight away
+        if player == '0':
             return None
         player_list = await self.request("getplayer", player)
-        if player_list:
-            return Player(self, player_list[0])
-        return None
+        if not player_list:
+            # No one got returned
+            return None
+        player_data = player_list[0]
+        # Check to see if their profile is private by chance
+        if player_data["ret_msg"]:
+            # 'Player Privacy Flag set for:
+            # playerIdStr=TheWolfUnchaind; playerIdType=1; playerId=479353'
+            raise Private
+        return Player(self, player_data)
 
     async def get_players(self, player_ids: List[int]) -> List[Player]:
         """
@@ -232,7 +252,8 @@ class PaladinsAPI:
         Returns
         -------
         List[PartialPlayer]
-            A list of partial players whose name matches the specified name.
+            A list of partial players whose name matches the specified name.\n
+            Note that some of them might be set as private.
         """
         assert isinstance(player_name, str)
         assert isinstance(platform, (None.__class__, Platform))
@@ -249,6 +270,7 @@ class PaladinsAPI:
                     id=p["player_id"],
                     name=player_name,
                     platform=p["portal_id"],
+                    private=p["privacy_flag"] == 'y',
                 )
                 for p in list_response
             ]
@@ -262,6 +284,7 @@ class PaladinsAPI:
                     id=p["player_id"],
                     name=p["Name"],
                     platform=p["portal_id"],
+                    private=p["privacy_flag"] == 'y',
                 )
                 for p in list_response
             ]
@@ -293,7 +316,9 @@ class PaladinsAPI:
         response = await self.request("getplayeridbyportaluserid", platform.value, platform_id)
         if response:
             p = response[0]
-            return PartialPlayer(self, id=p["player_id"], platform=p["portal_id"])
+            return PartialPlayer(
+                self, id=p["player_id"], platform=p["portal_id"], private=p["privacy_flag"] == 'y'
+            )
         return None
 
     async def get_match(

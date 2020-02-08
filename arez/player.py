@@ -63,10 +63,13 @@ class PartialPlayer(Expandable):
         """
         if self.private:
             raise Private
-        response = await self._api.request("getplayer", self._id)
-        if response:
-            return Player(self._api, response[0])
-        return None
+        player_list = await self._api.request("getplayer", self._id)
+        if not player_list:
+            return None
+        player_data = player_list[0]
+        if player_data["ret_msg"]:
+            raise Private
+        return Player(self._api, player_data)
 
     def __eq__(self, other) -> bool:
         assert isinstance(other, self.__class__)
