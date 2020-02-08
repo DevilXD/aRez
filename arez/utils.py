@@ -1,7 +1,9 @@
 from math import floor
 from operator import attrgetter
 from datetime import datetime, timedelta
-from typing import Optional, Union, List, Tuple, Iterable, Generator, AsyncGenerator, overload
+from typing import (
+    Optional, Union, List, Dict, Tuple, Any, Iterable, Generator, AsyncGenerator, overload
+)
 
 
 def convert_timestamp(timestamp: str) -> Optional[datetime]:
@@ -61,40 +63,38 @@ def get(iterable: Iterable, **attrs):
     return None
 
 
-def get_name_or_id(iterable: Iterable, name_or_id: Union[str, int], *, fuzzy: bool = False):
+class Lookup:
     """
-    A helper function that searches for an object in an iterable based on it's
-    ``name`` or ``id`` attributes. The attribute to search with is determined by the
-    type of the input (`int` or `str`).
-
-    Parameters
-    ----------
-    iterable : Iterable
-        The iterable to search in.
-    name_or_id : Union[str, int]
-        The Name or ID of the object you're searching for.
-    fuzzy : bool
-        When set to `True`, makes the Name search case insensitive.\n
-        Defaults to `False`.
-
-    Returns
-    -------
-    Any
-        The first object with matching Name or ID passed.\n
-        `None` is returned if such object couldn't be found.
+    A helper class utilizing a list and three dictionaries, allowing for easy indexing
+    and lookup based on Name and ID attributes. Supports fuzzy Name searches too.
     """
-    if isinstance(name_or_id, int):
-        return get(iterable, id=name_or_id)
-    elif isinstance(name_or_id, str):
-        if fuzzy:
-            # we have to do it manually here
+    def __init__(self, iterable: Iterable):
+        self._list_lookup: list = []
+        self._id_lookup: Dict[int, Any] = {}
+        self._name_lookup: Dict[str, Any] = {}
+        self._fuzzy_lookup: Dict[str, Any] = {}
+        for e in iterable:
+            self._list_lookup.append(e)
+            self._id_lookup[e.id] = e
+            self._name_lookup[e.name] = e
+            self._fuzzy_lookup[e.name.lower()] = e
+
+    def __repr__(self) -> str:
+        return "{}({})".format(self.__class__.__name__, self._list_lookup.__repr__())
+
+    def __len__(self) -> int:
+        return len(self._list_lookup)
+
+    def __iter__(self):
+        return iter(self._list_lookup)
+
+    def lookup(self, name_or_id: Union[int, str], *, fuzzy: bool = False):
+        if isinstance(name_or_id, int):
+            return self._id_lookup.get(name_or_id)
+        if fuzzy and isinstance(name_or_id, str):
             name_or_id = name_or_id.lower()
-            for e in iterable:
-                if e.name.lower() == name_or_id:
-                    return e
-            return None
-        else:
-            return get(iterable, name=name_or_id)
+            return self._fuzzy_lookup.get(name_or_id)
+        return self._name_lookup.get(name_or_id)
 
 
 def chunk(list_to_chunk: list, chunk_length: int) -> Generator[List, None, None]:
