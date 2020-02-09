@@ -223,13 +223,11 @@ class Component(_BaseComponent):
         The last time this component was updated.
     name : str
         The name of the component.
-    status : Literal[
-        "Operational",
-        "Under Maintenance",
-        "Degraded Performance",
-        "Partial Outage",
-        "Major Outage",
-    ]
+    status : Literal["Operational",\
+        "Under Maintenance",\
+        "Degraded Performance",\
+        "Partial Outage",\
+        "Major Outage"]
         The current component's status.
     color : int
         The color associated with this component (based on status).\n
@@ -273,13 +271,11 @@ class ComponentGroup(_BaseComponent):
         The last time this component group was updated.
     name : str
         The name of the component group.
-    status : Literal[
-        "Operational",
-        "Under Maintenance",
-        "Degraded Performance",
-        "Partial Outage",
-        "Major Outage",
-    ]
+    status : Literal["Operational",\
+        "Under Maintenance",\
+        "Degraded Performance",\
+        "Partial Outage",\
+        "Major Outage"]
         The current component group's status.\n
         This represents the worst status of all of the components in a group.\n
         ``Under Maintenance`` is considered second worst.
@@ -323,15 +319,13 @@ class CurrentStatus:
         The timezone of the status page.
     updated_at : datetime.datetime
         The timestamp of when the current status was last updated.
-    status : Literal[
-        "All Systems Operational",
-        "Major System Outage",
-        "Partial System Outage",
-        "Minor Service Outage",
-        "Degraded System Service",
-        "Partially Degraded Service",
-        "Service Under Maintenance",
-    ]
+    status : Literal["All Systems Operational",\
+        "Major System Outage",\
+        "Partial System Outage",\
+        "Minor Service Outage",\
+        "Degraded System Service",\
+        "Partially Degraded Service",\
+        "Service Under Maintenance"]
         The current overall page's status.
     impact : Literal["None", "Minor", "Major", "Critical"]
         The current overall page's impact.
