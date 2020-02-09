@@ -1,4 +1,4 @@
-from typing import Optional, Union, List, Iterator, TYPE_CHECKING
+from typing import Optional, Union, List, Literal, Iterator, TYPE_CHECKING
 
 from .utils import Lookup
 from .enumerations import DeviceType, AbilityType
@@ -59,7 +59,7 @@ class Champion:
         The ID of the champion.
     title : str
         The champion's title.
-    role : str
+    role : Literal["Front Line", "Support", "Damage", "Flank"]
         The champion's role.
     lore : str
         The champion's lore.
@@ -74,7 +74,9 @@ class Champion:
         self.name: str = champion_data["Name"]
         self.id: int = champion_data["id"]
         self.title: str = champion_data["Title"]
-        self.role: str = champion_data["Roles"][9:].replace("er", "")
+        self.role: Literal[
+            "Front Line", "Support", "Damage", "Flank"
+        ] = champion_data["Roles"][9:].replace("er", "")
         self.icon_url: str = champion_data["ChampionIcon_URL"]
         self.lore: str = champion_data["Lore"]
         self.health: int = champion_data["Health"]
