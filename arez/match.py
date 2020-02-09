@@ -209,13 +209,10 @@ class PartialMatch(KDAMixin, Expandable):
     @property
     def disconnected(self) -> bool:
         """
-        Checks if the player has disconnected during the match.
+        Returns `True` if the player has disconnected during the match, `False` otherwise.\n
         This is done by checking if either `damage_bot` or `healing_bot` are non zero.
 
-        Returns
-        -------
-        bool
-            `True` if the player got disconnected, `False` otherwise.
+        :type: bool
         """
         return self.damage_bot > 0 or self.healing_bot > 0
 
@@ -415,7 +412,7 @@ class Match:
 
 class LivePlayer(WinLoseMixin):
     """
-    Represents a liva match player.
+    Represents a live match player.
 
     Attributes
     ----------
