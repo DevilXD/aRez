@@ -44,7 +44,7 @@ class PartialPlayer(Expandable):
         self._platform = Platform.get(platform) or Platform(0)
         self._private = bool(private)
 
-    async def _expand(self) -> Optional['Player']:
+    async def _expand(self) -> Optional["Player"]:
         """
         Expands and refreshes the information stored inside this object.
 

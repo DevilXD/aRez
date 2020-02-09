@@ -6,6 +6,8 @@ Matches
 .. autoclass:: PartialMatch()
     :members:
 
+    .. automethod:: __await__
+
 .. autoclass:: Match()
     :members:
 

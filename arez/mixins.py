@@ -11,7 +11,13 @@ class Expandable(ABC):
     """
     # Subclasses will have their `_expand` method doc linked as the `__await__` doc.
     def __init_subclass__(cls):
-        cls.__await__.__doc__ = cls._expand.__doc__
+        # Create a new await method
+        def __await__(self):
+            return self._expand().__await__()
+        # Copy over the docstring
+        __await__.__doc__ = cls._expand.__doc__
+        # Attach the method to the subclass
+        cls.__await__ = __await__
 
     def __await__(self):
         return self._expand().__await__()

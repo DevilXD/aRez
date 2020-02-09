@@ -6,6 +6,8 @@ Players
 .. autoclass:: PartialPlayer()
     :members:
 
+    .. automethod:: __await__
+
 .. autoclass:: Player()
     :members:
 

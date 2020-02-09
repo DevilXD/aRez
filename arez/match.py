@@ -188,9 +188,11 @@ class PartialMatch(KDAMixin, Expandable):
             self.items.append(MatchItem(item, level))
         self.loadout = MatchLoadout(self._api, language, match_data)
 
-    async def _expand(self) -> 'Match':
+    async def _expand(self) -> "Match":
         """
         Expands this object into a full Match, containing all match players and information.
+
+        Uses up a single request.
 
         Returns
         -------
