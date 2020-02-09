@@ -20,6 +20,8 @@ class EnumGet(IntEnum):
         """
         Allows for exception-less and case-insensitive enumeration member aquisition.
 
+        Perfect for parsing user input straight into useable enumeration members.
+
         Parameters
         ----------
         key_or_value : Union[str, int]

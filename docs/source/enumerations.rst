@@ -1,7 +1,10 @@
 Enumerations
 ============
 
-Enumerations represent "named values" one can encounter.
+Enumerations represent "named values" one can encounter when working with the API.
+
+All enumerations are a subclass of an ``EnumGet`` class, that adds a single utility method
+described below.
 
 All enumeration members have a lowercase alias equivalent, with the spaces (if present) replaced
 with underscores - this is for attribute access and ease of use purposes only.
