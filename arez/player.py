@@ -287,7 +287,7 @@ class Player(PartialPlayer):
         The player's currently set Region.
     total_achievements : int
         The amount of achievements the player has.
-    total_exp : int
+    total_experience : int
         The total amount of experience the player has.
     casual : Stats
         Player's casual statistics
@@ -320,7 +320,7 @@ class Player(PartialPlayer):
         self.champion_count: int = player_data["MasteryLevel"]
         self.region = Region.get(player_data["Region"]) or Region(0)
         self.total_achievements: int = player_data["Total_Achievements"]
-        self.total_exp: int = player_data["Total_Worshippers"]
+        self.total_experience: int = player_data["Total_Worshippers"]
         self.hz_gamer_tag: str = player_data["hz_gamer_tag"]
         self.hz_player_name: str = player_data["hz_player_name"]
         self.casual = Stats(player_data)
