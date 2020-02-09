@@ -32,10 +32,10 @@ class Device:
         `None` for shop items.
     base : float
         The base value of the card's or shop item's scaling.\n
-        `0` for talents.
+        ``0`` for talents.
     scale : float
         The scale value of the card's or shop item's scaling.\n
-        `0` for talents.
+        ``0`` for talents.
     cooldown : int
         The cooldown of this device, in seconds.
         ``0`` if there is no cooldown.

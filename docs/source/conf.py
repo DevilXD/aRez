@@ -44,6 +44,7 @@ intersphinx_mapping = {
 }
 
 default_role = "any"
+autodoc_member_order = "bysource"
 
 # Autodoc setting
 autodoc_typehints = "none"

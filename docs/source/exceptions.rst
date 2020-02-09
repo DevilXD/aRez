@@ -1,7 +1,7 @@
 Exceptions
 ==========
 
-.. currentmodule:: arez.exceptions
+.. currentmodule:: arez
 
 .. autoexception:: ArezException
     :members:

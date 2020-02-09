@@ -1,7 +1,7 @@
 PaladinsAPI
 ===========
 
-.. currentmodule:: arez.api
+.. currentmodule:: arez
 
 .. autoclass:: PaladinsAPI
     :members:

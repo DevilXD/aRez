@@ -9,7 +9,7 @@ fetching the current server status from the status page.
 .. autoclass:: StatusPage
     :members:
 
-.. autoclass:: Status()
+.. autoclass:: CurrentStatus()
     :members:
 
 .. autoclass:: ComponentGroup()

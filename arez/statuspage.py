@@ -141,7 +141,7 @@ class Incident(_BaseEvent):
         The impact of this incident.
     color : int
         The color associated with this incident (based on impact).\n
-        There is an alias for this under `colour`.
+        There is an alias for this under ``colour``.
     components : List[Component]
         A list of componnets affected by this incident.
     updates : List[Update]
@@ -182,7 +182,7 @@ class ScheduledMaintenance(_BaseEvent):
         The impact of this scheduled maintenance.
     color : int
         The color associated with this scheduled maintenance (based on impact).\n
-        There is an alias for this under `colour`.
+        There is an alias for this under ``colour``.
     components : List[Component]
         A list of componnets affected by this scheduled maintenance.
     scheduled_for : datetime.datetime
@@ -233,7 +233,7 @@ class Component(_BaseComponent):
         The current component's status.
     color : int
         The color associated with this component (based on status).\n
-        There is an alias for this under `colour`.
+        There is an alias for this under ``colour``.
     group : Optional[ComponentGroup]
         The component group this component belongs to.\n
         Can be `None` if it belongs to no group.
@@ -285,7 +285,7 @@ class ComponentGroup(_BaseComponent):
         ``Under Maintenance`` is considered second worst.
     color : int
         The color associated with this component (based on status).\n
-        There is an alias for this under `colour`.
+        There is an alias for this under ``colour``.
     components : List[Component]
         A list of components this group has.
     incidents : List[Incident]
@@ -337,7 +337,7 @@ class CurrentStatus:
         The current overall page's impact.
     color : int
         The color associated with this status (based on impact).\n
-        There is an alias for this under `colour`.
+        There is an alias for this under ``colour``.
     components : List[Component]
         A list of components this status page contains.
         This doesn't include groups.

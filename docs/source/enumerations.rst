@@ -16,13 +16,16 @@ Example: ``Latin America`` -> ``latin_america``
 .. autoclass:: Platform
     :members:
 
-.. autoclass:: Language
+.. autoclass:: Rank
     :members:
 
 .. autoclass:: Queue
     :members:
 
 .. autoclass:: Region
+    :members:
+
+.. autoclass:: Language
     :members:
 
 .. autoclass:: DeviceType
@@ -32,7 +35,4 @@ Example: ``Latin America`` -> ``latin_america``
     :members:
 
 .. autoclass:: AbilityType
-    :members:
-
-.. autoclass:: Rank
     :members:
