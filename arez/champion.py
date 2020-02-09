@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from .items import Device
 
 
-def _card_ability_sort(card: 'Device'):
+def _card_ability_sort(card: "Device"):
     if card.ability is None or isinstance(card.ability, str):
         return "z{}".format(card.ability)  # push the card to the very end
     return card.ability.name
@@ -34,7 +34,7 @@ class Ability:
     icon_url : str
         A URL of this ability's icon.
     """
-    def __init__(self, champion: 'Champion', ability_data: dict):
+    def __init__(self, champion: "Champion", ability_data: dict):
         self.name: str = ability_data["Summary"]
         self.id: int = ability_data["Id"]
         self.champion = champion
@@ -70,7 +70,7 @@ class Champion:
     speed : int
         The champion's speed.
     """
-    def __init__(self, devices: List['Device'], champion_data: dict):
+    def __init__(self, devices: List["Device"], champion_data: dict):
         self.name: str = champion_data["Name"]
         self.id: int = champion_data["id"]
         self.title: str = champion_data["Title"]

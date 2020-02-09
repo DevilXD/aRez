@@ -146,7 +146,7 @@ class Loadout:
         A list of loadout cards this lodaout consists of.
     """
     def __init__(
-        self, player: Union['PartialPlayer', 'Player'], language: Language, loadout_data: dict
+        self, player: Union["PartialPlayer", "Player"], language: Language, loadout_data: dict
     ):
         assert player.id == loadout_data["playerId"]
         self._api = player._api

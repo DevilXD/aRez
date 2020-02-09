@@ -242,7 +242,7 @@ class Component(_BaseComponent):
     scheduled_maintenances : List[ScheduledMaintenance]
         A list of scheduled maintenances referring to this component.
     """
-    def __init__(self, group: Optional['ComponentGroup'], comp_data: dict):
+    def __init__(self, group: Optional["ComponentGroup"], comp_data: dict):
         super().__init__(comp_data)
         self.group = group
         if group:

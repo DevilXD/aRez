@@ -138,7 +138,7 @@ class PartialPlayer(Expandable):
             return PlayerStatus(self, response[0])
         return None
 
-    async def get_friends(self) -> List['PartialPlayer']:
+    async def get_friends(self) -> List["PartialPlayer"]:
         """
         Fetches the player's friend list.
 
