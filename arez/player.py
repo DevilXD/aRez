@@ -273,9 +273,9 @@ class Player(PartialPlayer):
         `None` if the current profile is the active profile.
     merged_players : List[PartialPlayer]
         A list of all merged profiles.
-    created_at : datetime
+    created_at : datetime.datetime
         A timestamp of the profile's creation date.
-    last_login : datetime
+    last_login : datetime.datetime
         A timestamp of the profile's last successful in-game login.
     level : int
         The in-game level of this profile.

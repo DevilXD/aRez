@@ -41,7 +41,7 @@ class ServerStatus:
 
     Attributes
     ----------
-    timestamp : datetime
+    timestamp : datetime.datetime
         A UTC timestamp denoting when this status was fetched.
     all_up : bool
         `True` if all live servers are UP, `False` otherwise.

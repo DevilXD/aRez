@@ -1,4 +1,4 @@
-﻿from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Optional, Union, List, Dict, AsyncGenerator
 
 from .match import Match
@@ -421,10 +421,10 @@ class PaladinsAPI:
         language : Language
             The `Language` you want to fetch the information in.\n
             Defaults to `Language.English`.
-        start : datetime
+        start : datetime.datetime
             A UTC timestamp indicating the starting point of a time slice you want to
             fetch the matches in.
-        end : datetime
+        end : datetime.datetime
             A UTC timestamp indicating the ending point of a time slice you want to
             fetch the matches in.
         reverse : bool

@@ -103,9 +103,9 @@ class Update(_Base):
     ----------
     id : str
         The ID of the update.
-    created_at : datetime
+    created_at : datetime.datetime
         The time when this update was created.
-    updated_at : datetime
+    updated_at : datetime.datetime
         The last time this update was updated.
     description : str
         Description explaining what this update is about.
@@ -129,9 +129,9 @@ class Incident(_BaseEvent):
     ----------
     id : str
         The ID of the incident.
-    created_at : datetime
+    created_at : datetime.datetime
         The time when this incident was created.
-    updated_at : datetime
+    updated_at : datetime.datetime
         The last time this incident was updated.
     name : str
         The name of the incident.
@@ -170,9 +170,9 @@ class ScheduledMaintenance(_BaseEvent):
     ----------
     id : str
         The ID of the scheduled maintenance.
-    created_at : datetime
+    created_at : datetime.datetime
         The time when this scheduled maintenance was created.
-    updated_at : datetime
+    updated_at : datetime.datetime
         The last time this scheduled maintenance was updated.
     name : str
         The name of the scheduled maintenance.
@@ -185,9 +185,9 @@ class ScheduledMaintenance(_BaseEvent):
         There is an alias for this under `colour`.
     components : List[Component]
         A list of componnets affected by this scheduled maintenance.
-    scheduled_for : datetime
+    scheduled_for : datetime.datetime
         The planned time this maintenance is scheduled to start.
-    scheduled_until : datetime
+    scheduled_until : datetime.datetime
         The planned time this maintenance is scheduled to end.
     updates : List[Update]
         A list of updates this scheduled maintenance has.
@@ -217,9 +217,9 @@ class Component(_BaseComponent):
     ----------
     id : str
         The ID of the component.
-    created_at : datetime
+    created_at : datetime.datetime
         The time when this component was created.
-    updated_at : datetime
+    updated_at : datetime.datetime
         The last time this component was updated.
     name : str
         The name of the component.
@@ -267,9 +267,9 @@ class ComponentGroup(_BaseComponent):
     ----------
     id : str
         The ID of the component group.
-    created_at : datetime
+    created_at : datetime.datetime
         The time when this component group was created.
-    updated_at : datetime
+    updated_at : datetime.datetime
         The last time this component group was updated.
     name : str
         The name of the component group.
@@ -321,7 +321,7 @@ class CurrentStatus:
         The name of the status page.
     timezone : str
         The timezone of the status page.
-    updated_at : datetime
+    updated_at : datetime.datetime
         The timestamp of when the current status was last updated.
     status : Literal[
         "All Systems Operational",

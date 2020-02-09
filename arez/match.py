@@ -96,7 +96,7 @@ class PartialMatch(KDAMixin, Expandable):
         The queue this match was played in.
     region : Region
         The region this match was played in.
-    timestamp : datetime
+    timestamp : datetime.datetime
         A timestamp of when this match happened.
     duration : Duration
         The duration of the match.
@@ -350,7 +350,7 @@ class Match:
         The queue this match was played in.
     region : Region
         The region this match was played in.
-    timestamp : datetime
+    timestamp : datetime.datetime
         A timestamp of when this match happened.
     duration : Duration
         The duration of the match.

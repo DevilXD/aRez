@@ -93,7 +93,7 @@ class ChampionStats(WinLoseMixin, KDAMixin):
         `None` for incomplete cache.
     level : int
         The champion's mastery level.
-    last_played : datetime
+    last_played : datetime.datetime
         A timestamp of when this champion was last played.
     experience : int
         The amount of experience this champion has.
