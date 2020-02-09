@@ -81,7 +81,7 @@ class Champion:
         self.speed: int = champion_data["Speed"]
 
         # Abilities
-        self._abilities = Lookup(
+        self._abilities: Lookup[Ability] = Lookup(
             Ability(self, champion_data["Ability_{}".format(i)])
             for i in range(1, 6)
         )
@@ -100,8 +100,8 @@ class Champion:
         talents.sort(key=lambda d: d.unlocked_at)
         cards.sort(key=lambda d: d.name)
         cards.sort(key=_card_ability_sort)
-        self._talents = Lookup(talents)
-        self._cards = Lookup(cards)
+        self._talents: Lookup["Device"] = Lookup(talents)
+        self._cards: Lookup["Device"] = Lookup(cards)
 
     def __eq__(self, other) -> bool:
         assert isinstance(other, self.__class__)

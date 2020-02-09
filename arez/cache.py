@@ -25,11 +25,11 @@ class ChampionInfo:
         for d in items_data:
             champ_list = sorted_devices.setdefault(d["champion_id"], [])
             champ_list.append(Device(d))
-        self._devices = Lookup(d for dl in sorted_devices.values() for d in dl)
-        self._champions = Lookup(
+        self._devices: Lookup[Device] = Lookup(d for dl in sorted_devices.values() for d in dl)
+        self._champions: Lookup[Champion] = Lookup(
             Champion(sorted_devices.get(c["id"], []), c) for c in champions_data
         )
-        self._abilities = Lookup(
+        self._abilities: Lookup[Ability] = Lookup(
             a for c in self._champions for a in c.abilities
         )
 

@@ -2,8 +2,31 @@ from math import floor
 from operator import attrgetter
 from datetime import datetime, timedelta
 from typing import (
-    Optional, Union, List, Dict, Tuple, Any, Iterable, Generator, AsyncGenerator, overload
+    Optional,
+    Union,
+    List,
+    Dict,
+    Tuple,
+    Iterable,
+    Iterator,
+    Generator,
+    AsyncGenerator,
+    Protocol,
+    TypeVar,
+    overload,
 )
+
+# Type variable for internal utils typing
+X = TypeVar("X")
+
+
+# Element protocol, to match elements of the Lookup class
+class Element(Protocol):
+    id: int
+    name: str
+
+
+ElementType = TypeVar("ElementType", bound=Element)
 
 
 def convert_timestamp(timestamp: str) -> Optional[datetime]:
@@ -26,7 +49,7 @@ def convert_timestamp(timestamp: str) -> Optional[datetime]:
     return None
 
 
-def get(iterable: Iterable, **attrs):
+def get(iterable: Iterable[X], **attrs) -> Optional[X]:
     """
     Returns the first object from the ``iterable`` which attributes match the
     keyword arguments passed.
@@ -63,16 +86,16 @@ def get(iterable: Iterable, **attrs):
     return None
 
 
-class Lookup:
+class Lookup(Iterable[ElementType]):
     """
     A helper class utilizing a list and three dictionaries, allowing for easy indexing
     and lookup based on Name and ID attributes. Supports fuzzy Name searches too.
     """
-    def __init__(self, iterable: Iterable):
-        self._list_lookup: list = []
-        self._id_lookup: Dict[int, Any] = {}
-        self._name_lookup: Dict[str, Any] = {}
-        self._fuzzy_lookup: Dict[str, Any] = {}
+    def __init__(self, iterable: Iterable[ElementType]):
+        self._list_lookup: List[ElementType] = []
+        self._id_lookup: Dict[int, ElementType] = {}
+        self._name_lookup: Dict[str, ElementType] = {}
+        self._fuzzy_lookup: Dict[str, ElementType] = {}
         for e in iterable:
             self._list_lookup.append(e)
             self._id_lookup[e.id] = e
@@ -85,10 +108,10 @@ class Lookup:
     def __len__(self) -> int:
         return len(self._list_lookup)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[ElementType]:
         return iter(self._list_lookup)
 
-    def lookup(self, name_or_id: Union[int, str], *, fuzzy: bool = False):
+    def lookup(self, name_or_id: Union[int, str], *, fuzzy: bool = False) -> Optional[ElementType]:
         if isinstance(name_or_id, int):
             return self._id_lookup.get(name_or_id)
         if fuzzy and isinstance(name_or_id, str):
@@ -97,7 +120,7 @@ class Lookup:
         return self._name_lookup.get(name_or_id)
 
 
-def chunk(list_to_chunk: list, chunk_length: int) -> Generator[List, None, None]:
+def chunk(list_to_chunk: List[X], chunk_length: int) -> Generator[List[X], None, None]:
     """
     A helper generator that divides the input list into chunks of ``chunk_length`` length.
     The last chunk may be shorter than specified.
