@@ -100,6 +100,7 @@ loop.run_until_complete(main())  # run the async loop
 ### Contact
 
 Reddit: https://www.reddit.com/u/DevilXD
+
 Discord: `DevilXD#4437`
 
 ### Notes
