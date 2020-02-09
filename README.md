@@ -86,22 +86,16 @@ loop.run_until_complete(main())  # run the async loop
 
 ### Support
 
-<center>
-<a href="https://www.buymeacoffee.com/DevilXD" target="_blank">
-<img
-    src="https://cdn.buymeacoffee.com/buttons/default-green.png"
-    alt="Buy Me A Coffee"
-    style="height: 51px !important; width: 217px !important; border-radius: 12px"
->
-</a>
-<a href="https://www.patreon.com/bePatron?u=26937862">
-<img
-    src="https://cloakandmeeple.files.wordpress.com/2017/06/become_a_patron_button3x.png"
-    alt="Become a patron!"
-    style="height: 51px !important; width: 217px !important; border-radius: 12px"
->
-</a>
-</center>
+<div align="center">
+
+[![Buy me a coffee](https://i.imgur.com/cL95gzE.png)](
+    https://www.buymeacoffee.com/DevilXD
+)
+[![Support me on Patreon](https://i.imgur.com/Mdkb9jq.png)](
+    https://www.patreon.com/bePatron?u=26937862
+)
+
+</div>
 
 ### Contact
 
