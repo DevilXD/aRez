@@ -42,7 +42,7 @@ class PaladinsAPI:
         self.get_item     = self._cache.get_item
 
     # async with integration
-    async def __aenter__(self):
+    async def __aenter__(self) -> "PaladinsAPI":
         return self
 
     async def __aexit__(self, exc_type, exc, traceback):

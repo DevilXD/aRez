@@ -50,7 +50,7 @@ class Endpoint:
         """
         await self._http_session.close()
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> "Endpoint":
         return self
 
     async def __aexit__(self, exc_type, exc, traceback):
