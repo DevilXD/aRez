@@ -37,7 +37,7 @@ class Expandable(ABC):
         # Copy over the docstring
         __await__.__doc__ = cls._expand.__doc__
         # Attach the method to the subclass
-        cls.__await__ = __await__
+        setattr(cls, "__await__", __await__)
 
     def __await__(self):
         return self._expand().__await__()
