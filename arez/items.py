@@ -1,6 +1,7 @@
 import re
 from typing import Optional, Union, TYPE_CHECKING
 
+from .mixins import APIClient
 from .enumerations import DeviceType, Language
 
 if TYPE_CHECKING:
@@ -125,7 +126,7 @@ class LoadoutCard:
         return "{1}: {0.points}".format(self, card_name)
 
 
-class Loadout:
+class Loadout(APIClient):
     """
     Represents a Champion's Loadout.
 
@@ -149,7 +150,7 @@ class Loadout:
         self, player: Union["PartialPlayer", "Player"], language: Language, loadout_data: dict
     ):
         assert player.id == loadout_data["playerId"]
-        self._api = player._api
+        super().__init__(player._api)
         self.player = player
         self.language = language
         self.champion = self._api.get_champion(loadout_data["ChampionId"], language)

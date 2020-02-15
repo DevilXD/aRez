@@ -1,10 +1,10 @@
 from typing import Optional, Union, List, SupportsInt, TYPE_CHECKING
 
 from .items import Loadout
-from .mixins import Expandable
 from .exceptions import Private
 from .match import PartialMatch
 from .status import PlayerStatus
+from .mixins import APIClient, Expandable
 from .utils import convert_timestamp, Duration
 from .enumerations import Language, Platform, Region
 from .stats import Stats, RankedStats, ChampionStats
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from .api import PaladinsAPI  # noqa
 
 
-class PartialPlayer(Expandable):
+class PartialPlayer(APIClient, Expandable):
     """
     This object stores basic information about a player, such as their Player ID, Player Name
     and their Platform. Depending on the way it was created, only the Player ID is guaranteed
@@ -36,7 +36,7 @@ class PartialPlayer(Expandable):
         platform: Union[str, int] = 0,
         private: bool = False,
     ):
-        self._api = api
+        super().__init__(api)
         self._id = int(id)
         self._name = str(name)
         if isinstance(platform, str) and platform.isdecimal():

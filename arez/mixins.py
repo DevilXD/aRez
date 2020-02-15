@@ -1,5 +1,25 @@
 from math import nan
 from abc import ABC, abstractmethod
+from typing import Optional, Union, List, Literal, TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from .api import PaladinsAPI
+    from .champion import Champion
+    from .enumerations import Language
+    from .player import PartialPlayer, Player
+    from .match import MatchLoadout, MatchItem
+
+
+class APIClient:
+    """
+    Abstract base class that has to be met by most (if not all) objects.
+
+    Provides access to the core of this wrapper, that is the `.request` method and `.get_*`
+    from the cache system.
+    """
+    def __init__(self, api: "PaladinsAPI"):
+        self._api = api
 
 
 class Expandable(ABC):

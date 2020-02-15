@@ -2,8 +2,8 @@ from typing import Optional, Union, List, Tuple, Literal, Generator, TYPE_CHECKI
 
 from .items import LoadoutCard
 from .utils import convert_timestamp, Duration
-from .mixins import Expandable, KDAMixin, WinLoseMixin
 from .enumerations import Queue, Language, Region, Rank
+from .mixins import APIClient, Expandable, KDAMixin, WinLoseMixin
 
 if TYPE_CHECKING:
     from .items import Device  # noqa
@@ -70,7 +70,7 @@ class MatchLoadout:
             return "No Loadout"
 
 
-class PartialMatch(KDAMixin, Expandable):
+class PartialMatch(APIClient, KDAMixin, Expandable):
     """
     Represents a match from a single player's perspective only.
 
@@ -141,12 +141,13 @@ class PartialMatch(KDAMixin, Expandable):
     def __init__(
         self, player: Union["PartialPlayer", "Player"], language: Language, match_data: dict
     ):
-        super().__init__(
+        KDAMixin.__init__(
+            self,
             kills=match_data["Kills"],
             deaths=match_data["Deaths"],
             assists=match_data["Assists"],
         )
-        self._api: "PaladinsAPI" = player._api
+        APIClient.__init__(self, player._api)
         self.player = player
         self.language = language
         self.id: int = match_data["Match"]
@@ -217,7 +218,7 @@ class PartialMatch(KDAMixin, Expandable):
         return self.damage_bot > 0 or self.healing_bot > 0
 
 
-class MatchPlayer(KDAMixin):
+class MatchPlayer(APIClient, KDAMixin):
     """
     Represents a full match's player.
 
@@ -270,15 +271,16 @@ class MatchPlayer(KDAMixin):
         The maximum multikill player did during the match.
     """
     def __init__(self, api: "PaladinsAPI", language: Language, player_data: dict):
-        super().__init__(
+        KDAMixin.__init__(
+            self,
             kills=player_data["Kills_Player"],
             deaths=player_data["Deaths"],
             assists=player_data["Assists"],
         )
-        self._api = api
+        APIClient.__init__(self, api)
         from .player import PartialPlayer  # noqa, cyclic imports
         self.player = PartialPlayer(
-            self._api,
+            api,
             id=player_data["playerId"],
             name=player_data["playerName"],
             platform=player_data["playerPortalId"],
@@ -335,7 +337,7 @@ class MatchPlayer(KDAMixin):
         )
 
 
-class Match:
+class Match(APIClient):
     """
     Represents an entire, full match.
 
@@ -371,7 +373,7 @@ class Match:
         A generator that iterates over all match players in the match.
     """
     def __init__(self, api: "PaladinsAPI", language: Language, match_data: List[dict]):
-        self._api = api
+        super().__init__(api)
         self.language = language
         first_player = match_data[0]
         self.id: int = first_player["Match"]
@@ -410,7 +412,7 @@ class Match:
         return "{0.queue.name}({0.id}): {0.score}".format(self)
 
 
-class LivePlayer(WinLoseMixin):
+class LivePlayer(APIClient, WinLoseMixin):
     """
     Represents a live match player.
 
@@ -433,11 +435,12 @@ class LivePlayer(WinLoseMixin):
         The amount of losses.
     """
     def __init__(self, api: "PaladinsAPI", language: Language, player_data: dict):
-        super().__init__(
+        APIClient.__init__(self, api)
+        WinLoseMixin.__init__(
+            self,
             wins=player_data["tierWins"],
             losses=player_data["tierLosses"],
         )
-        self._api = api
         from .player import PartialPlayer  # noqa, cyclic imports
         self.player = PartialPlayer(
             api, id=player_data["playerId"], name=player_data["playerName"]
@@ -457,7 +460,7 @@ class LivePlayer(WinLoseMixin):
         )
 
 
-class LiveMatch:
+class LiveMatch(APIClient):
     """
     Represents a live match.
 
@@ -479,7 +482,7 @@ class LiveMatch:
         A generator that iterates over all live match players in the match.
     """
     def __init__(self, api: "PaladinsAPI", language: Language, match_data: List[dict]):
-        self._api = api
+        super().__init__(api)
         first_player = match_data[0]
         self.id: int = first_player["Match"]
         self.map_name: str = first_player["mapGame"]

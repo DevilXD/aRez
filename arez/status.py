@@ -2,10 +2,10 @@ from datetime import datetime
 from typing import Optional, Union, List, TYPE_CHECKING
 
 from .match import LiveMatch
+from .mixins import APIClient
 from .enumerations import Activity, Queue, Language
 
 if TYPE_CHECKING:
-    from .api import PaladinsAPI
     from .player import PartialPlayer, Player  # noqa
 
 
@@ -89,7 +89,7 @@ class ServerStatus:
         return "{0.__class__.__name__}({1} / {2})".format(self, status, limited)
 
 
-class PlayerStatus:
+class PlayerStatus(APIClient):
     """
     Represents the Player status.
 
@@ -107,7 +107,7 @@ class PlayerStatus:
         An enumeration representing the current player status.
     """
     def __init__(self, player: Union["PartialPlayer", "Player"], status_data: dict):
-        self._api: "PaladinsAPI" = player._api
+        super().__init__(player._api)
         self.player = player
         self.live_match_id: Optional[int] = status_data["Match"] or None
         self.queue: Optional[Queue] = (
