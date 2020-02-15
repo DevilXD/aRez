@@ -1,10 +1,15 @@
 from datetime import datetime, timedelta
-from typing import Optional, Union, List, Dict, Iterator
+from typing import Optional, Union, List, Dict, Iterator, TYPE_CHECKING
 
 from .items import Device
 from .utils import Lookup
+from .mixins import APIClient
 from .champion import Champion, Ability
 from .enumerations import Language, DeviceType
+
+
+if TYPE_CHECKING:
+    from .api import PaladinsAPI
 
 
 class ChampionInfo:
@@ -179,21 +184,24 @@ class ChampionInfo:
         return self._devices.lookup(item, fuzzy=fuzzy)
 
 
-class DataCache:
-    def __init__(self):
+class DataCache(APIClient):
+    def __init__(self, api: "PaladinsAPI"):
+        super().__init__(api)
         self._cache: Dict[Language, ChampionInfo] = {}
         self.refresh_every = timedelta(hours=12)
 
-    def _create_entry(self, language: Language, champions_data: dict, items_data: dict):
-        expires_at = datetime.utcnow() + self.refresh_every
-        self._cache[language] = ChampionInfo(language, expires_at, champions_data, items_data)
-
-    def __getitem__(self, language: Language):
-        return self._cache.get(language)
-
-    def _needs_refreshing(self, language: Language = Language.English) -> bool:
+    async def _fetch_entry(self, language: Language, *, force_refresh: bool = False):
+        now = datetime.utcnow()
         entry = self._cache.get(language)
-        return entry is None or datetime.utcnow() >= entry._expires_at
+        if entry is None or now >= entry._expires_at or force_refresh:
+            champions_data = await self._api.request("getgods", language.value)
+            items_data = await self._api.request("getitems", language.value)
+            if champions_data and items_data:
+                expires_at = now + self.refresh_every
+                entry = self._cache[language] = ChampionInfo(
+                    language, expires_at, champions_data, items_data
+                )
+        return entry
 
     def get_champion(
         self,

@@ -31,7 +31,7 @@ class PaladinsAPI:
         # the request and close methods
         endpoint = Endpoint("http://api.paladins.com/paladinsapi.svc", dev_id, auth_key)
         self._server_status: Optional[ServerStatus] = None
-        self._cache = DataCache()
+        self._cache = DataCache(self)
         # forward endpoint request and close methods
         self.request = endpoint.request
         self.close = endpoint.close
@@ -110,15 +110,8 @@ class PaladinsAPI:
             an empty response.
         """
         assert isinstance(language, Language)
-
-        if self._cache._needs_refreshing(language) or force_refresh:
-            champions_response = await self.request("getgods", language.value)
-            items_response = await self.request("getitems", language.value)
-            if champions_response and items_response:
-                self._cache._create_entry(language, champions_response, items_response)
-
-        # DataCache uses `.get()` on the internal dict, so this won't cause a KeyError
-        return self._cache[language]
+        entry = await self._cache._fetch_entry(language, force_refresh=force_refresh)
+        return entry
 
     def wrap_player(
         self,
