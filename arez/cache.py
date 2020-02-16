@@ -20,6 +20,17 @@ class ChampionInfo:
     ----------
     language : Language
         The language of this entry.
+    champions : Lookup[Champion]
+        An object that lets you iterate over all champions.\n
+        Use ``list()`` to get a list instead.
+    abilities : Lookup[Ability]
+        An object that lets you iterate over all champion's abilities.\n
+        Use ``list()`` to get a list instead.
+    devices : Lookup[Device]
+        An iterator that lets you iterate over all devices (cards, talents and shop items).\n
+        This also includes other devices that are returned from the API,
+        but are considered invalid.\n
+        Use ``list()`` to get a list instead.
     """
     def __init__(
         self, language: Language, expires_at: datetime, champions_data: dict, items_data: dict
@@ -30,42 +41,13 @@ class ChampionInfo:
         for d in items_data:
             champ_list = sorted_devices.setdefault(d["champion_id"], [])
             champ_list.append(Device(d))
-        self._devices: Lookup[Device] = Lookup(d for dl in sorted_devices.values() for d in dl)
-        self._champions: Lookup[Champion] = Lookup(
+        self.devices: Lookup[Device] = Lookup(d for dl in sorted_devices.values() for d in dl)
+        self.champions: Lookup[Champion] = Lookup(
             Champion(sorted_devices.get(c["id"], []), c) for c in champions_data
         )
-        self._abilities: Lookup[Ability] = Lookup(
-            a for c in self._champions for a in c.abilities
+        self.abilities: Lookup[Ability] = Lookup(
+            a for c in self.champions for a in c.abilities
         )
-
-    @property
-    def champions(self) -> Iterator[Champion]:
-        """
-        An iterator that lets you iterate over all champions.
-
-        Use ``list()`` to get a list instead.
-        """
-        return iter(self._champions)
-
-    @property
-    def abilities(self) -> Iterator[Ability]:
-        """
-        An iterator that lets you iterate over all champion's abilities.
-
-        Use ``list()`` to get a list instead.
-        """
-        return iter(self._abilities)
-
-    @property
-    def devices(self) -> Iterator[Device]:
-        """
-        An iterator that lets you iterate over all devices (cards, talents and shop items).\n
-        This also includes other devices that are returned from the API,
-        but are considered invalid.
-
-        Use ``list()`` to get a list instead.
-        """
-        return iter(self._devices)
 
     @property
     def cards(self) -> Iterator[Device]:
@@ -75,7 +57,7 @@ class ChampionInfo:
         Use ``list()`` to get a list instead.
         """
         dt = DeviceType["Card"]
-        return filter(lambda d: d.type == dt, self._devices)
+        return filter(lambda d: d.type == dt, self.devices)
 
     @property
     def talents(self) -> Iterator[Device]:
@@ -85,7 +67,7 @@ class ChampionInfo:
         Use ``list()`` to get a list instead.
         """
         dt = DeviceType["Talent"]
-        return filter(lambda d: d.type == dt, self._devices)
+        return filter(lambda d: d.type == dt, self.devices)
 
     @property
     def items(self) -> Iterator[Device]:
@@ -95,7 +77,7 @@ class ChampionInfo:
         Use ``list()`` to get a list instead.
         """
         dt = DeviceType["Item"]
-        return filter(lambda d: d.type == dt, self._devices)
+        return filter(lambda d: d.type == dt, self.devices)
 
     def get_champion(
         self, champion: Union[str, int], *, fuzzy: bool = False
@@ -118,7 +100,7 @@ class ChampionInfo:
             The champion you requested.\n
             `None` is returned if a champion with the requested Name or ID couldn't be found.
         """
-        return self._champions.lookup(champion, fuzzy=fuzzy)
+        return self.champions.lookup(champion, fuzzy=fuzzy)
 
     def get_card(self, card: Union[str, int], *, fuzzy: bool = False) -> Optional[Device]:
         """
@@ -139,7 +121,7 @@ class ChampionInfo:
             The card you requested.\n
             `None` is returned if a card with the requested Name or ID couldn't be found.
         """
-        return self._devices.lookup(card, fuzzy=fuzzy)
+        return self.devices.lookup(card, fuzzy=fuzzy)
 
     def get_talent(self, talent: Union[str, int], *, fuzzy: bool = False) -> Optional[Device]:
         """
@@ -160,7 +142,7 @@ class ChampionInfo:
             The talent you requested.\n
             `None` is returned if a talent with the requested Name or ID couldn't be found.
         """
-        return self._devices.lookup(talent, fuzzy=fuzzy)
+        return self.devices.lookup(talent, fuzzy=fuzzy)
 
     def get_item(self, item: Union[str, int], *, fuzzy: bool = False) -> Optional[Device]:
         """
@@ -181,7 +163,7 @@ class ChampionInfo:
             The shop item you requested.\n
             `None` is returned if a shop item with the requested Name or ID couldn't be found.
         """
-        return self._devices.lookup(item, fuzzy=fuzzy)
+        return self.devices.lookup(item, fuzzy=fuzzy)
 
 
 class DataCache(APIClient):

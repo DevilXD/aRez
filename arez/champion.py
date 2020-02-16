@@ -1,4 +1,4 @@
-from typing import Optional, Union, List, Literal, Iterator, TYPE_CHECKING
+from typing import Optional, Union, List, Literal, TYPE_CHECKING
 
 from .utils import Lookup
 from .enumerations import DeviceType, AbilityType
@@ -69,6 +69,15 @@ class Champion:
         The amount of health points this champion has at base.
     speed : int
         The champion's speed.
+    abilities : Lookup[Ability]
+        An object that lets you iterate over all abilities this champion has.\n
+        Use ``list()`` to get a list instead.
+    talents : Lookup[Device]
+        An object that lets you iterate over all talents this champion has.\n
+        Use ``list()`` to get a list instead.
+    cards : Lookup[Device]
+        An iterator that lets you iterate over all cards this champion has.\n
+        Use ``list()`` to get a list instead.
     """
     def __init__(self, devices: List["Device"], champion_data: dict):
         self.name: str = champion_data["Name"]
@@ -83,7 +92,7 @@ class Champion:
         self.speed: int = champion_data["Speed"]
 
         # Abilities
-        self._abilities: Lookup[Ability] = Lookup(
+        self.abilities: Lookup[Ability] = Lookup(
             Ability(self, champion_data["Ability_{}".format(i)])
             for i in range(1, 6)
         )
@@ -102,8 +111,8 @@ class Champion:
         talents.sort(key=lambda d: d.unlocked_at)
         cards.sort(key=lambda d: d.name)
         cards.sort(key=_card_ability_sort)
-        self._talents: Lookup["Device"] = Lookup(talents)
-        self._cards: Lookup["Device"] = Lookup(cards)
+        self.talents: Lookup["Device"] = Lookup(talents)
+        self.cards: Lookup["Device"] = Lookup(cards)
 
     def __eq__(self, other) -> bool:
         assert isinstance(other, self.__class__)
@@ -113,34 +122,7 @@ class Champion:
         return "{0.__class__.__name__}: {0.name}({0.id})".format(self)
 
     def __bool__(self) -> bool:
-        return len(self._cards) == 16 and len(self._talents) == 3
-
-    @property
-    def abilities(self) -> Iterator[Ability]:
-        """
-        An iterator that lets you iterate over all abilities this champion has.
-
-        Use ``list()`` to get a list instead.
-        """
-        return iter(self._abilities)
-
-    @property
-    def talents(self) -> Iterator["Device"]:
-        """
-        An iterator that lets you iterate over all talents this champion has.
-
-        Use ``list()`` to get a list instead.
-        """
-        return iter(self._talents)
-
-    @property
-    def cards(self) -> Iterator["Device"]:
-        """
-        An iterator that lets you iterate over all cards this champion has.
-
-        Use ``list()`` to get a list instead.
-        """
-        return iter(self._cards)
+        return len(self.cards) == 16 and len(self.talents) == 3
 
     def get_ability(self, ability: Union[str, int], *, fuzzy: bool = False) -> Optional[Ability]:
         """
@@ -160,7 +142,7 @@ class Champion:
             The ability you requested.\n
             `None` is returned if the ability couldn't be found.
         """
-        return self._abilities.lookup(ability, fuzzy=fuzzy)
+        return self.abilities.lookup(ability, fuzzy=fuzzy)
 
     def get_card(self, card: Union[str, int], *, fuzzy: bool = False) -> Optional["Device"]:
         """
@@ -180,7 +162,7 @@ class Champion:
             The card you requested.\n
             `None` is returned if the card couldn't be found.
         """
-        return self._cards.lookup(card, fuzzy=fuzzy)
+        return self.cards.lookup(card, fuzzy=fuzzy)
 
     def get_talent(self, talent: Union[str, int], *, fuzzy: bool = False) -> Optional["Device"]:
         """
@@ -200,4 +182,4 @@ class Champion:
             The talent you requested.\n
             `None` is returned if the talent couldn't be found.
         """
-        return self._talents.lookup(talent, fuzzy=fuzzy)
+        return self.talents.lookup(talent, fuzzy=fuzzy)
