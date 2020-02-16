@@ -190,17 +190,15 @@ class Duration:
     def __init__(self, **kwargs):
         self._delta = timedelta(**kwargs)
         self._total_seconds = self._delta.total_seconds()
-        self._seconds, self._microseconds = divmod(self._total_seconds, 1)
-        self._microseconds = round(self._microseconds * 1e6)  # convert the fractional seconds
-        self._minutes, self._seconds = _int_divmod(self._total_seconds, 60)
-        self._hours, self._minutes = _int_divmod(self._minutes, 60)
-        self._days, self._hours = _int_divmod(self._hours, 24)
-        # Typings
-        self._microseconds: int
-        self._seconds: int
-        self._minutes: int
-        self._hours: int
-        self._days: int
+        seconds, ms_fraction = divmod(self._total_seconds, 1)
+        self._microseconds = round(ms_fraction * 1e6)  # convert the fractional seconds
+        minutes, seconds = _int_divmod(seconds, 60)
+        self._seconds = seconds
+        hours, minutes = _int_divmod(minutes, 60)
+        self._minutes = minutes
+        days, hours = _int_divmod(hours, 24)
+        self._hours = hours
+        self._days = days
 
     @property
     def days(self) -> int:
@@ -278,7 +276,7 @@ class Duration:
         return cls(seconds=delta.total_seconds())
 
     def __repr__(self) -> str:
-        args = []
+        args: List[Tuple[str, float]] = []
         if self._days:
             args.append(("days", self._days))
         if self._hours or self._minutes or self._seconds:
