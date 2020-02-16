@@ -185,6 +185,28 @@ class DataCache(APIClient):
                 )
         return entry
 
+    def get_entry(self, language: Language) -> Optional[ChampionInfo]:
+        """
+        Returns a cache entry for the given language specified.
+
+        This method can return `None` or stale data if the entry hasn't been fetched yet,
+        or haven't been updated in a while.\n
+        Consider using the `get_champion_info` method from the main API instead.
+
+        Parameters
+        ----------
+        language : Language
+            The `Language` you want to get the entry in.\n
+            Defaults to `Language.English`.
+
+        Returns
+        -------
+        Optional[ChampionInfo]
+            The cache entry you requested.\n
+            `None` is returned if the entry for the language specified hasn't been fetched yet.
+        """
+        return self._cache.get(language)
+
     def get_champion(
         self,
         champion: Union[str, int],

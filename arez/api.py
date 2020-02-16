@@ -21,6 +21,9 @@ class PaladinsAPI:
         Your developer's ID (devId).
     auth_key : str
         Your developer's authentication key (authKey).
+    cache : DataCache
+        The internal data cache, that stores all intermediate information about champions, cards,
+        talents, abilities, shop items, etc.
     """
     def __init__(
         self,
@@ -31,15 +34,15 @@ class PaladinsAPI:
         # the request and close methods
         endpoint = Endpoint("http://api.paladins.com/paladinsapi.svc", dev_id, auth_key)
         self._server_status: Optional[ServerStatus] = None
-        self._cache = DataCache(self)
+        self.cache = DataCache(self)
         # forward endpoint request and close methods
         self.request = endpoint.request
         self.close = endpoint.close
         # forward cache get methods
-        self.get_champion = self._cache.get_champion
-        self.get_card     = self._cache.get_card
-        self.get_talent   = self._cache.get_talent
-        self.get_item     = self._cache.get_item
+        self.get_champion = self.cache.get_champion
+        self.get_card     = self.cache.get_card
+        self.get_talent   = self.cache.get_talent
+        self.get_item     = self.cache.get_item
 
     # async with integration
     async def __aenter__(self) -> "PaladinsAPI":
@@ -110,7 +113,7 @@ class PaladinsAPI:
             an empty response.
         """
         assert isinstance(language, Language)
-        entry = await self._cache._fetch_entry(language, force_refresh=force_refresh)
+        entry = await self.cache._fetch_entry(language, force_refresh=force_refresh)
         return entry
 
     def wrap_player(
