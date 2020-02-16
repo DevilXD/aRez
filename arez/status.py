@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, Union, List, TYPE_CHECKING
+from typing import Optional, Union, List, Literal, TYPE_CHECKING
 
 from .match import LiveMatch
 from .mixins import APIClient
@@ -15,24 +15,29 @@ class Status:
 
     Attributes
     ----------
-    platform : str
+    platform : Literal["pc", "ps4", "xbox", "switch", "pts"]
         A string denoting which platform this status is for.
-    environment : str
-        A string denoting which environment this server is running in.
-        This is usually `live` or `pts`.
     up : bool
         `True` if the server is UP, `False` otherwise.
     limited_access : bool
-        `True` if this servers has limited access, `False` otherwise.
+        `True` if this server has limited access, `False` otherwise.
     version : str
         The current version of this server.
     """
     def __init__(self, status_data: dict):
-        self.platform: str = status_data["platform"]
-        self.environment: str = status_data["environment"]
-        self.up = status_data["status"] == "UP"
+        self.platform: Literal["pc", "ps4", "xbox", "switch", "pts"] = status_data["platform"]
+        env = status_data["environment"]
+        if env == "pts":
+            self.platform = env
+        self.up: bool = status_data["status"] == "UP"
         self.limited_access: bool = status_data["limited_access"]
         self.version: str = status_data["version"]
+
+    def __repr__(self) -> str:
+        up = "Up" if self.up else "Down"
+        if self.limited_access:
+            return "{0.__class__.__name__}({0.platform}: {1}, Limited Access)".format(self, up)
+        return "{0.__class__.__name__}({0.platform}: {1})".format(self, up)
 
 
 class ServerStatus:
@@ -44,17 +49,13 @@ class ServerStatus:
     timestamp : datetime.datetime
         A UTC timestamp denoting when this status was fetched.
     all_up : bool
-        `True` if all live servers are UP, `False` otherwise.
+        `True` if all live servers are UP, `False` otherwise.\n
         Note that this doesn't include PTS.
     limited_access : bool
-        `True` if at least one live server has limited access, `False` otherwise.
+        `True` if at least one live server has limited access, `False` otherwise.\n
         Note that this doesn't include PTS.
-    all_statuses : List[Status]
+    statuses : List[Status]
         A list of all available statuses.
-
-    Attributes below are added dynamically, for the sake of easy access only.
-    Please note that they should (but may not) be available at all times.
-
     pc : Status
         Status for the PC platform.
     ps4 : Status
@@ -70,10 +71,15 @@ class ServerStatus:
         self.timestamp = datetime.utcnow()
         self.all_up = True
         self.limited_access = False
-        self.all_statuses: List[Status] = []
+        self.pc: Status
+        self.ps4: Status
+        self.xbox: Status
+        self.switch: Status
+        self.pts: Status
+        self.statuses: List[Status] = []
         for s in status_data:
             status = Status(s)
-            self.all_statuses.append(status)
+            self.statuses.append(status)
             if s["environment"] != "live":
                 setattr(self, s["environment"], status)
             else:
@@ -84,9 +90,10 @@ class ServerStatus:
                 setattr(self, s["platform"], status)
 
     def __repr__(self) -> str:
-        status = "All UP" if self.all_up else "Not all UP"
-        limited = "LIMITED" if self.limited_access else "NOT LIMITED"
-        return "{0.__class__.__name__}({1} / {2})".format(self, status, limited)
+        status = "All Up" if self.all_up else "Partially Down"
+        if self.limited_access:
+            return "{0.__class__.__name__}({1}, Limited Access)".format(self, status)
+        return "{0.__class__.__name__}({1})".format(self, status)
 
 
 class PlayerStatus(APIClient):
@@ -98,10 +105,10 @@ class PlayerStatus(APIClient):
     player : Union[PartialPlayer, Player]
         The player this status is for.
     live_match_id : Optional[int]
-        ID of the live match the player is currently in.
+        ID of the live match the player is currently in.\n
         `None` if the player isn't in a match.
     queue : Optional[Queue]
-        The queue the player is currently playing in.
+        The queue the player is currently playing in.\n
         `None` if the player isn't in a match.
     status : Activity
         An enumeration representing the current player status.
@@ -129,13 +136,13 @@ class PlayerStatus(APIClient):
         Parameters
         ----------
         language : Language
-            The language to fetch the match in.
+            The language to fetch the match in.\n
             Defaults to `Language.English`.
 
         Returns
         -------
         Optional[LiveMatch]
-            The live match requested.
+            The live match requested.\n
             `None` is returned if the player isn't in a live match,
             or the match is played in an unsupported queue (customs).
         """

@@ -26,6 +26,7 @@ Data Classes
     items
     champions
     enumerations
+    status
 
 Miscleaneous
 ------------

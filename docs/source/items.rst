@@ -12,8 +12,6 @@ Items and Loadouts
 .. autoclass:: LoadoutCard()
     :members:
 
-.. currentmodule:: arez.match
-
 .. autoclass:: MatchLoadout()
     :members:
 
