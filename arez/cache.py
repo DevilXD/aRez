@@ -27,7 +27,7 @@ class ChampionInfo:
         An object that lets you iterate over all champion's abilities.\n
         Use ``list()`` to get a list instead.
     devices : Lookup[Device]
-        An iterator that lets you iterate over all devices (cards, talents and shop items).\n
+        An object that lets you iterate over all devices (cards, talents and shop items).\n
         This also includes other devices that are returned from the API,
         but are considered invalid.\n
         Use ``list()`` to get a list instead.
