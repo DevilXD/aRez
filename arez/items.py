@@ -164,3 +164,61 @@ class Loadout(APIClient):
     def __repr__(self) -> str:
         champion_name = self.champion.name if self.champion is not None else "Unknown"
         return "{1}: {0.name}".format(self, champion_name)
+
+
+class MatchItem:
+    """
+    Represents an item shop's purchase.
+
+    Attributes
+    ----------
+    item : Optional[Device]
+        The purchased item.\n
+        `None` with incomplete cache.
+    level : int
+        The level of the item purchased.
+    """
+    def __init__(self, item, level):
+        self.item: Optional[Device] = item
+        self.level: int = level
+
+    def __repr__(self) -> str:
+        item_name = self.item.name if self.item else "Unknown"
+        return "{1}: {0.level}".format(self, item_name)
+
+
+class MatchLoadout:
+    """
+    Represents a loadout used in a match.
+
+    Attributes
+    ----------
+    cards : List[LoadoutCard]
+        A list of loadout cards used.\n
+        Can be empty if the player haven't picked a loadout during the match.
+    talent : Optional[Device]
+        The talent used.\n
+        `None` when the player haven't picked a talent during the match, or with incomplete cache.
+    """
+    def __init__(self, api, language: Language, match_data: dict):
+        self.cards = []
+        for i in range(1, 6):
+            card_id = match_data["ItemId{}".format(i)]
+            if not card_id:
+                continue
+            self.cards.append(
+                LoadoutCard(
+                    api.get_card(card_id, language),
+                    match_data["ItemLevel{}".format(i)]
+                )
+            )
+        self.cards.sort(key=lambda c: c.points, reverse=True)
+        self.talent = api.get_talent(match_data["ItemId6"], language)
+
+    def __repr__(self) -> str:
+        if self.cards:
+            talent_name = self.talent.name if self.talent else "Unknown"
+            return "{}: {}/{}/{}/{}/{}".format(talent_name, *(c.points for c in self.cards))
+        else:
+            # This can happen if the player haven't picked a talent / loadout during the match
+            return "No Loadout"

@@ -1,14 +1,15 @@
 from math import nan
 from abc import ABC, abstractmethod
-from typing import Optional, Union, List, Literal, TYPE_CHECKING
+from typing import Optional, Union, List, Tuple, Literal, TYPE_CHECKING
+
+from .utils import convert_timestamp, Duration
+from .enumerations import Language, Queue, Region
 
 
 if TYPE_CHECKING:
     from .api import PaladinsAPI
     from .champion import Champion
-    from .enumerations import Language
     from .player import PartialPlayer, Player
-    from .match import MatchLoadout, MatchItem
 
 
 class APIClient:
@@ -131,3 +132,157 @@ class KDAMixin:
         :type: str
         """
         return "{0.kills}/{0.deaths}/{0.assists}".format(self)
+
+
+class MatchMixin:
+    """
+    Represents basic information about a match.
+
+    Attributes
+    ----------
+    id : int
+        The match ID.
+    queue : Queue
+        The queue this match was played in.
+    region : Region
+        The region this match was played in.
+    timestamp : datetime.datetime
+        A timestamp of when this match happened.
+    duration : Duration
+        The duration of the match.
+    map_name : str
+        The name of the map played.
+    score : Tuple[int, int]
+        The match's ending score.
+    winning_team : Literal[1, 2]
+        The winning team of this match.
+    """
+    def __init__(self, match_data: dict):
+        self.id: int = match_data["Match"]
+        if "hasReplay" in match_data:
+            # we're in a full match data
+            stamp = match_data["Entry_Datetime"]
+            queue = match_data["match_queue_id"]
+        else:
+            # we're in a partial (player history) match data
+            stamp = match_data["Match_Time"]
+            queue = match_data["Match_Queue_Id"]
+        self.queue = Queue.get(queue) or Queue(0)
+        self.region = Region.get(match_data["Region"]) or Region(0)
+        self.timestamp = convert_timestamp(stamp)
+        self.duration = Duration(seconds=match_data["Time_In_Match_Seconds"])
+        self.map_name: str = match_data["Map_Game"]
+
+        my_team = match_data["TaskForce"]
+        other_team = 1 if my_team == 2 else 2
+        my_score = match_data["Team{}Score".format(my_team)]
+        other_score = match_data["Team{}Score".format(other_team)]
+        if self.queue in (469, 470):
+            # Score correction for TDM matches
+            my_score += 36
+            other_score += 36
+        self.score: Tuple[int, int] = (my_score, other_score)
+        self.winning_team: Literal[1, 2] = match_data["Winning_TaskForce"]
+
+
+class MatchPlayerMixin(APIClient, KDAMixin):
+    """
+    Represents basic information about a player in a match.
+
+    Attributes
+    ----------
+    player : Union[PartialPlayer, Player]
+        The player who participated in this match.\n
+        This is usually a new partial player object.\n
+        All attributes, Name, ID and Platform, should be present.
+    champion : Optional[Champion]
+        The champion used by the player in this match.\n
+        `None` with incomplete cache.
+    loadout : MatchLoadout
+        The loadout used by the player in this match.
+    items : List[MatchItem]
+        A list of items bought by the player during this match.
+    credits : int
+        The amount of credits earned this match.
+    kills : int
+        The amount of player kills.
+    deaths : int
+        The amount of deaths.
+    assists : int
+        The amount of assists.
+    damage_done : int
+        The amount of damage dealt.
+    damage_bot : int
+        The amount of damage done by the player's bot after they disconnected.
+    damage_taken : int
+        The amount of damage taken.
+    damage_mitigated : int
+        The amount of damage mitigated (shielding).
+    healing_done : int
+        The amount of healing done to other players.
+    healing_bot : int
+        The amount of healing done by the player's bot after they disconnected.
+    healing_self : int
+        The amount of healing done to self (self-sustain).
+    objective_time : int
+        The amount of objective time the player got, in seconds.
+    multikill_max : int
+        The maximum multikill player did during the match.
+    team_number : Literal[1, 2]
+        The team this player belongs to.
+    team_score : int
+        The score of the player's team.
+    winner : bool
+        `True` if the player won this match, `False` otherwise.
+    """
+    def __init__(
+        self, player: Union["Player", "PartialPlayer"], language: Language, match_data: dict
+    ):
+        APIClient.__init__(self, player._api)
+        if "hasReplay" in match_data:
+            # we're in a full match data
+            creds = match_data["Gold_Earned"]
+            kills = match_data["Kills_Player"]
+        else:
+            # we're in a partial (player history) match data
+            creds = match_data["Gold"]
+            kills = match_data["Kills"]
+        KDAMixin.__init__(
+            self, kills=kills, deaths=match_data["Deaths"], assists=match_data["Assists"]
+        )
+        self.player: Union[Player, PartialPlayer] = player
+        self.champion: Optional[Champion] = self._api.get_champion(
+            match_data["ChampionId"], language
+        )
+        self.credits: int = creds
+        self.damage_done: int = match_data["Damage_Done_In_Hand"]
+        self.damage_bot: int = match_data["Damage_Bot"]
+        self.damage_taken: int = match_data["Damage_Taken"]
+        self.damage_mitigated: int = match_data["Damage_Mitigated"]
+        self.healing_done: int = match_data["Healing"]
+        self.healing_bot: int = match_data["Healing_Bot"]
+        self.healing_self: int = match_data["Healing_Player_Self"]
+        self.objective_time: int = match_data["Objective_Assists"]
+        self.multikill_max: int = match_data["Multi_kill_Max"]
+        # self.skin  # TODO: Ask for this to be added/fixed properly
+        self.team_number: Literal[1, 2] = match_data["TaskForce"]
+        self.team_score: int = match_data["Team{}Score".format(self.team_number)]
+        self.winner: bool = self.team_number == match_data["Winning_TaskForce"]
+
+        from .items import MatchLoadout, MatchItem  # cyclic imports
+        self.items: List[MatchItem] = []
+        for i in range(1, 5):
+            item_id = match_data["ActiveId{}".format(i)]
+            if not item_id:
+                continue
+            item = self._api.get_item(item_id, language)
+            level = match_data["ActiveLevel{}".format(i)] // 4 + 1
+            self.items.append(MatchItem(item, level))
+        self.loadout = MatchLoadout(self._api, language, match_data)
+
+    @property
+    def shielding(self) -> int:
+        """
+        This is an alias for the ``damage_mitigated`` attribute.
+        """
+        return self.damage_mitigated
