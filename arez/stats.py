@@ -74,8 +74,6 @@ class ChampionStats(WinLoseMixin, KDAMixin):
     ----------
     player : Union[PartialPlayer, Player]
         The player the stats are for.
-    langage : Language
-        The langauge the stats are in.
     champion : Optional[Champion]
         The champion the stats are for.\n
         `None` for incomplete cache.
@@ -105,7 +103,6 @@ class ChampionStats(WinLoseMixin, KDAMixin):
             assists=stats_data["Assists"],
         )
         self.player = player
-        self.language = language
         self.champion = self.player._api.get_champion(int(stats_data["champion_id"]), language)
         self.last_played = convert_timestamp(stats_data["LastPlayed"])
         self.level = stats_data["Rank"]
