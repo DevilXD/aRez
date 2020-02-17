@@ -197,7 +197,7 @@ class PaladinsAPI:
         Raises
         ------
         Private
-            The player's profile was Private.
+            The player's profile was private.
         """
         assert isinstance(player, (int, str))
         player = str(player)  # explicit cast to str

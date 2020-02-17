@@ -284,5 +284,7 @@ class MatchPlayerMixin(APIClient, KDAMixin):
     def shielding(self) -> int:
         """
         This is an alias for the ``damage_mitigated`` attribute.
+
+        :type: int
         """
         return self.damage_mitigated

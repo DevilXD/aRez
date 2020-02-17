@@ -86,11 +86,11 @@ HiRez
     Equivalent to `PC`.
 Steam
 PS4
-    Aliases: ``psn``, ``playstation``
+    Aliases: ``psn``, ``playstation``.
 Xbox
-    Aliases: ``xb``, ``xboxlive``, ``xboxone``, ``xbox_one``, ``xbox1``
+    Aliases: ``xb``, ``xboxlive``, ``xboxone``, ``xbox_one``, ``xbox1``.
 Switch
-    Aliases: ``nintendo switch``, ``nintendo_switch``
+    Aliases: ``nintendo switch``, ``nintendo_switch``.
 Discord
 """
 
@@ -128,18 +128,18 @@ Unknown
     Unknown region. You can sometimes get this when the information either isn't available,
     or the returned value didn't match any of the existing ones.
 North America
-    Aliases: ``na``
+    Aliases: ``na``.
 Europe
-    Aliases: ``eu``
+    Aliases: ``eu``.
 Australia
     Also known as Oceania.
-    Aliases: ``aus``, ``oce``
+    Aliases: ``aus``, ``oce``.
 Brazil
-    Aliases: ``br``
+    Aliases: ``br``.
 Latin America North
-    Aliases: ``latam``
+    Aliases: ``latam``.
 Southeast Asia
-    Aliases: ``sea``
+    Aliases: ``sea``.
 """
 
 Language = EnumGet("Language", {  # type: ignore
@@ -190,23 +190,23 @@ Language enumeration. Represents the response language.
 Attributes
 ----------
 English
-    Aliases: ``en``, ``eng``
+    Aliases: ``en``, ``eng``.
 German
-    Aliases: ``de``, ``ger``
+    Aliases: ``de``, ``ger``.
 French
-    Aliases: ``fr``, ``fre``
+    Aliases: ``fr``, ``fre``.
 Chinese
-    Aliases: ``zh``, ``chi``
+    Aliases: ``zh``, ``chi``.
 Spanish
-    Aliases: ``es``, ``spa``
+    Aliases: ``es``, ``spa``.
 Portuguese
-    Aliases: ``pt``, ``por``
+    Aliases: ``pt``, ``por``.
 Russian
-    Aliases: ``ru``, ``rus``
+    Aliases: ``ru``, ``rus``.
 Polish
-    Aliases: ``pl``, ``pol``
+    Aliases: ``pl``, ``pol``.
 Turkish
-    Aliases: ``tr``, ``tur``
+    Aliases: ``tr``, ``tur``.
 """
 
 Queue = EnumGet("Queue", {  # type: ignore
@@ -261,24 +261,24 @@ Unknown
     Unknown queue. You can sometimes get this when the information either isn't available,
     or the returned value didn't match any of the existing ones.
 Casual Siege
-    Aliases: ``casual``, ``siege``
+    Aliases: ``casual``, ``siege``.
 Team Deathmatch
-    Aliases: ``deathmatch``, ``tdm``
+    Aliases: ``deathmatch``, ``tdm``.
 Onslaught
 Competitive Keyboard
-    Aliases: ``keyboard_comp``, ``keyboard_ranked``, ``kb_comp``, ``kb_ranked``
+    Aliases: ``keyboard_comp``, ``keyboard_ranked``, ``kb_comp``, ``kb_ranked``.
 Competitive Controller
-    Aliases: ``controller_comp``, ``controller_ranked``, ``cn_comp``, ``cn_ranked``
+    Aliases: ``controller_comp``, ``controller_ranked``, ``cn_comp``, ``cn_ranked``.
 Shooting Range
-    Aliases: ``range``
+    Aliases: ``range``.
 Training Siege
-    Aliases: ``bot_siege``
+    Aliases: ``bot_siege``.
 Training Onslaught
-    Aliases: ``bot_onslaught``
+    Aliases: ``bot_onslaught``.
 Training Team Deathmatch
-    Aliases: ``bot_team_deathmatch``, ``bot_deathmatch``, ``bot_tdm``
+    Aliases: ``bot_team_deathmatch``, ``bot_deathmatch``, ``bot_tdm``.
 Test Maps
-    Aliases: ``test``
+    Aliases: ``test``.
 """
 
 Rank = EnumGet("Rank", {  # type: ignore
@@ -423,9 +423,9 @@ Undefined
     Represents an undefined ability type. Those abilities often deal no damage, or serve another
     purpose that doesn't involve them doing so.
 Direct Damage
-    The ability does Direct Damage. Aliases: ``direct``
+    The ability does Direct Damage. Aliases: ``direct``.
 Area Damage
-    The ability does Area Damage. Aliases: ``aoe``
+    The ability does Area Damage. Aliases: ``aoe``.
 """
 
 Activity = EnumGet("Activity", {  # type: ignore

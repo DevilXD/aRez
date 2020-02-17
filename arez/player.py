@@ -59,7 +59,7 @@ class PartialPlayer(APIClient, Expandable):
         Raises
         ------
         Private
-            The player's profile was Private.
+            The player's profile was private.
         """
         if self.private:
             raise Private
@@ -82,7 +82,9 @@ class PartialPlayer(APIClient, Expandable):
     @property
     def id(self) -> int:
         """
-        ID of the player. An value of 0 indicates a Private Player account.
+        ID of the player. An value of ``0`` indicates a private player account.
+
+        :type: int
         """
         return self._id
 
@@ -90,6 +92,8 @@ class PartialPlayer(APIClient, Expandable):
     def name(self) -> str:
         """
         Name of the player.
+
+        :type: str
         """
         return self._name
 
@@ -97,20 +101,22 @@ class PartialPlayer(APIClient, Expandable):
     def platform(self) -> Platform:
         """
         The player's platform.
+
+        :type: Platform
         """
         return self._platform
 
     @property
     def private(self) -> bool:
         """
-        Checks to see if this profile is Private or not.
+        Checks to see if this profile is private or not.
 
-        Trying to fetch any information for a Private profile will raise the `Private` exception.
+        Trying to fetch any information for a private profile will raise the `Private` exception.
 
         Returns
         -------
         bool
-            `True` if this player profile is considered Private, `False` otherwise.
+            `True` if this player profile is considered private, `False` otherwise.
         """
         return self._private or self._id == 0
 
@@ -129,7 +135,7 @@ class PartialPlayer(APIClient, Expandable):
         Raises
         ------
         Private
-            The player's profile was Private.
+            The player's profile was private.
         """
         if self.private:
             raise Private
@@ -152,7 +158,7 @@ class PartialPlayer(APIClient, Expandable):
         Raises
         ------
         Private
-            The player's profile was Private.
+            The player's profile was private.
         """
         if self.private:
             raise Private
@@ -183,7 +189,7 @@ class PartialPlayer(APIClient, Expandable):
         Raises
         ------
         Private
-            The player's profile was Private.
+            The player's profile was private.
         """
         assert isinstance(language, Language)
         if self.private:
@@ -217,7 +223,7 @@ class PartialPlayer(APIClient, Expandable):
         Raises
         ------
         Private
-            The player's profile was Private.
+            The player's profile was private.
         """
         assert isinstance(language, Language)
         if self.private:
@@ -247,7 +253,7 @@ class PartialPlayer(APIClient, Expandable):
         Raises
         ------
         Private
-            The player's profile was Private.
+            The player's profile was private.
         """
         assert isinstance(language, Language)
         if self.private:
@@ -290,11 +296,11 @@ class Player(PartialPlayer):
     total_experience : int
         The total amount of experience the player has.
     casual : Stats
-        Player's casual statistics
+        Player's casual statistics.
     ranked_keyboard : RankedStats
-        Player's ranked keyboard statistics
+        Player's ranked keyboard statistics.
     ranked_controller : RankedStats
-        Player's ranked controller statistics
+        Player's ranked controller statistics.
     """
     def __init__(self, api: "PaladinsAPI", player_data):
         super().__init__(
@@ -330,9 +336,11 @@ class Player(PartialPlayer):
     @property
     def ranked_best(self) -> RankedStats:
         """
-        Returns the best ranked stats between the keyboard and controller ones.
+        Returns the ranked stats with the highest rank, between the keyboard and controller ones.
 
         If the rank is the same, winrate is used to determine the one returned.
+
+        :type: RankedStats
         """
         if self.ranked_controller.rank == self.ranked_keyboard.rank:
             return max(self.ranked_keyboard, self.ranked_controller, key=lambda r: r.winrate)
