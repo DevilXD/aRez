@@ -1,5 +1,6 @@
+import re
 from datetime import datetime, timedelta, timezone
-from typing import Optional, Union, List, Dict, AsyncGenerator
+from typing import Optional, Union, List, Dict, AsyncGenerator, Literal, overload
 
 from .match import Match
 from .utils import chunk
@@ -153,7 +154,19 @@ class PaladinsAPI:
             self, id=player_id, name=player_name, platform=platform, private=private
         )
 
-    async def get_player(self, player: Union[int, str]) -> Optional[Player]:
+    @overload
+    async def get_player(
+        self, player: Union[int, str], *, return_private: Literal[False] = False
+    ) -> Optional[Player]:
+        ...
+
+    @overload
+    async def get_player(
+        self, player: Union[int, str], *, return_private: Literal[True]
+    ) -> Optional[Union[Player, PartialPlayer]]:
+        ...
+
+    async def get_player(self, player: Union[int, str], *, return_private: bool = False):
         """
         Fetches a Player object for the given player ID or player name.
 
@@ -167,11 +180,18 @@ class PaladinsAPI:
         ----------
         player : Union[int, str]
             Player ID or player name of the player you want to get object for.
+        return_private : bool
+            When set to `True` and the requested profile is determined private, this method will
+            return a `PartialPlayer` object with the player ID and privacy flag set.\n
+            When set to `False`, the `Private` exception will be raised instead.\n
+            Defaults to `False`.
 
         Returns
         -------
-        Optional[Player]
-            An object containing basic information about the player requested.\n
+        Optional[Union[Player, PartialPlayer]]
+            An object containing stats information about the player requested.\n
+            `PartialPlayer` objects are only returned for private profiles and appropriate
+            arguments used.\n
             `None` is returned if a Player for the given ID or Name could not be found.
 
         Raises
@@ -190,13 +210,32 @@ class PaladinsAPI:
             return None
         player_data = player_list[0]
         # Check to see if their profile is private by chance
-        if player_data["ret_msg"]:
+        ret_msg = player_data["ret_msg"]
+        if ret_msg:
             # 'Player Privacy Flag set for:
-            # playerIdStr=TheWolfUnchaind; playerIdType=1; playerId=479353'
+            # playerIdStr=<arg>; playerIdType=1; playerId=479353'
+            if return_private:
+                match = re.search(r'playerIdType=([0-9]{1,2}); playerId=([0-9]+)', ret_msg)
+                if match:  # TODO: use the walrus operator here
+                    return PartialPlayer(
+                        self, id=match.group(2), platform=match.group(1), private=True
+                    )
             raise Private
         return Player(self, player_data)
 
-    async def get_players(self, player_ids: List[int]) -> List[Player]:
+    @overload
+    async def get_players(
+        self, player_ids: List[int], *, return_private: Literal[False] = False
+    ) -> List[Player]:
+        ...
+
+    @overload
+    async def get_players(
+        self, player_ids: List[int], *, return_private: Literal[True]
+    ) -> List[Union[Player, PartialPlayer]]:
+        ...
+
+    async def get_players(self, player_ids: List[int], *, return_private: bool = False):
         """
         Fetches multiple players in a batch.
 
@@ -206,10 +245,16 @@ class PaladinsAPI:
         ----------
         player_ids : List[int]
             The list of player IDs you want to fetch.
+        return_private : bool
+            When set to `True` and one of the requested profile is determined private,
+            this method will return a `PartialPlayer` object with the player ID and privacy flag
+            set.\n
+            When set to `False`, private profiles are ommited from the output list.\n
+            Defaults to `False`.
 
         Returns
         -------
-        List[Player]
+        List[Union[Player, PartialPlayer]]
             A list of players requested.\n
             Some players might not be included in the output if they weren't found,
             or their profile was private.
@@ -218,10 +263,21 @@ class PaladinsAPI:
         assert all(isinstance(pid, int) for pid in player_ids)
         if not player_ids:
             return []
-        player_list: List[Player] = []
+        player_list: List[Union[Player, PartialPlayer]] = []
         for chunk_ids in chunk(player_ids, 20):
-            chunk_players = await self.request("getplayerbatch", ','.join(map(str, player_ids)))
-            chunk_players = [Player(self, p) for p in chunk_players]
+            chunk_response = await self.request("getplayerbatch", ','.join(map(str, player_ids)))
+            chunk_players: list = []
+            for p in chunk_response:
+                ret_msg = p["ret_msg"]
+                if not ret_msg:
+                    # We're good, just pack it up
+                    chunk_players.append(Player(self, p))
+                elif return_private:
+                    # Pack up a private player object
+                    match = re.search(r'playerId=([0-9]+)', ret_msg)
+                    if match:  # TODO: use the walrus operator here
+                        chunk_players.append(PartialPlayer(self, id=match.group(1), private=True))
+
             chunk_players.sort(key=lambda p: chunk_ids.index(p.id))
             player_list.extend(chunk_players)
         return player_list
