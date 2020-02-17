@@ -224,6 +224,22 @@ class Match(APIClient, MatchMixin):
 
     Attributes
     ----------
+    id : int
+        The match ID.
+    queue : Queue
+        The queue this match was played in.
+    region : Region
+        The region this match was played in.
+    timestamp : datetime.datetime
+        A timestamp of when this match happened.
+    duration : Duration
+        The duration of the match.
+    map_name : str
+        The name of the map played.
+    score : Tuple[int, int]
+        The match's ending score.
+    winning_team : Literal[1, 2]
+        The winning team of this match.
     replay_available : bool
         `True` if this match has a replay that you can watch, `False` otherwise.
     bans : List[Champion]
