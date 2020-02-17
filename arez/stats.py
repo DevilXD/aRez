@@ -51,7 +51,7 @@ class RankedStats(Stats):
     rank : Rank
         The player's current rank.
     points : int
-        The amout of TP the player currrently has.
+        The amout of TP the player currently has.
     season : int
         The current ranked season.
     """
