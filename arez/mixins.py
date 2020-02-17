@@ -163,25 +163,26 @@ class MatchMixin:
             # we're in a full match data
             stamp = match_data["Entry_Datetime"]
             queue = match_data["match_queue_id"]
+            score = (match_data["Team1Score"], match_data["Team2Score"])
         else:
             # we're in a partial (player history) match data
             stamp = match_data["Match_Time"]
             queue = match_data["Match_Queue_Id"]
+            my_team = match_data["TaskForce"]
+            other_team = 1 if my_team == 2 else 2
+            score = (
+                match_data["Team{}Score".format(my_team)],
+                match_data["Team{}Score".format(other_team)],
+            )
         self.queue = Queue.get(queue) or Queue(0)
         self.region = Region.get(match_data["Region"]) or Region(0)
         self.timestamp = convert_timestamp(stamp)
         self.duration = Duration(seconds=match_data["Time_In_Match_Seconds"])
         self.map_name: str = match_data["Map_Game"]
-
-        my_team = match_data["TaskForce"]
-        other_team = 1 if my_team == 2 else 2
-        my_score = match_data["Team{}Score".format(my_team)]
-        other_score = match_data["Team{}Score".format(other_team)]
         if self.queue in (469, 470):
             # Score correction for TDM matches
-            my_score += 36
-            other_score += 36
-        self.score: Tuple[int, int] = (my_score, other_score)
+            score = (score[0] + 36, score[1] + 36)
+        self.score: Tuple[int, int] = score
         self.winning_team: Literal[1, 2] = match_data["Winning_TaskForce"]
 
 

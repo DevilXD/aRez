@@ -37,7 +37,8 @@ class PartialMatch(MatchPlayerMixin, MatchMixin, Expandable):
     map_name : str
         The name of the map played.
     score : Tuple[int, int]
-        The match's ending score.
+        The match's ending score.\n
+        The first value is always the allied-team score, while the second one - enemy team score.
     winning_team : Literal[1, 2]
         The winning team of this match.
     player : Union[PartialPlayer, Player]
@@ -237,7 +238,8 @@ class Match(APIClient, MatchMixin):
     map_name : str
         The name of the map played.
     score : Tuple[int, int]
-        The match's ending score.
+        The match's ending score.\n
+        The first value is the ``team1`` score, while the second value - ``team2`` score.
     winning_team : Literal[1, 2]
         The winning team of this match.
     replay_available : bool
