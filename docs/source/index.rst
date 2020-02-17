@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 Welcome to aRez's documentation!
-====================================
+================================
 
 Models
 ------
@@ -25,6 +25,7 @@ Data Classes
     cache
     items
     champions
+    stats
     enumerations
     status
 

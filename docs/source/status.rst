@@ -1,5 +1,5 @@
 Statuses
-==================
+========
 
 .. currentmodule:: arez.status
 

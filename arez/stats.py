@@ -1,5 +1,5 @@
 from .utils import Duration
-from typing import Union, TYPE_CHECKING
+from typing import Union, Literal, TYPE_CHECKING
 
 from .utils import convert_timestamp
 from .enumerations import Rank, Language
@@ -39,9 +39,8 @@ class RankedStats(Stats):
 
     Attributes
     ----------
-    type : str
-        The type of these stats.\n
-        This is usually either ``Keyboard`` or ``Controller``.
+    type : Literal["Keyboard", "Controller"]
+        The type of these stats.
     wins : int
         The amount of wins.
     losses : int
@@ -55,7 +54,7 @@ class RankedStats(Stats):
     season : int
         The current ranked season.
     """
-    def __init__(self, type_name: str, stats_data: dict):
+    def __init__(self, type_name: Literal["Keyboard", "Controller"], stats_data: dict):
         super().__init__(stats_data)
         self.type = type_name
         self.rank = Rank(stats_data["Tier"])
@@ -72,10 +71,20 @@ class ChampionStats(WinLoseMixin, KDAMixin):
 
     Attributes
     ----------
+    wins : int
+        The amount of wins with this champion.
+    losses : int
+        The amount of losses with this champion.
+    kills : int
+        The amount of kills with this champion.
+    deaths : int
+        The amount of deaths with this champion.
+    assists : int
+        The amount of assists with this champion.
     player : Union[PartialPlayer, Player]
-        The player the stats are for.
+        The player these stats are for.
     champion : Optional[Champion]
-        The champion the stats are for.\n
+        The champion these stats are for.\n
         `None` for incomplete cache.
     level : int
         The champion's mastery level.
@@ -86,7 +95,7 @@ class ChampionStats(WinLoseMixin, KDAMixin):
     credits : int
         The amount of credits earned by playing this champion.
     playtime : Duration
-        The amount of time spent playing this champion.
+        The amount of time spent on playing this champion.
     """
     def __init__(
         self, player: Union["PartialPlayer", "Player"], language: Language, stats_data: dict
