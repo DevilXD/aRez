@@ -354,9 +354,12 @@ class CurrentStatus:
             "Partially Degraded Service",
             "Service Under Maintenance",
         ] = status["description"]
-        self.impact: Literal[
-            "None", "Minor", "Major", "Critical"
-        ] = _convert_title(status["indicator"])
+        self.impact = cast(
+            Literal[
+                "None", "Minor", "Major", "Critical"
+            ],
+            _convert_title(status["indicator"]),
+        )
         self.color = _colors[status["indicator"]]
         self.colour = self.color  # color alias
         page = page_data["page"]
