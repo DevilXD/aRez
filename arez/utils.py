@@ -370,7 +370,7 @@ class Duration:
     def __truediv__(self, other: Union[int, float]) -> "Duration":
         ...
 
-    def __truediv__(self, other):
+    def __truediv__(self, other: Union["Duration", timedelta, int, float]):
         if isinstance(other, (int, float)):
             return Duration(seconds=self._total_seconds / other)
         delta = self._get_delta(other)
@@ -389,7 +389,7 @@ class Duration:
     def __floordiv__(self, other: int) -> "Duration":
         ...
 
-    def __floordiv__(self, other):
+    def __floordiv__(self, other: Union["Duration", timedelta, int]):
         if isinstance(other, int):
             return Duration(microseconds=floor(self._total_seconds * 1e6 // other))
         delta = self._get_delta(other)
