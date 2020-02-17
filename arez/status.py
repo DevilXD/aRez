@@ -80,14 +80,13 @@ class ServerStatus:
         for s in status_data:
             status = Status(s)
             self.statuses.append(status)
-            if s["environment"] != "live":
-                setattr(self, s["environment"], status)
-            else:
+            platform = status.platform
+            setattr(self, platform, status)
+            if platform != "pts":
                 if not status.up:
                     self.all_up = False
                 if status.limited_access:
                     self.limited_access = True
-                setattr(self, s["platform"], status)
 
     def __repr__(self) -> str:
         status = "All Up" if self.all_up else "Partially Down"
