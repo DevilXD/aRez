@@ -172,10 +172,10 @@ class MatchPlayer(MatchPlayerMixin):
         `True` if the player won this match, `False` otherwise.
     points_captured : int
         The amount of times the player's team captured the point.\n
-        This applies to Siege and Ranked matches only.
+        This is ``0`` for non-Siege matches.
     push_successes : int
         The amount of times the player's team successfully pushed the payload to the end.\n
-        This applies to Siege and Ranked matches only.
+        This is ``0`` for non-Siege matches.
     kills_bot : int
         The amount of bot kills.
     account_level : int
