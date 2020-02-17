@@ -6,6 +6,10 @@ Miscleaneous
 .. autoclass:: Duration
     :members:
 
+.. autoclass:: Lookup
+    :members:
+    :special-members: __len__, __iter__
+
 .. autofunction:: get
 
 .. autofunction:: chunk

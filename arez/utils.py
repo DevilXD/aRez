@@ -20,13 +20,13 @@ from typing import (
 X = TypeVar("X")
 
 
-# Element protocol, to match elements of the Lookup class
-class Element(Protocol):
+# LookupElement protocol, to match elements of the Lookup class
+class LookupElement(Protocol):
     id: int
     name: str
 
 
-ElementType = TypeVar("ElementType", bound=Element)
+LookupType = TypeVar("LookupType", bound=LookupElement)
 
 
 def convert_timestamp(timestamp: str) -> Optional[datetime]:
@@ -86,16 +86,19 @@ def get(iterable: Iterable[X], **attrs) -> Optional[X]:
     return None
 
 
-class Lookup(Iterable[ElementType]):
+class Lookup(Iterable[LookupType]):
     """
-    A helper class utilizing a list and three dictionaries, allowing for easy indexing
+    A helper class utilizing an internal list and three dictionaries, allowing for easy indexing
     and lookup based on Name and ID attributes. Supports fuzzy Name searches too.
+
+    This object resembles an immutable list, but exposes ``__len__`` and ``__iter__`` special
+    methods for ease of use.
     """
-    def __init__(self, iterable: Iterable[ElementType]):
-        self._list_lookup: List[ElementType] = []
-        self._id_lookup: Dict[int, ElementType] = {}
-        self._name_lookup: Dict[str, ElementType] = {}
-        self._fuzzy_lookup: Dict[str, ElementType] = {}
+    def __init__(self, iterable: Iterable[LookupType]):
+        self._list_lookup: List[LookupType] = []
+        self._id_lookup: Dict[int, LookupType] = {}
+        self._name_lookup: Dict[str, LookupType] = {}
+        self._fuzzy_lookup: Dict[str, LookupType] = {}
         for e in iterable:
             self._list_lookup.append(e)
             self._id_lookup[e.id] = e
@@ -106,12 +109,41 @@ class Lookup(Iterable[ElementType]):
         return "{}({})".format(self.__class__.__name__, self._list_lookup.__repr__())
 
     def __len__(self) -> int:
+        """
+        Returns the length of the internal list.\n
+        Use ``len()`` on this object to obtain it.
+
+        :type: int
+        """
         return len(self._list_lookup)
 
-    def __iter__(self) -> Iterator[ElementType]:
+    def __iter__(self) -> Iterator[LookupType]:
+        """
+        Returns an iterator over the internal list.\n
+        Use ``iter()`` on this object to obtain it.
+
+        :type: Iterator[LookupType]
+        """
         return iter(self._list_lookup)
 
-    def lookup(self, name_or_id: Union[int, str], *, fuzzy: bool = False) -> Optional[ElementType]:
+    def lookup(self, name_or_id: Union[int, str], *, fuzzy: bool = False) -> Optional[LookupType]:
+        """
+        Allows you to quickly lookup an element by it's Name or ID.
+
+        Parameters
+        ----------
+        name_or_id : Union[int, str]
+            Name or ID of the element you want to lookup.
+        fuzzy : bool
+            When set to `True`, makes the Name search case insensitive.\n
+            Defaults to `False`.
+
+        Returns
+        -------
+        Optional[LookupType]
+            The element requested.\n
+            `None` is returned if the requested element couldn't be found.
+        """
         if isinstance(name_or_id, int):
             return self._id_lookup.get(name_or_id)
         if fuzzy and isinstance(name_or_id, str):
