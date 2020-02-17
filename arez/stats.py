@@ -54,18 +54,6 @@ class RankedStats(Stats):
         The amout of TP the player currrently has.
     season : int
         The current ranked season.
-    mmr : int
-        The current MMR of the player.\n
-        This is currently always returned as 0 by the API.\n
-        Not useable.
-    prev_mmr : int
-        The previous MMR of the player.\n
-        This is currently always returned as 0 by the API.\n
-        Not useable.
-    trend : int
-        The player's MMR trend.\n
-        This is currently always returned as 0 by the API.\n
-        Not useable.
     """
     def __init__(self, type_name: str, stats_data: dict):
         super().__init__(stats_data)
@@ -73,9 +61,9 @@ class RankedStats(Stats):
         self.rank = Rank(stats_data["Tier"])
         self.season = stats_data["Season"]
         self.points = stats_data["Points"]
-        self.mmr = stats_data["Rank"]
-        self.prev_mmr = stats_data["PrevRank"]
-        self.trend = stats_data["Trend"]
+        # self.mmr = stats_data["Rank"]
+        # self.prev_mmr = stats_data["PrevRank"]
+        # self.trend = stats_data["Trend"]
 
 
 class ChampionStats(WinLoseMixin, KDAMixin):
