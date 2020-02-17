@@ -91,7 +91,7 @@ class Lookup(Iterable[LookupType]):
     A helper class utilizing an internal list and three dictionaries, allowing for easy indexing
     and lookup based on Name and ID attributes. Supports fuzzy Name searches too.
 
-    This object resembles an immutable list, but exposes ``__len__`` and ``__iter__`` special
+    This object resembles an immutable list, but exposes `__len__` and `__iter__` special
     methods for ease of use.
     """
     def __init__(self, iterable: Iterable[LookupType]):
