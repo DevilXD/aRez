@@ -1,0 +1,9 @@
+{
+    "restructuredtext.linter.extraArgs": [
+        "--max-line-length 99",
+        "--ignore D002",
+        "--ignore D004"
+    ],
+    "python.linting.enabled": true,
+    "restructuredtext.confPath": "${workspaceFolder}\\docs"
+}

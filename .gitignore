@@ -1,31 +1,24 @@
-################
-# Python stuff #
-################
+###################
+# Python and Docs #
+###################
 
-# exclude testing files
+# exclude the testing file
 /tests.py
-# except for 'example.py'
-!/example.py
 # exclude Python's cache files
 __pycache__/
-
-# Distribution / Packaging
+# exclude built docs
+/docs/_build
+# exclude distribution and packaging stuff
 build/
 dist/
 *.egg-info/
+# include the example and setup files
+!/example.py
+!/setup.py
 
 ################
 # VSCode stuff #
 ################
 
-# VSCode project settings
-.vscode
-# MyPy cache
+# exclude the MyPy cache
 .mypy_cache
-
-########
-# Temp #
-########
-
-# Temporary docs override
-/docs/_build
