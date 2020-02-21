@@ -149,7 +149,8 @@ class PlayerStatus(APIClient):
         await self._api.get_champion_info(language)
         if self.live_match_id:
             response = await self.player._api.request("getmatchplayerdetails", self.live_match_id)
-            if response and response[0] and response[0]["ret_msg"]:
-                return None
-            return LiveMatch(self._api, language, response)
+            if response:
+                if response[0] and response[0]["ret_msg"]:
+                    return None
+                return LiveMatch(self._api, language, response)
         return None
