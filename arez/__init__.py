@@ -8,4 +8,4 @@ from .statuspage import StatusPage
 
 
 __author__ = "DevilXD"
-__version__ = "0.1.2"
+__version__ = "0.1.3"
