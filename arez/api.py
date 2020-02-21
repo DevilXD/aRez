@@ -1,4 +1,5 @@
 import re
+import asyncio
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Union, List, Dict, AsyncGenerator, Literal, overload
 
@@ -22,6 +23,12 @@ class PaladinsAPI:
         Your developer's ID (devId).
     auth_key : str
         Your developer's authentication key (authKey).
+    loop : Optional[asyncio.AbstractEventLoop]
+        The event loop you want to use for this API.\n
+        Default loop is used when not provided.
+
+    Attributes
+    ----------
     cache : DataCache
         The internal data cache, that stores all intermediate information about champions, cards,
         talents, abilities, shop items, etc.
@@ -30,15 +37,20 @@ class PaladinsAPI:
         self,
         dev_id: Union[int, str],
         auth_key: str,
+        *,
+        loop: Optional[asyncio.AbstractEventLoop] = None,
     ):
+        if loop is None:
+            loop = asyncio.get_event_loop()
         # don't store the endpoint - the API should have no access to it's instance other than
         # the request and close methods
-        endpoint = Endpoint("http://api.paladins.com/paladinsapi.svc", dev_id, auth_key)
-        self._server_status: Optional[ServerStatus] = None
-        self.cache = DataCache(self)
+        endpoint = Endpoint("http://api.paladins.com/paladinsapi.svc", dev_id, auth_key, loop=loop)
         # forward endpoint request and close methods
         self.request = endpoint.request
         self.close = endpoint.close
+        # cache stuff
+        self._server_status: Optional[ServerStatus] = None
+        self.cache = DataCache(self)
         # forward cache get methods
         self.get_champion = self.cache.get_champion
         self.get_card     = self.cache.get_card
