@@ -51,6 +51,22 @@ class Champion:
     """
     Represents a Champion.
 
+    An object of this class can be `False` in a boolean context, if it's internal state
+    is deemed incomplete or corrupted. For the internal state to be considered valid, there has
+    to be exactly 16 cards and 3 talents assigned to the champion. If you don't plan on accessing /
+    processing those, you can use the ``is not None`` in the check instead. Examples:
+
+    .. code-block:: py
+
+        if champion:
+            # champion exists and is valid
+        if not champion:
+            # champion doesn't exist, or exists in an invalid state
+        if champion is not None:
+            # champion exists but might be invalid
+        if champion is None:
+            # champion doesn't exist
+
     Attributes
     ----------
     name : str
