@@ -56,6 +56,8 @@ class PaladinsAPI:
         self.get_card     = self.cache.get_card
         self.get_talent   = self.cache.get_talent
         self.get_item     = self.cache.get_item
+        # default language
+        self._default_language = Language.English
 
     # async with integration
     async def __aenter__(self) -> "PaladinsAPI":
@@ -63,6 +65,20 @@ class PaladinsAPI:
 
     async def __aexit__(self, exc_type, exc, traceback):
         await self.close()
+
+    def set_default_language(self, language: Language):
+        """
+        Sets the default language used by the API in places where one is not provided
+        by the user.\n
+        The default language set is `Language.English`.
+
+        Parameters
+        ----------
+        language : Language
+            The new default language you want to set.
+        """
+        assert isinstance(language, Language)
+        self._default_language = language
 
     async def get_server_status(self, force_refresh: bool = False) -> Optional[ServerStatus]:
         """
@@ -98,7 +114,7 @@ class PaladinsAPI:
         return self._server_status
 
     async def get_champion_info(
-        self, language: Language = Language.English, force_refresh: bool = False
+        self, language: Optional[Language] = None, force_refresh: bool = False
     ) -> Optional[ChampionInfo]:
         """
         Fetches the champion information.
@@ -110,9 +126,9 @@ class PaladinsAPI:
 
         Parameters
         ----------
-        language : Language
+        language : Optional[Language]
             The `Language` you want to fetch the information in.\n
-            Defaults to `Language.English`.
+            Default language is used if not provided.
         force_refresh : bool
             Bypasses the cache, forcing a fetch and returning a new object.\n
             Defaults to `False`.
@@ -125,7 +141,9 @@ class PaladinsAPI:
             `None` is returned if there was no cached information and fetching returned
             an empty response.
         """
-        assert isinstance(language, Language)
+        assert language is None or isinstance(language, Language)
+        if language is None:
+            language = self._default_language
         entry = await self.cache._fetch_entry(language, force_refresh=force_refresh)
         return entry
 
@@ -386,7 +404,7 @@ class PaladinsAPI:
         return None
 
     async def get_match(
-        self, match_id: int, language: Language = Language.English
+        self, match_id: int, language: Optional[Language] = None
     ) -> Optional[Match]:
         """
         Fetches a match for the given Match ID.
@@ -397,9 +415,9 @@ class PaladinsAPI:
         ----------
         match_id : int
             Match ID you want to get a match for.
-        language : Language
+        language : Optional[Language]
             The `Language` you want to fetch the information in.\n
-            Defaults to `Language.English`.
+            Default language is used if not provided.
 
         Returns
         -------
@@ -408,7 +426,9 @@ class PaladinsAPI:
             `None` is returned if the match wasn't available on the server.
         """
         assert isinstance(match_id, int)
-        assert isinstance(language, Language)
+        assert language is None or isinstance(language, Language)
+        if language is None:
+            language = self._default_language
         # ensure we have champion information first
         await self.get_champion_info(language)
         response = await self.request("getmatchdetails", match_id)
@@ -417,7 +437,7 @@ class PaladinsAPI:
         return None
 
     async def get_matches(
-        self, match_ids: List[int], language: Language = Language.English
+        self, match_ids: List[int], language: Optional[Language] = None
     ) -> List[Match]:
         """
         Fetches multiple matches in a batch, for the given Match IDs.
@@ -428,9 +448,9 @@ class PaladinsAPI:
         ----------
         match_ids : List[int]
             The list of Match IDs you want to fetch.
-        language : Language
+        language : Optional[Language]
             The `Language` you want to fetch the information in.\n
-            Defaults to `Language.English`.
+            Default language is used if not provided.
 
         Returns
         -------
@@ -440,9 +460,11 @@ class PaladinsAPI:
         """
         assert isinstance(match_ids, list)
         assert all(isinstance(mid, int) for mid in match_ids)
-        assert isinstance(language, Language)
+        assert language is None or isinstance(language, Language)
         if not match_ids:
             return []
+        if language is None:
+            language = self._default_language
         # ensure we have champion information first
         await self.get_champion_info(language)
         matches: List[Match] = []
@@ -461,7 +483,7 @@ class PaladinsAPI:
     async def get_matches_for_queue(
         self,
         queue: Queue,
-        language: Language = Language.English,
+        language: Optional[Language] = None,
         *,
         start: datetime,
         end: datetime,
@@ -482,9 +504,9 @@ class PaladinsAPI:
         ----------
         queue : Queue
             The `Queue` you want to fetch the matches for.
-        language : Language
+        language : Optional[Language]
             The `Language` you want to fetch the information in.\n
-            Defaults to `Language.English`.
+            Default language is used if not provided.
         start : datetime.datetime
             A UTC timestamp indicating the starting point of a time slice you want to
             fetch the matches in.
@@ -502,7 +524,7 @@ class PaladinsAPI:
             timestamps specified.
         """
         assert isinstance(queue, Queue)
-        assert isinstance(language, Language)
+        assert language is None or isinstance(language, Language)
         assert isinstance(start, datetime)
         assert isinstance(end, datetime)
         assert isinstance(reverse, bool)
@@ -519,6 +541,8 @@ class PaladinsAPI:
         # convert aware objects into UTC ones, matching server time
         start = start.astimezone(timezone.utc)
         end = end.astimezone(timezone.utc)
+        if language is None:
+            language = self._default_language
         # ensure we have champion information first
         await self.get_champion_info(language)
 

@@ -185,7 +185,7 @@ class DataCache(APIClient):
                 )
         return entry
 
-    def get_entry(self, language: Language) -> Optional[ChampionInfo]:
+    def get_entry(self, language: Optional[Language] = None) -> Optional[ChampionInfo]:
         """
         Returns a cache entry for the given language specified.
 
@@ -195,9 +195,9 @@ class DataCache(APIClient):
 
         Parameters
         ----------
-        language : Language
+        language : Optional[Language]
             The `Language` you want to get the entry in.\n
-            Defaults to `Language.English`.
+            Default language is used if not provided.
 
         Returns
         -------
@@ -210,7 +210,7 @@ class DataCache(APIClient):
     def get_champion(
         self,
         champion: Union[str, int],
-        language: Language = Language.English,
+        language: Optional[Language] = None,
         *,
         fuzzy: bool = False,
     ) -> Optional[Champion]:
@@ -226,9 +226,9 @@ class DataCache(APIClient):
         ----------
         champion : Union[str, int]
             The Name or ID of the champion you want to get.
-        language : Language
+        language : Optional[Language]
             The `Language` you want to get the champion in.\n
-            Defaults to `Language.English`.
+            Default language is used if not provided.
         fuzzy : bool
             When set to `True`, makes the Name search case insensitive.\n
             Defaults to `False`.
@@ -248,7 +248,7 @@ class DataCache(APIClient):
     def get_card(
         self,
         card: Union[str, int],
-        language: Language = Language.English,
+        language: Optional[Language] = None,
         *,
         fuzzy: bool = False,
     ) -> Optional[Device]:
@@ -264,9 +264,9 @@ class DataCache(APIClient):
         ----------
         card : Union[str, int]
             The Name or ID of the card you want to get.
-        language : Language
+        language : Optional[Language]
             The `Language` you want to get the card in.\n
-            Defaults to `Language.English`.
+            Default language is used if not provided.
         fuzzy : bool
             When set to `True`, makes the Name search case insensitive.\n
             Defaults to `False`.
@@ -286,7 +286,7 @@ class DataCache(APIClient):
     def get_talent(
         self,
         talent: Union[str, int],
-        language: Language = Language.English,
+        language: Optional[Language] = None,
         *,
         fuzzy: bool = False,
     ) -> Optional[Device]:
@@ -302,9 +302,9 @@ class DataCache(APIClient):
         ----------
         talent : Union[str, int]
             The Name or ID of the talent you want to get.
-        language : Language
+        language : Optional[Language]
             The `Language` you want to get the talent in.\n
-            Defaults to `Language.English`.
+            Default language is used if not provided.
         fuzzy : bool
             When set to `True`, makes the Name search case insensitive.\n
             Defaults to `False`.
@@ -324,7 +324,7 @@ class DataCache(APIClient):
     def get_item(
         self,
         item: Union[str, int],
-        language: Language = Language.English,
+        language: Optional[Language] = None,
         *,
         fuzzy: bool = False,
     ) -> Optional[Device]:
@@ -340,9 +340,9 @@ class DataCache(APIClient):
         ----------
         item : Union[str, int]
             The Name or ID of the item you want to get.
-        language : Language
+        language : Optional[Language]
             The `Language` you want to get the shop item in.\n
-            Defaults to `Language.English`.
+            Default language is used if not provided.
         fuzzy : bool
             When set to `True`, makes the Name search case insensitive.\n
             Defaults to `False`.

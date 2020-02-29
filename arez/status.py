@@ -126,7 +126,7 @@ class PlayerStatus(APIClient):
     def __repr__(self) -> str:
         return "{0.player.name}({0.player.id}): {0.status.name}".format(self)
 
-    async def get_live_match(self, language: Language = Language.English) -> Optional[LiveMatch]:
+    async def get_live_match(self, language: Optional[Language] = None) -> Optional[LiveMatch]:
         """
         Fetches a live match the player is currently in.
 
@@ -136,7 +136,7 @@ class PlayerStatus(APIClient):
         ----------
         language : Language
             The language to fetch the match in.\n
-            Defaults to `Language.English`.
+            Default language is used if not provided.
 
         Returns
         -------

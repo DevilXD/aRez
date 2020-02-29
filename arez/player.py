@@ -169,7 +169,7 @@ class PartialPlayer(APIClient, Expandable):
             if p["status"] == "Friend"
         ]
 
-    async def get_loadouts(self, language: Language = Language.English) -> List[Loadout]:
+    async def get_loadouts(self, language: Optional[Language] = None) -> List[Loadout]:
         """
         Fetches the player's loadouts.
 
@@ -177,9 +177,9 @@ class PartialPlayer(APIClient, Expandable):
 
         Parameters
         ----------
-        language : Language
+        language : Optional[Language]
             The `Language` you want to fetch the information in.
-            Defaults to `Language.English`.
+            Default language is used if not provided.
 
         Returns
         -------
@@ -191,9 +191,11 @@ class PartialPlayer(APIClient, Expandable):
         Private
             The player's profile was private.
         """
-        assert isinstance(language, Language)
+        assert language is None or isinstance(language, Language)
         if self.private:
             raise Private
+        if language is None:
+            language = self._api._default_language
         # ensure we have champion information first
         await self._api.get_champion_info(language)
         response = await self._api.request("getplayerloadouts", self._id, language.value)
@@ -202,7 +204,7 @@ class PartialPlayer(APIClient, Expandable):
         return [Loadout(self, language, l) for l in response]
 
     async def get_champion_stats(
-        self, language: Language = Language.English
+        self, language: Optional[Language] = None
     ) -> List[ChampionStats]:
         """
         Fetches the player's champion statistics.
@@ -211,9 +213,9 @@ class PartialPlayer(APIClient, Expandable):
 
         Parameters
         ----------
-        language : Language
+        language : Optional[Language]
             The `Language` you want to fetch the information in.
-            Defaults to `Language.English`.
+            Default language is used if not provided.
 
         Returns
         -------
@@ -225,15 +227,17 @@ class PartialPlayer(APIClient, Expandable):
         Private
             The player's profile was private.
         """
-        assert isinstance(language, Language)
+        assert language is None or isinstance(language, Language)
         if self.private:
             raise Private
+        if language is None:
+            language = self._api._default_language
         # ensure we have champion information first
         await self._api.get_champion_info(language)
         response = await self._api.request("getgodranks", self._id)
         return [ChampionStats(self, language, s) for s in response]
 
-    async def get_match_history(self, language: Language = Language.English) -> List[PartialMatch]:
+    async def get_match_history(self, language: Optional[Language] = None) -> List[PartialMatch]:
         """
         Fetches player's match history.
 
@@ -241,9 +245,9 @@ class PartialPlayer(APIClient, Expandable):
 
         Parameters
         ----------
-        language : Language
+        language : Optional[Language]
             The `Language` you want to fetch the information in.
-            Defaults to `Language.English`.
+            Default language is used if not provided.
 
         Returns
         -------
@@ -255,9 +259,11 @@ class PartialPlayer(APIClient, Expandable):
         Private
             The player's profile was private.
         """
-        assert isinstance(language, Language)
+        assert language is None or isinstance(language, Language)
         if self.private:
             raise Private
+        if language is None:
+            language = self._api._default_language
         # ensure we have champion information first
         await self._api.get_champion_info(language)
         response = await self._api.request("getmatchhistory", self._id)
