@@ -295,7 +295,7 @@ class PaladinsAPI:
             return []
         player_list: List[Union[Player, PartialPlayer]] = []
         for chunk_ids in chunk(player_ids, 20):
-            chunk_response = await self.request("getplayerbatch", ','.join(map(str, player_ids)))
+            chunk_response = await self.request("getplayerbatch", ','.join(map(str, chunk_ids)))
             chunk_players: list = []
             for p in chunk_response:
                 ret_msg = p["ret_msg"]
