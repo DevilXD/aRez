@@ -7,10 +7,11 @@ if TYPE_CHECKING:
     from .items import Device
 
 
-def _card_ability_sort(card: "Device"):
-    if card.ability is None or isinstance(card.ability, str):
-        return "z{}".format(card.ability)  # push the card to the very end
-    return card.ability.name
+def _card_ability_sort(card: "Device") -> str:
+    ability = card.ability
+    if ability is None or isinstance(ability, str):
+        return "z{}".format(ability)  # push the card to the very end
+    return ability.name
 
 
 class Ability:
