@@ -82,7 +82,8 @@ class PartialPlayer(APIClient, Expandable):
     @property
     def id(self) -> int:
         """
-        ID of the player. An value of ``0`` indicates a private player account.
+        ID of the player. A value of ``0`` indicates a private player account, and shouldn't be
+        used to distinguish between different players.
 
         :type: int
         """
