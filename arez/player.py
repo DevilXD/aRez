@@ -281,6 +281,9 @@ class Player(PartialPlayer):
 
     Attributes
     ----------
+    platform_name : str
+        The platform name of this profile. This is usually identical to `name`, except in cases
+        where the platform allows nicknames (Steam profiles).
     active_player : Optional[PartialPlayer]
         The current active player between merged profiles.\n
         `None` if the current profile is the active profile.
@@ -310,10 +313,18 @@ class Player(PartialPlayer):
         Player's ranked controller statistics.
     """
     def __init__(self, api: "PaladinsAPI", player_data):
+        player_name = player_data["hz_player_name"]
+        gamer_tag = player_data["hz_gamer_tag"]
+        name: str = player_data["Name"]
+        self.platform_name: str = name
+        if player_name:
+            name = player_name
+        elif gamer_tag:
+            name = gamer_tag
         super().__init__(
             api,
             id=player_data["Id"],
-            name=player_data["Name"],
+            name=name,
             platform=player_data["Platform"],
             # No private kwarg here, since this object can only exist for non-private accounts
         )
@@ -334,8 +345,6 @@ class Player(PartialPlayer):
         self.region = Region.get(player_data["Region"]) or Region(0)
         self.total_achievements: int = player_data["Total_Achievements"]
         self.total_experience: int = player_data["Total_Worshippers"]
-        self.hz_gamer_tag: str = player_data["hz_gamer_tag"]
-        self.hz_player_name: str = player_data["hz_player_name"]
         self.casual = Stats(player_data)
         self.ranked_keyboard = RankedStats("Keyboard", player_data["RankedKBM"])
         self.ranked_controller = RankedStats("Controller", player_data["RankedController"])
