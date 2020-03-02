@@ -281,9 +281,6 @@ class Player(PartialPlayer):
 
     Attributes
     ----------
-    platform_name : str
-        The platform name of this profile. This is usually identical to `name`, except in cases
-        where the platform allows nicknames (Steam profiles).
     active_player : Optional[PartialPlayer]
         The current active player between merged profiles.\n
         `None` if the current profile is the active profile.
@@ -293,6 +290,11 @@ class Player(PartialPlayer):
         A timestamp of the profile's creation date.
     last_login : datetime.datetime
         A timestamp of the profile's last successful in-game login.
+    platform_name : str
+        The platform name of this profile. This is usually identical to `name`, except in cases
+        where the platform allows nicknames (Steam profiles).
+    title : str
+        The player's currently equipped title.
     level : int
         The in-game level of this profile.
     playtime : Duration
@@ -340,6 +342,7 @@ class Player(PartialPlayer):
         self.created_at = convert_timestamp(player_data["Created_Datetime"])
         self.last_login = convert_timestamp(player_data["Last_Login_Datetime"])
         self.level: int = player_data["Level"]
+        self.title: str = player_data["Title"]
         self.playtime = Duration(hours=player_data["HoursPlayed"])
         self.champion_count: int = player_data["MasteryLevel"]
         self.region = Region.get(player_data["Region"]) or Region(0)
