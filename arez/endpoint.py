@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from .exceptions import HTTPException, Unauthorized
 
 session_lifetime = timedelta(minutes=15)
-timeout = aiohttp.ClientTimeout(total=5)
+timeout = aiohttp.ClientTimeout(total=20, connect=5)
 
 
 class Endpoint:
