@@ -1,3 +1,4 @@
+from functools import cached_property
 from typing import Optional, Union, List, SupportsInt, TYPE_CHECKING
 
 from .items import Loadout
@@ -107,7 +108,7 @@ class PartialPlayer(APIClient, Expandable):
         """
         return self._platform
 
-    @property
+    @cached_property
     def private(self) -> bool:
         """
         Checks to see if this profile is private or not.
@@ -120,6 +121,24 @@ class PartialPlayer(APIClient, Expandable):
             `True` if this player profile is considered private, `False` otherwise.
         """
         return self._private or self._id == 0
+
+    @cached_property
+    def unique(self) -> bool:
+        """
+        Checks to see if this profile has a unique combination of the name and platform.
+
+        Returns
+        -------
+        bool
+            `True` for PC players (`Platform.HiRez`, `Platform.Steam` and `Platform.Discord`),
+            `False` otherwise.
+        """
+        return (
+            bool(self._name)  # name isn't an empty string
+            and self._id != 0  # ID isn't 0 / private account
+            # platform is one of the PC ones
+            and self._platform in (Platform.HiRez, Platform.Steam, Platform.Discord)
+        )
 
     async def get_status(self) -> Optional[PlayerStatus]:
         """
@@ -352,7 +371,7 @@ class Player(PartialPlayer):
         self.ranked_keyboard = RankedStats("Keyboard", player_data["RankedKBM"])
         self.ranked_controller = RankedStats("Controller", player_data["RankedController"])
 
-    @property
+    @cached_property
     def ranked_best(self) -> RankedStats:
         """
         Returns the ranked stats with the highest rank, between the keyboard and controller ones.
