@@ -1,7 +1,8 @@
 import re
 import asyncio
+from collections import defaultdict, OrderedDict
 from datetime import datetime, timedelta, timezone
-from typing import Optional, Union, List, Dict, AsyncGenerator, Literal, overload
+from typing import Optional, Union, List, Dict, Iterable, AsyncGenerator, Literal, overload
 
 from .match import Match
 from .utils import chunk
@@ -255,31 +256,31 @@ class PaladinsAPI:
 
     @overload
     async def get_players(
-        self, player_ids: List[int], *, return_private: Literal[False] = False
+        self, player_ids: Iterable[int], *, return_private: Literal[False] = False
     ) -> List[Player]:
         ...
 
     @overload
     async def get_players(
-        self, player_ids: List[int], *, return_private: Literal[True]
+        self, player_ids: Iterable[int], *, return_private: Literal[True]
     ) -> List[Union[Player, PartialPlayer]]:
         ...
 
-    async def get_players(self, player_ids: List[int], *, return_private: bool = False):
+    async def get_players(self, player_ids: Iterable[int], *, return_private: bool = False):
         """
-        Fetches multiple players in a batch.
+        Fetches multiple players in a batch, and returns their list. Removes duplicates.
 
-        Uses up a single request for every multiple of 20 player IDs passed.
+        Uses up a single request for every multiple of 20 unique player IDs passed.
 
         Parameters
         ----------
-        player_ids : List[int]
-            The list of player IDs you want to fetch.
+        player_ids : Iterable[int]
+            An iterable of player IDs you want to fetch.
         return_private : bool
-            When set to `True` and one of the requested profile is determined private,
+            When set to `True` and one of the requested profiles is determined private,
             this method will return a `PartialPlayer` object with the player ID and privacy flag
             set.\n
-            When set to `False`, private profiles are ommited from the output list.\n
+            When set to `False`, private profiles are omitted from the output list.\n
             Defaults to `False`.
 
         Returns
@@ -289,14 +290,14 @@ class PaladinsAPI:
             Some players might not be included in the output if they weren't found,
             or their profile was private.
         """
-        assert isinstance(player_ids, list)
-        assert all(isinstance(pid, int) for pid in player_ids)
-        if not player_ids:
-            return []
+        ids_list: List[int] = list(OrderedDict.fromkeys(player_ids))  # remove duplicates
+        if 0 in ids_list:
+            # remove private accounts
+            ids_list.remove(0)
         player_list: List[Union[Player, PartialPlayer]] = []
-        for chunk_ids in chunk(player_ids, 20):
+        for chunk_ids in chunk(ids_list, 20):
             chunk_response = await self.request("getplayerbatch", ','.join(map(str, chunk_ids)))
-            chunk_players: list = []
+            chunk_players: List[Union[Player, PartialPlayer]] = []
             for p in chunk_response:
                 ret_msg = p["ret_msg"]
                 if not ret_msg:
@@ -307,7 +308,6 @@ class PaladinsAPI:
                     match = re.search(r'playerId=([0-9]+)', ret_msg)
                     if match:  # TODO: use the walrus operator here
                         chunk_players.append(PartialPlayer(self, id=match.group(1), private=True))
-
             chunk_players.sort(key=lambda p: chunk_ids.index(p.id))
             player_list.extend(chunk_players)
         return player_list
@@ -437,17 +437,17 @@ class PaladinsAPI:
         return None
 
     async def get_matches(
-        self, match_ids: List[int], language: Optional[Language] = None
+        self, match_ids: Iterable[int], language: Optional[Language] = None
     ) -> List[Match]:
         """
-        Fetches multiple matches in a batch, for the given Match IDs.
+        Fetches multiple matches in a batch, for the given Match IDs. Removes duplicates.
 
-        Uses up a single request for every multiple of 10 match IDs passed.
+        Uses up a single request for every multiple of 10 unique match IDs passed.
 
         Parameters
         ----------
-        match_ids : List[int]
-            The list of Match IDs you want to fetch.
+        match_ids : Iterable[int]
+            An iterable of Match IDs you want to fetch.
         language : Optional[Language]
             The `Language` you want to fetch the information in.\n
             Default language is used if not provided.
@@ -458,25 +458,23 @@ class PaladinsAPI:
             A list of the available matches requested.\n
             Some of the matches can be not present if they weren't available on the server.
         """
-        assert isinstance(match_ids, list)
-        assert all(isinstance(mid, int) for mid in match_ids)
         assert language is None or isinstance(language, Language)
-        if not match_ids:
+        ids_list: List[int] = list(OrderedDict.fromkeys(match_ids))  # remove duplicates
+        if not ids_list:
             return []
         if language is None:
             language = self._default_language
         # ensure we have champion information first
         await self.get_champion_info(language)
         matches: List[Match] = []
-        for chunk_ids in chunk(match_ids, 10):  # chunk the IDs into groups of 10
+        for chunk_ids in chunk(ids_list, 10):  # chunk the IDs into groups of 10
             response = await self.request("getmatchdetailsbatch", ','.join(map(str, chunk_ids)))
-            bunched_matches: Dict[int, list] = {}
+            bunched_matches: Dict[int, list] = defaultdict(list)
             for p in response:
-                bunched_matches.setdefault(p["Match"], []).append(p)
-            chunked_matches = [
+                bunched_matches[p["Match"]].append(p)
+            chunked_matches: List[Match] = [
                 Match(self, language, match_list) for match_list in bunched_matches.values()
             ]
-            chunked_matches.sort(key=lambda m: chunk_ids.index(m.id))
             matches.extend(chunked_matches)
         return matches
 
@@ -594,17 +592,17 @@ class PaladinsAPI:
                 match_ids = [
                     int(e["Match"])
                     for e in reversed(response)
-                    if e["Active_Flag"] == "n"
+                    if e["Active_Flag"] == 'n'
                 ]
             else:
-                match_ids = [int(e["Match"]) for e in response if e["Active_Flag"] == "n"]
+                match_ids = [int(e["Match"]) for e in response if e["Active_Flag"] == 'n']
             for chunk_ids in chunk(match_ids, 10):  # chunk the IDs into groups of 10
                 response = await self.request(
                     "getmatchdetailsbatch", ','.join(map(str, chunk_ids))
                 )
-                bunched_matches: Dict[int, list] = {}
+                bunched_matches: Dict[int, list] = defaultdict(list)
                 for p in response:
-                    bunched_matches.setdefault(p["Match"], []).append(p)
+                    bunched_matches[p["Match"]].append(p)
                 chunked_matches = [
                     Match(self, language, match_list) for match_list in bunched_matches.values()
                 ]
