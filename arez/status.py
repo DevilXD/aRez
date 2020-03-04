@@ -145,9 +145,11 @@ class PlayerStatus(APIClient):
             `None` is returned if the player isn't in a live match,
             or the match is played in an unsupported queue (customs).
         """
-        # ensure we have champion information first
-        await self._api.get_champion_info(language)
         if self.live_match_id:
+            if language is None:
+                language = self._api._default_language
+            # ensure we have champion information first
+            await self._api.get_champion_info(language)
             response = await self.player._api.request("getmatchplayerdetails", self.live_match_id)
             if response:
                 if response[0] and response[0]["ret_msg"]:
