@@ -205,6 +205,8 @@ class DataCache(APIClient):
             The cache entry you requested.\n
             `None` is returned if the entry for the language specified hasn't been fetched yet.
         """
+        if language is None:
+            language = self._api._default_language
         return self._cache.get(language)
 
     def get_champion(
@@ -240,6 +242,8 @@ class DataCache(APIClient):
             `None` is returned if a champion couldn't be found, or the entry for the language
             specified hasn't been fetched yet.
         """
+        if language is None:
+            language = self._api._default_language
         entry = self._cache.get(language)
         if entry:
             return entry.get_champion(champion, fuzzy=fuzzy)
@@ -278,6 +282,8 @@ class DataCache(APIClient):
             `None` is returned if a card couldn't be found, or the entry for the language
             specified hasn't been fetched yet.
         """
+        if language is None:
+            language = self._api._default_language
         entry = self._cache.get(language)
         if entry:
             return entry.get_card(card, fuzzy=fuzzy)
@@ -316,6 +322,8 @@ class DataCache(APIClient):
             `None` is returned if a talent couldn't be found, or the entry for the language
             specified hasn't been fetched yet.\n
         """
+        if language is None:
+            language = self._api._default_language
         entry = self._cache.get(language)
         if entry:
             return entry.get_talent(talent, fuzzy=fuzzy)
@@ -354,6 +362,8 @@ class DataCache(APIClient):
             `None` is returned if a shop item couldn't be found, or the entry for the language
             specified hasn't been fetched yet.
         """
+        if language is None:
+            language = self._api._default_language
         entry = self._cache.get(language)
         if entry:
             return entry.get_item(item, fuzzy=fuzzy)
