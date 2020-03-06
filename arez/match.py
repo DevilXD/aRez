@@ -92,7 +92,7 @@ class PartialMatch(MatchPlayerMixin, MatchMixin, Expandable):
         MatchMixin.__init__(self, match_data)
         self._language = language
 
-    async def _expand(self) -> "Match":
+    async def _expand(self) -> Optional["Match"]:
         """
         Expands this object into a full Match, containing all match players and information.
 
@@ -100,10 +100,13 @@ class PartialMatch(MatchPlayerMixin, MatchMixin, Expandable):
 
         Returns
         -------
-        Match
-            The expanded match object.
+        Optional[Match]
+            The full match object.
+            `None` is returned if the match could not be found.
         """
         response = await self._api.request("getmatchdetails", self.id)
+        if not response:
+            return None
         return Match(self._api, self._language, response)
 
     def __repr__(self) -> str:
