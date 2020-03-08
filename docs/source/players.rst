@@ -10,7 +10,11 @@ Players
 
 .. autoclass:: Player()
     :members:
-    :inherited-members: id, name, platform, private
+
+    .. autoattribute:: id
+    .. autoattribute:: name
+    .. autoattribute:: platform
+    .. autoattribute:: private
 
 .. currentmodule:: arez.match
 

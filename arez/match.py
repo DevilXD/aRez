@@ -15,7 +15,7 @@ class PartialMatch(MatchPlayerMixin, MatchMixin, Expandable):
     """
     Represents a match from a single player's perspective only.
 
-    This partial object is returned by the `get_match_history` player's method.
+    This partial object is returned by the `PartialPlayer.get_match_history` player's method.
     To obtain an object with all match information, try awaiting on this object like so:
 
     .. code-block:: py
@@ -94,7 +94,7 @@ class PartialMatch(MatchPlayerMixin, MatchMixin, Expandable):
 
     async def _expand(self) -> Optional["Match"]:
         """
-        Expands this object into a full Match, containing all match players and information.
+        Upgrades this object into a full `Match` one, containing all match players and information.
 
         Uses up a single request.
 
@@ -224,7 +224,9 @@ class MatchPlayer(MatchPlayerMixin):
 
 class Match(APIClient, MatchMixin):
     """
-    Represents an entire, full match.
+    Represents already-played full match information.
+    You can get this from the `PaladinsAPI.get_match` and `PaladinsAPI.get_matches` methods,
+    as well as from upgrading a `PartialMatch` object.
 
     Attributes
     ----------
@@ -308,6 +310,7 @@ class Match(APIClient, MatchMixin):
 class LivePlayer(APIClient, WinLoseMixin):
     """
     Represents a live match player.
+    You can find these on the `LiveMatch.team1` and `LiveMatch.team2` attributes.
 
     Attributes
     ----------
@@ -355,7 +358,8 @@ class LivePlayer(APIClient, WinLoseMixin):
 
 class LiveMatch(APIClient):
     """
-    Represents a live match.
+    Represents an on-going live match.
+    You can get this from the `PlayerStatus.get_live_match` method.
 
     Attributes
     ----------

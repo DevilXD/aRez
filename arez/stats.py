@@ -13,6 +13,8 @@ class Stats(WinLoseMixin):
     """
     Represents casual player stats.
 
+    You can find these on the `Player.casual` attribute.
+
     Attributes
     ----------
     wins : int
@@ -36,6 +38,8 @@ class Stats(WinLoseMixin):
 class RankedStats(Stats):
     """
     Represents ranked player stats.
+
+    You can find these on the `Player.ranked_keyboard` and `Player.ranked_controller` attributes.
 
     Attributes
     ----------
@@ -68,6 +72,8 @@ class RankedStats(Stats):
 class ChampionStats(WinLoseMixin, KDAMixin):
     """
     Represents player's champion stats.
+
+    You can find these from the `PartialPlayer.get_champion_stats` method.
 
     Attributes
     ----------

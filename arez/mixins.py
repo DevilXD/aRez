@@ -14,10 +14,10 @@ if TYPE_CHECKING:
 
 class APIClient:
     """
-    Abstract base class that has to be met by most (if not all) objects.
+    Abstract base class that has to be met by most (if not all) objects that interact with the API.
 
     Provides access to the core of this wrapper, that is the `.request` method and `.get_*`
-    from the cache system.
+    methods from the cache system.
     """
     def __init__(self, api: "PaladinsAPI"):
         self._api = api

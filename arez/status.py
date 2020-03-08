@@ -13,6 +13,8 @@ class Status:
     """
     Represets a single server status.
 
+    You can find these on the `ServerStatus` object.
+
     Attributes
     ----------
     platform : Literal["pc", "ps4", "xbox", "switch", "pts"]
@@ -43,6 +45,8 @@ class Status:
 class ServerStatus:
     """
     An object representing the current HiRez server's status.
+
+    You can get this from the `PaladinsAPI.get_server_status` method.
 
     Attributes
     ----------
@@ -97,7 +101,9 @@ class ServerStatus:
 
 class PlayerStatus(APIClient):
     """
-    Represents the Player status.
+    Represents a Player's in-game status.
+
+    You can get this from the `PartialPlayer.get_status` method.
 
     Attributes
     ----------

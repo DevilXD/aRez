@@ -377,13 +377,18 @@ class PaladinsAPI:
         """
         Fetches a PartialPlayer linked with the platform ID specified.
 
+        .. note::
+
+            This method doesn't set the `PartialPlayer.name` attribute, meaning that it will
+            remain as an empty string. This is a limitation of the Hi-Rez API, not the library.
+
         Uses up a single request.
 
         Parameters
         ----------
         platform_id : int
             The platform-specific ID of the linked player.\n
-            This is usually SteamID64, Discord User ID, etc.
+            This is usually a Hi-Rez account ID, SteamID64, Discord User ID, etc.
         platform : Platform
             The platform this ID is for.
 
@@ -396,12 +401,12 @@ class PaladinsAPI:
         assert isinstance(platform_id, int)
         assert isinstance(platform, Platform)
         response = await self.request("getplayeridbyportaluserid", platform.value, platform_id)
-        if response:
-            p = response[0]
-            return PartialPlayer(
-                self, id=p["player_id"], platform=p["portal_id"], private=p["privacy_flag"] == 'y'
-            )
-        return None
+        if not response:
+            return None
+        p = response[0]
+        return PartialPlayer(
+            self, id=p["player_id"], platform=p["portal_id"], private=p["privacy_flag"] == 'y'
+        )
 
     async def get_match(
         self, match_id: int, language: Optional[Language] = None

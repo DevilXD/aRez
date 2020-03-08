@@ -15,6 +15,7 @@ if TYPE_CHECKING:
 class ChampionInfo:
     """
     Represents a collection of champions, cards, talents and shop items.
+    You can get this one from the `PaladinsAPI.get_champion_info` or `DataCache.get_entry` methods.
 
     Attributes
     ----------

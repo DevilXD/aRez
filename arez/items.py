@@ -13,6 +13,8 @@ class Device:
     """
     Represents a Device - those are usually cards, talents and shop items.
 
+    You can find these on the `ChampionInfo.devices` attribute.
+
     Attributes
     ----------
     id : int
@@ -129,6 +131,8 @@ class LoadoutCard:
 class Loadout(APIClient):
     """
     Represents a Champion's Loadout.
+
+    You can get this from the `PartialPlayer.get_loadouts` method.
 
     Attributes
     ----------

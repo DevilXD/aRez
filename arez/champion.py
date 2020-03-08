@@ -17,6 +17,7 @@ def _card_ability_sort(card: "Device") -> str:
 class Ability:
     """
     Represents a Champion's Ability.
+    You can find these on the `Champion.abilities` attribute.
 
     Attributes
     ----------
@@ -50,7 +51,9 @@ class Ability:
 
 class Champion:
     """
-    Represents a Champion.
+    Represents a Champion and it's information.
+    You can find these on the `ChampionInfo.champions` attribute, as well as various other objects
+    returned from the API.
 
     An object of this class can be `False` in a boolean context, if it's internal state
     is deemed incomplete or corrupted. For the internal state to be considered valid, there has

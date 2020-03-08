@@ -11,7 +11,7 @@ from .enumerations import Language, Platform, Region
 from .stats import Stats, RankedStats, ChampionStats
 
 if TYPE_CHECKING:
-    from .api import PaladinsAPI  # noqa
+    from .api import PaladinsAPI
 
 
 class PartialPlayer(APIClient, Expandable):
@@ -22,7 +22,7 @@ class PartialPlayer(APIClient, Expandable):
     respectively.
 
     To ensure all attributes are filled up correctly before processing, you can upgrade this
-    object to `Player` by awaiting on it and using the result:
+    object to the full `Player` one first, by awaiting on it and using the result:
 
     .. code-block:: py
 
@@ -47,7 +47,7 @@ class PartialPlayer(APIClient, Expandable):
 
     async def _expand(self) -> Optional["Player"]:
         """
-        Expands and refreshes the information stored inside this object.
+        Upgrades this object to a full `Player` one, refreshing and ensuring information stored.
 
         Uses up a single request.
 
@@ -294,9 +294,14 @@ class PartialPlayer(APIClient, Expandable):
 
 class Player(PartialPlayer):
     """
-    A full Player object, containing all the information about a player.
+    A full Player object, containing all information about a player.
+    You can get this from the `PaladinsAPI.get_player` and `PaladinsAPI.get_players` methods,
+    as well as from upgrading a `PartialPlayer` object, by awaiting on it.
 
-    This inherits from `PartialPlayer`, so all it's methods should be present here as well.
+    .. note::
+
+        This class inherits from `PartialPlayer`, so all of it's methods should be present
+        here as well.
 
     Attributes
     ----------
@@ -319,9 +324,9 @@ class Player(PartialPlayer):
     playtime : Duration
         The amount of time spent playing on this profile.
     champion_count : int
-        The amount of champions this player unlocked.
+        The amount of champions this player has unlocked.
     region : Region
-        The player's currently set Region.
+        The player's currently set `Region`.
     total_achievements : int
         The amount of achievements the player has.
     total_experience : int
@@ -374,7 +379,7 @@ class Player(PartialPlayer):
     @cached_property
     def ranked_best(self) -> RankedStats:
         """
-        Returns the ranked stats with the highest rank, between the keyboard and controller ones.
+        Player's best ranked statistics, between the keyboard and controller ones.
 
         If the rank is the same, winrate is used to determine the one returned.
 
