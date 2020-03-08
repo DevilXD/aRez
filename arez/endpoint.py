@@ -158,7 +158,7 @@ class Endpoint:
                     print("Unknown error, retrying...")
                 await asyncio.sleep(tries * 0.5 * gauss(1, 0.1))
             # For the case where 'createsession' raises this - just pass it along
-            except HTTPException:
+            except Unauthorized:
                 raise
             # Some other exception happened, so just wrap it and propagate along
             except Exception as exc:

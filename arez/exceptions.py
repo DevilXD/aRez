@@ -21,7 +21,6 @@ class HTTPException(ArezException):
         The original exception cause. This is usually:\n
         • `aiohttp.ClientResponseError` or it's subclasses.\n
         • `asyncio.TimeoutError` when the request times out.\n
-        • `Unauthorized` exception when your credentials were invalid.\n
         • `None` if the cause was unknown.
     """
     def __init__(self, original_exc: Optional[Exception] = None):
