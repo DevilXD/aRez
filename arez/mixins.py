@@ -244,10 +244,12 @@ class MatchPlayerMixin(APIClient, KDAMixin):
             # we're in a full match data
             creds = match_data["Gold_Earned"]
             kills = match_data["Kills_Player"]
+            damage = match_data["Damage_Done_Physical"]
         else:
             # we're in a partial (player history) match data
             creds = match_data["Gold"]
             kills = match_data["Kills"]
+            damage = match_data["Damage"]
         KDAMixin.__init__(
             self, kills=kills, deaths=match_data["Deaths"], assists=match_data["Assists"]
         )
@@ -256,7 +258,7 @@ class MatchPlayerMixin(APIClient, KDAMixin):
             match_data["ChampionId"], language
         )
         self.credits: int = creds
-        self.damage_done: int = match_data["Damage_Done_In_Hand"]
+        self.damage_done: int = damage
         self.damage_bot: int = match_data["Damage_Bot"]
         self.damage_taken: int = match_data["Damage_Taken"]
         self.damage_mitigated: int = match_data["Damage_Mitigated"]
