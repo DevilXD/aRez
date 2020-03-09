@@ -2,9 +2,9 @@ from functools import cached_property
 from typing import Optional, Union, List, SupportsInt, TYPE_CHECKING
 
 from .items import Loadout
-from .exceptions import Private
 from .match import PartialMatch
 from .status import PlayerStatus
+from .exceptions import Private, NotFound
 from .mixins import APIClient, Expandable
 from .utils import convert_timestamp, Duration
 from .enumerations import Language, Platform, Region
@@ -53,12 +53,13 @@ class PartialPlayer(APIClient, Expandable):
 
         Returns
         -------
-        Optional[Player]
-            A full player object with all fields filled up, for the same player.\n
-            `None` is returned if this player could not be found.
+        Player
+            A full player object with all fields filled up, for the same player.
 
         Raises
         ------
+        NotFound
+            The player's profile doesn't exist / couldn't be found.
         Private
             The player's profile was private.
         """
@@ -66,7 +67,7 @@ class PartialPlayer(APIClient, Expandable):
             raise Private
         player_list = await self._api.request("getplayer", self._id)
         if not player_list:
-            return None
+            raise NotFound("Player")
         player_data = player_list[0]
         if player_data["ret_msg"]:
             raise Private

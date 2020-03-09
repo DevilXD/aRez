@@ -1,6 +1,7 @@
 from itertools import count
 from typing import Optional, Union, List, Dict, Set, Generator, TYPE_CHECKING
 
+from .exceptions import NotFound
 from .enumerations import Queue, Language, Region, Rank
 from .mixins import APIClient, MatchMixin, MatchPlayerMixin, Expandable, WinLoseMixin
 
@@ -100,13 +101,17 @@ class PartialMatch(MatchPlayerMixin, MatchMixin, Expandable):
 
         Returns
         -------
-        Optional[Match]
+        Match
             The full match object.
-            `None` is returned if the match could not be found.
+
+        Raises
+        ------
+        NotFound
+            The match could not be found.
         """
         response = await self._api.request("getmatchdetails", self.id)
         if not response:
-            return None
+            raise NotFound("Match")
         return Match(self._api, self._language, response)
 
     def __repr__(self) -> str:

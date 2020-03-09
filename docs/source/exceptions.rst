@@ -9,8 +9,21 @@ Exceptions
 .. autoexception:: HTTPException()
     :members:
 
+.. autoexception:: Private
+    :members:
+
+.. autoexception:: NotFound()
+    :members:
+
 .. autoexception:: Unauthorized
     :members:
 
-.. autoexception:: Private
-    :members:
+Exceptions Hierarchy
+--------------------
+
+    - :exc:`Exception`
+        - :exc:`ArezException`
+            - :exc:`HTTPException`
+            - :exc:`Private`
+            - :exc:`NotFound`
+            - :exc:`Unauthorized`

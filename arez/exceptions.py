@@ -30,6 +30,27 @@ class HTTPException(ArezException):
         self.cause = original_exc
 
 
+class Private(ArezException):
+    """
+    The exception raised when trying to fetch information about a private player's profile.
+
+    Inherits from `ArezException`.
+    """
+    def __init__(self):
+        super().__init__("This player profile is private!")
+
+
+# Currently inherits from the base exception, might change to the 'HTTPException' in the future
+class NotFound(ArezException):
+    """
+    The exception raised when trying to fetch information returned an empty response.
+
+    Inherits from `ArezException`.
+    """
+    def __init__(self, name: str = "Data"):
+        super().__init__("{} not found!".format(name))
+
+
 class Unauthorized(ArezException):
     """
     The exception raised when the developer's ID and authorization key provided were deemed
@@ -39,13 +60,3 @@ class Unauthorized(ArezException):
     """
     def __init__(self):
         super().__init__("Your authorization credentials are invalid!")
-
-
-class Private(ArezException):
-    """
-    The exception raised when trying to fetch information about a private player's profile.
-
-    Inherits from `ArezException`.
-    """
-    def __init__(self):
-        super().__init__("This player profile is private!")

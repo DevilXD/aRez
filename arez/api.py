@@ -7,8 +7,8 @@ from typing import Optional, Union, List, Dict, Iterable, AsyncGenerator, Litera
 from .match import Match
 from .utils import chunk
 from .endpoint import Endpoint
-from .exceptions import Private
 from .status import ServerStatus
+from .exceptions import Private, NotFound
 from .player import Player, PartialPlayer
 from .cache import DataCache, ChampionInfo
 from .enumerations import Language, Platform, Queue
@@ -188,13 +188,13 @@ class PaladinsAPI:
     @overload
     async def get_player(
         self, player: Union[int, str], *, return_private: Literal[False] = False
-    ) -> Optional[Player]:
+    ) -> Player:
         ...
 
     @overload
     async def get_player(
         self, player: Union[int, str], *, return_private: Literal[True]
-    ) -> Optional[Union[Player, PartialPlayer]]:
+    ) -> Union[Player, PartialPlayer]:
         ...
 
     async def get_player(self, player: Union[int, str], *, return_private: bool = False):
@@ -219,14 +219,15 @@ class PaladinsAPI:
 
         Returns
         -------
-        Optional[Union[Player, PartialPlayer]]
+        Union[Player, PartialPlayer]
             An object containing stats information about the player requested.\n
             `PartialPlayer` objects are only returned for private profiles and appropriate
-            arguments used.\n
-            `None` is returned if a Player for the given ID or Name could not be found.
+            arguments used.
 
         Raises
         ------
+        NotFound
+            The player's profile doesn't exist / couldn't be found.
         Private
             The player's profile was private.
         """
@@ -238,7 +239,7 @@ class PaladinsAPI:
         player_list = await self.request("getplayer", player)
         if not player_list:
             # No one got returned
-            return None
+            raise NotFound("Player")
         player_data = player_list[0]
         # Check to see if their profile is private by chance
         ret_msg = player_data["ret_msg"]
@@ -287,6 +288,8 @@ class PaladinsAPI:
         -------
         List[Union[Player, PartialPlayer]]
             A list of players requested.\n
+            `PartialPlayer` objects are only returned for private profiles and appropriate
+            arguments used.
             Some players might not be included in the output if they weren't found,
             or their profile was private.
         """
@@ -317,7 +320,6 @@ class PaladinsAPI:
     ) -> List[PartialPlayer]:
         """
         Fetches all players whose name matches the name specified.
-
         The search is fuzzy - player name capitalisation doesn't matter.
 
         Uses up a single request.
@@ -334,8 +336,14 @@ class PaladinsAPI:
         Returns
         -------
         List[PartialPlayer]
-            A list of partial players whose name matches the specified name.\n
+            A list of players whose name (and optionally platform) matches
+            the specified name.\n
             Note that some of them might be set as private.
+
+        Raises
+        ------
+        NotFound
+            There was no player for the given name (and optional platform) found.
         """
         assert isinstance(player_name, str)
         assert isinstance(platform, (None.__class__, Platform))
@@ -346,6 +354,8 @@ class PaladinsAPI:
                 list_response = await self.request(
                     "getplayeridsbygamertag", platform.value, player_name
                 )
+            if not list_response:
+                raise NotFound("Player")
             return [
                 PartialPlayer(
                     self,
@@ -360,6 +370,8 @@ class PaladinsAPI:
             response = await self.request("searchplayers", player_name)
             player_name = player_name.lower()
             list_response = [r for r in response if r["Name"].lower() == player_name]
+            if not list_response:
+                raise NotFound("Player")
             return [
                 PartialPlayer(
                     self,
@@ -373,7 +385,7 @@ class PaladinsAPI:
 
     async def get_from_platform(
         self, platform_id: int, platform: Platform
-    ) -> Optional[PartialPlayer]:
+    ) -> PartialPlayer:
         """
         Fetches a PartialPlayer linked with the platform ID specified.
 
@@ -394,23 +406,25 @@ class PaladinsAPI:
 
         Returns
         -------
-        Optional[PartialPlayer]
-            The player this platform ID is linked to.\n
-            `None` is returned if the player couldn't be found.
+        PartialPlayer
+            The player this platform ID is linked to.
+
+        Raises
+        ------
+        NotFound
+            The linked profile doesn't exist / couldn't be found.
         """
         assert isinstance(platform_id, int)
         assert isinstance(platform, Platform)
         response = await self.request("getplayeridbyportaluserid", platform.value, platform_id)
         if not response:
-            return None
+            raise NotFound("Linked profile")
         p = response[0]
         return PartialPlayer(
             self, id=p["player_id"], platform=p["portal_id"], private=p["privacy_flag"] == 'y'
         )
 
-    async def get_match(
-        self, match_id: int, language: Optional[Language] = None
-    ) -> Optional[Match]:
+    async def get_match(self, match_id: int, language: Optional[Language] = None) -> Match:
         """
         Fetches a match for the given Match ID.
 
@@ -426,9 +440,13 @@ class PaladinsAPI:
 
         Returns
         -------
-        Optional[Match]
-            A match for the ID specified.\n
-            `None` is returned if the match wasn't available on the server.
+        Match
+            A match for the ID specified.
+
+        Raises
+        ------
+        NotFound
+            The match wasn't available on the server.
         """
         assert isinstance(match_id, int)
         assert language is None or isinstance(language, Language)
@@ -437,9 +455,9 @@ class PaladinsAPI:
         # ensure we have champion information first
         await self.get_champion_info(language)
         response = await self.request("getmatchdetails", match_id)
-        if response:
-            return Match(self, language, response)
-        return None
+        if not response:
+            raise NotFound("Match")
+        return Match(self, language, response)
 
     async def get_matches(
         self, match_ids: Iterable[int], language: Optional[Language] = None
