@@ -346,11 +346,13 @@ class PaladinsAPI:
             There was no player for the given name (and optional platform) found.
         """
         assert isinstance(player_name, str)
-        assert isinstance(platform, (None.__class__, Platform))
+        assert platform is None or isinstance(platform, Platform)
         if platform:
-            if platform <= 5 or platform == 25:  # hirez, pc, steam and discord only
+            if platform in (Platform.HiRez, Platform.Steam, Platform.Discord):
+                # PC platforms, with unique names
                 list_response = await self.request("getplayeridbyname", player_name)
             else:
+                # Console platforms, names might be duplicated
                 list_response = await self.request(
                     "getplayeridsbygamertag", platform.value, player_name
                 )
@@ -367,6 +369,7 @@ class PaladinsAPI:
                 for p in list_response
             ]
         else:
+            # All platforms
             response = await self.request("searchplayers", player_name)
             player_name = player_name.lower()
             list_response = [r for r in response if r["Name"].lower() == player_name]
