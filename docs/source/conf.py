@@ -44,10 +44,10 @@ intersphinx_mapping = {
 }
 
 default_role = "any"
-autodoc_member_order = "bysource"
 
 # Autodoc setting
 autodoc_typehints = "none"
+autodoc_member_order = "bysource"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["../_templates"]
