@@ -36,6 +36,7 @@ Miscleaneous
     :maxdepth: 2
 
     misc
+    endpoint
     exceptions
 
 Status Page

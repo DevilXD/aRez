@@ -18,6 +18,11 @@ class Endpoint:
     Represents a basic Hi-Rez endpoint URL wrapper, for handling response types and
     session creation.
 
+    .. note::
+
+        You can request your developer ID and authorization key `here.
+        <https://fs12.formsite.com/HiRez/form48/secure_index.html>`_
+
     Parameters
     ----------
     url : str
@@ -29,9 +34,6 @@ class Endpoint:
     loop : Optional[asyncio.AbstractEventLoop]
         The event loop you want to use for this Endpoint.\n
         Default loop is used when not provided.
-
-    .. note:: You can request your developer ID and authorization key here:
-        https://fs12.formsite.com/HiRez/form48/secure_index.html
     """
     def __init__(
         self,
@@ -59,7 +61,8 @@ class Endpoint:
         """
         Closes the underlying API connection.
 
-        Attempting to make a request after the connection is closed will result in a RuntimeError.
+        Attempting to make a request after the connection is closed
+        will result in a `RuntimeError`.
         """
         await self._http_session.close()
 
@@ -78,8 +81,8 @@ class Endpoint:
         """
         Makes a direct request to the HiRez API.
 
-        For methods available, see docs:
-        https://docs.google.com/document/d/1OFS-3ocSx-1Rvg4afAnEHlT3917MAK_6eJTR6rzr-BM
+        For all methods available (and their parameters), `please see Hi-Rez API docs.
+        <https://docs.google.com/document/d/1OFS-3ocSx-1Rvg4afAnEHlT3917MAK_6eJTR6rzr-BM>`_
 
         Parameters
         ----------
