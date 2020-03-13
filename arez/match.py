@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from itertools import count
 from typing import Optional, Union, List, Dict, Set, Generator, TYPE_CHECKING
 
@@ -93,7 +95,7 @@ class PartialMatch(MatchPlayerMixin, MatchMixin, Expandable):
         MatchMixin.__init__(self, match_data)
         self._language = language
 
-    async def _expand(self) -> Optional["Match"]:
+    async def _expand(self) -> Optional[Match]:
         """
         Upgrades this object into a full `Match` one, containing all match players and information.
 

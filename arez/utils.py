@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from math import floor
 from operator import attrgetter
 from datetime import datetime, timedelta
@@ -341,17 +343,17 @@ class Duration:
         else:
             return NotImplemented
 
-    def __add__(self, other: Union["Duration", timedelta]) -> "Duration":
+    def __add__(self, other: Union[Duration, timedelta]) -> "Duration":
         delta = self._get_delta(other)
         return Duration(seconds=self._total_seconds + delta.total_seconds())
 
     __radd__ = __add__
 
-    def __sub__(self, other: Union["Duration", timedelta]) -> "Duration":
+    def __sub__(self, other: Union[Duration, timedelta]) -> "Duration":
         delta = self._get_delta(other)
         return Duration(seconds=self._total_seconds - delta.total_seconds())
 
-    def __rsub__(self, other: Union["Duration", timedelta]) -> "Duration":
+    def __rsub__(self, other: Union[Duration, timedelta]) -> "Duration":
         delta = self._get_delta(other)
         return Duration(seconds=delta.total_seconds() - self._total_seconds)
 
@@ -363,14 +365,14 @@ class Duration:
     __rmul__ = __mul__
 
     @overload
-    def __truediv__(self, other: Union["Duration", timedelta]) -> float:
+    def __truediv__(self, other: Union[Duration, timedelta]) -> float:
         ...
 
     @overload
     def __truediv__(self, other: Union[int, float]) -> "Duration":
         ...
 
-    def __truediv__(self, other: Union["Duration", timedelta, int, float]):
+    def __truediv__(self, other: Union[Duration, timedelta, int, float]):
         if isinstance(other, (int, float)):
             return Duration(seconds=self._total_seconds / other)
         delta = self._get_delta(other)
@@ -382,14 +384,14 @@ class Duration:
         return other.total_seconds() / self._total_seconds
 
     @overload
-    def __floordiv__(self, other: Union["Duration", timedelta]) -> int:
+    def __floordiv__(self, other: Union[Duration, timedelta]) -> int:
         ...
 
     @overload
     def __floordiv__(self, other: int) -> "Duration":
         ...
 
-    def __floordiv__(self, other: Union["Duration", timedelta, int]):
+    def __floordiv__(self, other: Union[Duration, timedelta, int]):
         if isinstance(other, int):
             return Duration(microseconds=floor(self._total_seconds * 1e6 // other))
         delta = self._get_delta(other)
@@ -400,15 +402,15 @@ class Duration:
             return NotImplemented
         return int(other.total_seconds() // self._total_seconds)
 
-    def __mod__(self, other: Union["Duration", timedelta]) -> "Duration":
+    def __mod__(self, other: Union[Duration, timedelta]) -> "Duration":
         delta = self._get_delta(other)
         return Duration(seconds=(self._total_seconds % delta.total_seconds()))
 
-    def __rmod__(self, other: Union["Duration", timedelta]) -> "Duration":
+    def __rmod__(self, other: Union[Duration, timedelta]) -> "Duration":
         delta = self._get_delta(other)
         return Duration(seconds=(delta.total_seconds() % self._total_seconds))
 
-    def __divmod__(self, other: Union["Duration", timedelta]) -> Tuple[int, "Duration"]:
+    def __divmod__(self, other: Union[Duration, timedelta]) -> Tuple[int, "Duration"]:
         delta = self._get_delta(other)
         q, r = divmod(self._total_seconds, delta.total_seconds())
         return (int(q), Duration(seconds=r))

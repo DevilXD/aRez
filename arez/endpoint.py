@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import aiohttp
 import asyncio
 from hashlib import md5
@@ -61,7 +63,7 @@ class Endpoint:
         """
         await self._http_session.close()
 
-    async def __aenter__(self) -> "Endpoint":
+    async def __aenter__(self) -> Endpoint:
         return self
 
     async def __aexit__(self, exc_type, exc, traceback):

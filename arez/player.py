@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from functools import cached_property
 from typing import Optional, Union, List, SupportsInt, TYPE_CHECKING
 
@@ -45,7 +47,7 @@ class PartialPlayer(APIClient, Expandable):
         self._platform = Platform.get(platform) or Platform(0)
         self._private = bool(private)
 
-    async def _expand(self) -> Optional["Player"]:
+    async def _expand(self) -> Optional[Player]:
         """
         Upgrades this object to a full `Player` one, refreshing and ensuring information stored.
 

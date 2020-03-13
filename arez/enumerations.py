@@ -1,4 +1,6 @@
-﻿from enum import IntEnum
+﻿from __future__ import annotations
+
+from enum import IntEnum
 from contextlib import suppress
 from typing import Optional, Union
 
@@ -16,7 +18,7 @@ __all__ = [
 
 class EnumGet(IntEnum):
     @classmethod
-    def get(cls, key_or_value: Union[str, int]) -> Optional["EnumGet"]:
+    def get(cls, key_or_value: Union[str, int]) -> Optional[EnumGet]:
         """
         Allows for exception-less and case-insensitive enumeration member aquisition.
 

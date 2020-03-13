@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import re
 import asyncio
 from collections import defaultdict, OrderedDict
@@ -60,8 +62,7 @@ class PaladinsAPI:
         # default language
         self._default_language = Language.English
 
-    # async with integration
-    async def __aenter__(self) -> "PaladinsAPI":
+    async def __aenter__(self) -> PaladinsAPI:
         return self
 
     async def __aexit__(self, exc_type, exc, traceback):
