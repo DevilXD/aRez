@@ -52,7 +52,7 @@ class Ability:
 class Champion:
     """
     Represents a Champion and it's information.
-    You can find these on the `ChampionInfo.champions` attribute, as well as various other objects
+    You can find these on the `CacheEntry.champions` attribute, as well as various other objects
     returned from the API.
 
     An object of this class can be `False` in a boolean context, if it's internal state

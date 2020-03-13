@@ -13,7 +13,7 @@ class Device:
     """
     Represents a Device - those are usually cards, talents and shop items.
 
-    You can find these on the `ChampionInfo.devices` attribute.
+    You can find these on the `CacheEntry.devices` attribute.
 
     Attributes
     ----------

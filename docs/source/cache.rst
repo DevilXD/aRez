@@ -6,5 +6,5 @@ Cache
 .. autoclass:: DataCache()
     :members:
 
-.. autoclass:: ChampionInfo()
+.. autoclass:: CacheEntry()
     :members:

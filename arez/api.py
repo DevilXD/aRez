@@ -10,6 +10,7 @@ from .match import Match
 from .utils import chunk
 from .endpoint import Endpoint
 from .status import ServerStatus
+from .cache import DataCache, CacheEntry
 from .exceptions import Private, NotFound
 from .player import Player, PartialPlayer
 from .cache import DataCache, ChampionInfo
@@ -117,7 +118,7 @@ class PaladinsAPI:
 
     async def get_champion_info(
         self, language: Optional[Language] = None, force_refresh: bool = False
-    ) -> Optional[ChampionInfo]:
+    ) -> Optional[CacheEntry]:
         """
         Fetches the champion information.
 
@@ -137,7 +138,7 @@ class PaladinsAPI:
 
         Returns
         -------
-        Optional[ChampionInfo]
+        Optional[CacheEntry]
             An object containing all champions, cards, talents and items information
             in the chosen language.\n
             `None` is returned if there was no cached information and fetching returned

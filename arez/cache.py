@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from .api import PaladinsAPI
 
 
-class ChampionInfo:
+class CacheEntry:
     """
     Represents a collection of champions, cards, talents and shop items.
     You can get this one from the `PaladinsAPI.get_champion_info` or `DataCache.get_entry` methods.
@@ -173,7 +173,9 @@ class DataCache(APIClient):
         self._cache: Dict[Language, ChampionInfo] = {}
         self.refresh_every = timedelta(hours=12)
 
-    async def _fetch_entry(self, language: Language, *, force_refresh: bool = False):
+    async def _fetch_entry(
+        self, language: Language, *, force_refresh: bool = False
+    ) -> Optional[CacheEntry]:
         now = datetime.utcnow()
         entry = self._cache.get(language)
         if entry is None or now >= entry._expires_at or force_refresh:
@@ -181,12 +183,12 @@ class DataCache(APIClient):
             items_data = await self._api.request("getitems", language.value)
             if champions_data and items_data:
                 expires_at = now + self.refresh_every
-                entry = self._cache[language] = ChampionInfo(
+                entry = self._cache[language] = CacheEntry(
                     language, expires_at, champions_data, items_data
                 )
         return entry
 
-    def get_entry(self, language: Optional[Language] = None) -> Optional[ChampionInfo]:
+    def get_entry(self, language: Optional[Language] = None) -> Optional[CacheEntry]:
         """
         Returns a cache entry for the given language specified.
 
@@ -202,7 +204,7 @@ class DataCache(APIClient):
 
         Returns
         -------
-        Optional[ChampionInfo]
+        Optional[CacheEntry]
             The cache entry you requested.\n
             `None` is returned if the entry for the language specified hasn't been fetched yet.
         """
