@@ -10,7 +10,7 @@ class ArezException(Exception):
 
 class HTTPException(ArezException):
     """
-    General exception raised by the Endpoint in cases where getting a response from
+    General exception raised by the `Endpoint` in cases where getting a response from
     the server wasn't possible.
 
     Inherits from `ArezException`.
