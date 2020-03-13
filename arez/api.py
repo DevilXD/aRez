@@ -8,18 +8,18 @@ from typing import Optional, Union, List, Dict, Iterable, AsyncGenerator, Litera
 
 from .match import Match
 from .utils import chunk
-from .endpoint import Endpoint
 from .status import ServerStatus
 from .cache import DataCache, CacheEntry
 from .exceptions import Private, NotFound
 from .player import Player, PartialPlayer
-from .cache import DataCache, ChampionInfo
 from .enumerations import Language, Platform, Queue
 
 
-class PaladinsAPI:
+class PaladinsAPI(DataCache):
     """
     The main Paladins API.
+
+    Inherits from `DataCache`.
 
     Parameters
     ----------
@@ -30,12 +30,6 @@ class PaladinsAPI:
     loop : Optional[asyncio.AbstractEventLoop]
         The event loop you want to use for this API.\n
         Default loop is used when not provided.
-
-    Attributes
-    ----------
-    cache : DataCache
-        The internal data cache, that stores all intermediate information about champions, cards,
-        talents, abilities, shop items, etc.
     """
     def __init__(
         self,
@@ -46,42 +40,11 @@ class PaladinsAPI:
     ):
         if loop is None:
             loop = asyncio.get_event_loop()
-        # don't store the endpoint - the API should have no access to it's instance other than
-        # the request and close methods
-        endpoint = Endpoint("http://api.paladins.com/paladinsapi.svc", dev_id, auth_key, loop=loop)
-        # forward endpoint request and close methods
-        self.request = endpoint.request
-        self.close = endpoint.close
-        # cache stuff
+        super().__init__("http://api.paladins.com/paladinsapi.svc", dev_id, auth_key, loop=loop)
         self._server_status: Optional[ServerStatus] = None
-        self.cache = DataCache(self)
-        # forward cache get methods
-        self.get_champion = self.cache.get_champion
-        self.get_card     = self.cache.get_card
-        self.get_talent   = self.cache.get_talent
-        self.get_item     = self.cache.get_item
-        # default language
-        self._default_language = Language.English
 
     async def __aenter__(self) -> PaladinsAPI:
         return self
-
-    async def __aexit__(self, exc_type, exc, traceback):
-        await self.close()
-
-    def set_default_language(self, language: Language):
-        """
-        Sets the default language used by the API in places where one is not provided
-        by the user.\n
-        The default language set is `Language.English`.
-
-        Parameters
-        ----------
-        language : Language
-            The new default language you want to set.
-        """
-        assert isinstance(language, Language)
-        self._default_language = language
 
     async def get_server_status(self, force_refresh: bool = False) -> Optional[ServerStatus]:
         """
@@ -147,8 +110,7 @@ class PaladinsAPI:
         assert language is None or isinstance(language, Language)
         if language is None:
             language = self._default_language
-        entry = await self.cache._fetch_entry(language, force_refresh=force_refresh)
-        return entry
+        return await self._fetch_entry(language, force_refresh=force_refresh)
 
     def wrap_player(
         self,

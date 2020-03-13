@@ -5,3 +5,4 @@ PaladinsAPI
 
 .. autoclass:: PaladinsAPI
     :members:
+    :inherited-members:

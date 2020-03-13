@@ -1,15 +1,12 @@
+import asyncio
 from datetime import datetime, timedelta
-from typing import Optional, Union, List, Dict, Iterator, TYPE_CHECKING
+from typing import Optional, Union, List, Dict, Iterator
 
 from .items import Device
 from .utils import Lookup
-from .mixins import APIClient
+from .endpoint import Endpoint
 from .champion import Champion, Ability
 from .enumerations import Language, DeviceType
-
-
-if TYPE_CHECKING:
-    from .api import PaladinsAPI
 
 
 class CacheEntry:
@@ -167,11 +164,69 @@ class CacheEntry:
         return self.devices.lookup(item, fuzzy=fuzzy)
 
 
-class DataCache(APIClient):
-    def __init__(self, api: "PaladinsAPI"):
-        super().__init__(api)
-        self._cache: Dict[Language, ChampionInfo] = {}
+class DataCache(Endpoint):
+    """
+    A data cache, cappable of storing multiple cached entires of different languages,
+    managing their fetching, refreshing and expiration times.
+
+    Inherits from `Endpoint`.
+
+    .. note::
+
+        You can request your developer ID and authorization key `here.
+        <https://fs12.formsite.com/HiRez/form48/secure_index.html>`_
+
+    Parameters
+    ----------
+    url : str
+        The cache's base endpoint URL.
+    dev_id : Union[int, str]
+        Your developer's ID (devId).
+    auth_key : str
+        Your developer's authentication key (authKey).
+    loop : Optional[asyncio.AbstractEventLoop]
+        The event loop you want to use for this data cache.\n
+        Default loop is used when not provided.
+    """
+    def __init__(
+        self,
+        url: str,
+        dev_id: Union[int, str],
+        auth_key: str,
+        *,
+        loop: Optional[asyncio.AbstractEventLoop] = None,
+    ):
+        super().__init__(url, dev_id, auth_key, loop=loop)
+        self._default_language = Language.English
+        self._cache: Dict[Language, CacheEntry] = {}
         self.refresh_every = timedelta(hours=12)
+
+    def set_default_language(self, language: Language):
+        """
+        Sets the default language used by the API in places where one is not provided
+        by the user.\n
+        The default language set is `Language.English`.
+
+        Parameters
+        ----------
+        language : Language
+            The new default language you want to set.
+        """
+        assert isinstance(language, Language)
+        self._default_language = language
+
+    async def initialize(self) -> bool:
+        """
+        Initializes the data cache, by pre-fetching and storing the `CacheEntry` for the default
+        language currently set.
+
+        Returns
+        -------
+        bool
+            `True` if the initialization succeeded without problems, `False` otherwise.
+        """
+        entry = await self._fetch_entry(self._default_language, force_refresh=True)
+        return bool(entry)
 
     async def _fetch_entry(
         self, language: Language, *, force_refresh: bool = False
@@ -179,8 +234,8 @@ class DataCache(APIClient):
         now = datetime.utcnow()
         entry = self._cache.get(language)
         if entry is None or now >= entry._expires_at or force_refresh:
-            champions_data = await self._api.request("getgods", language.value)
-            items_data = await self._api.request("getitems", language.value)
+            champions_data = await self.request("getgods", language.value)
+            items_data = await self.request("getitems", language.value)
             if champions_data and items_data:
                 expires_at = now + self.refresh_every
                 entry = self._cache[language] = CacheEntry(
@@ -209,7 +264,7 @@ class DataCache(APIClient):
             `None` is returned if the entry for the language specified hasn't been fetched yet.
         """
         if language is None:
-            language = self._api._default_language
+            language = self._default_language
         return self._cache.get(language)
 
     def get_champion(
@@ -246,7 +301,7 @@ class DataCache(APIClient):
             specified hasn't been fetched yet.
         """
         if language is None:
-            language = self._api._default_language
+            language = self._default_language
         entry = self._cache.get(language)
         if entry:
             return entry.get_champion(champion, fuzzy=fuzzy)
@@ -286,7 +341,7 @@ class DataCache(APIClient):
             specified hasn't been fetched yet.
         """
         if language is None:
-            language = self._api._default_language
+            language = self._default_language
         entry = self._cache.get(language)
         if entry:
             return entry.get_card(card, fuzzy=fuzzy)
@@ -326,7 +381,7 @@ class DataCache(APIClient):
             specified hasn't been fetched yet.\n
         """
         if language is None:
-            language = self._api._default_language
+            language = self._default_language
         entry = self._cache.get(language)
         if entry:
             return entry.get_talent(talent, fuzzy=fuzzy)
@@ -366,7 +421,7 @@ class DataCache(APIClient):
             specified hasn't been fetched yet.
         """
         if language is None:
-            language = self._api._default_language
+            language = self._default_language
         entry = self._cache.get(language)
         if entry:
             return entry.get_item(item, fuzzy=fuzzy)

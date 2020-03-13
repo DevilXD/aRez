@@ -5,6 +5,7 @@ Cache
 
 .. autoclass:: DataCache()
     :members:
+    :inherited-members:
 
 .. autoclass:: CacheEntry()
     :members:
