@@ -68,14 +68,16 @@ class PaladinsAPI(DataCache):
             `None` is returned if there is no cached status and fetching returned
             an empty response.
         """
-        if (
-            self._server_status is None
-            or datetime.utcnow() - timedelta(minutes=1) >= self._server_status.timestamp
-            or force_refresh
-        ):
-            response = await self.request("gethirezserverstatus")
-            if response:
-                self._server_status = ServerStatus(response)
+        # Use a lock to ensure we're not fetching this twice in quick succession
+        async with self._locks["server_status"]:
+            if (
+                self._server_status is None
+                or datetime.utcnow() - timedelta(minutes=1) >= self._server_status.timestamp
+                or force_refresh
+            ):
+                response = await self.request("gethirezserverstatus")
+                if response:
+                    self._server_status = ServerStatus(response)
 
         return self._server_status
 

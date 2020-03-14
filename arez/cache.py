@@ -1,14 +1,15 @@
 from __future__ import annotations
 
 import asyncio
+from weakref import WeakValueDictionary
 from datetime import datetime, timedelta
 from typing import Optional, Union, List, Dict, Iterator
 
 from .items import Device
-from .utils import Lookup
 from .endpoint import Endpoint
 from .champion import Champion, Ability
 from .enumerations import Language, DeviceType
+from .utils import Lookup, WeakValueDefaultDict
 
 
 class DataCache(Endpoint):
@@ -46,6 +47,9 @@ class DataCache(Endpoint):
         super().__init__(url, dev_id, auth_key, loop=loop)
         self._default_language = Language.English
         self._cache: Dict[Language, CacheEntry] = {}
+        self._locks: WeakValueDictionary[str, asyncio.Lock] = WeakValueDefaultDict(
+            lambda: asyncio.Lock()
+        )
         self.refresh_every = timedelta(hours=12)
 
     def set_default_language(self, language: Language):
@@ -78,16 +82,19 @@ class DataCache(Endpoint):
     async def _fetch_entry(
         self, language: Language, *, force_refresh: bool = False
     ) -> Optional[CacheEntry]:
-        now = datetime.utcnow()
-        entry = self._cache.get(language)
-        if entry is None or now >= entry._expires_at or force_refresh:
-            champions_data = await self.request("getgods", language.value)
-            items_data = await self.request("getitems", language.value)
-            if champions_data and items_data:
-                expires_at = now + self.refresh_every
-                entry = self._cache[language] = CacheEntry(
-                    language, expires_at, champions_data, items_data
-                )
+        # Use a lock here to ensure no race condition between checking for an entry
+        # and setting a new one. Use separate locks per each language.
+        async with self._locks["cache_fetch_{}".format(language.name)]:
+            now = datetime.utcnow()
+            entry = self._cache.get(language)
+            if entry is None or now >= entry._expires_at or force_refresh:
+                champions_data = await self.request("getgods", language.value)
+                items_data = await self.request("getitems", language.value)
+                if champions_data and items_data:
+                    expires_at = now + self.refresh_every
+                    entry = self._cache[language] = CacheEntry(
+                        language, expires_at, champions_data, items_data
+                    )
         return entry
 
     def get_entry(self, language: Optional[Language] = None) -> Optional[CacheEntry]:

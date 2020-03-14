@@ -2,13 +2,17 @@ from __future__ import annotations
 
 from math import floor
 from operator import attrgetter
+from weakref import WeakValueDictionary
 from datetime import datetime, timedelta
 from typing import (
     Optional,
     Union,
+    Any,
     List,
     Dict,
     Tuple,
+    Mapping,
+    Callable,
     Iterable,
     Iterator,
     Generator,
@@ -20,6 +24,7 @@ from typing import (
 
 # Type variable for internal utils typing
 X = TypeVar("X")
+Y = TypeVar("Y")
 
 
 # LookupElement protocol, to match elements of the Lookup class
@@ -429,3 +434,23 @@ class Duration:
         if self._total_seconds < 0:
             return Duration(seconds=-self._total_seconds)
         return Duration(seconds=self._total_seconds)
+
+
+class WeakValueDefaultDict(WeakValueDictionary, Mapping[X, Y]):
+    def __init__(
+        self,
+        default_factory: Optional[Callable[[], Any]] = None,
+        mapping_or_iterable: Union[Mapping[X, Y], Iterable[Tuple[X, Y]]] = {},
+    ):
+        self.default_factory = default_factory
+        super().__init__(mapping_or_iterable)
+
+    def __getitem__(self, key):
+        try:
+            return super().__getitem__(key)
+        except KeyError:
+            if not self.default_factory:
+                raise
+            item = self.default_factory()
+            self.__setitem__(key, item)
+            return item
