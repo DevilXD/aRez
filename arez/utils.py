@@ -445,7 +445,7 @@ class WeakValueDefaultDict(WeakValueDictionary, Mapping[X, Y]):
         self.default_factory = default_factory
         super().__init__(mapping_or_iterable)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: X) -> Y:
         try:
             return super().__getitem__(key)
         except KeyError:

@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 import asyncio
-from weakref import WeakValueDictionary
 from datetime import datetime, timedelta
-from typing import Optional, Union, List, Dict, Iterator
+from typing import Any, Optional, Union, List, Dict, Iterator
 
 from .items import Device
 from .endpoint import Endpoint
@@ -47,7 +46,7 @@ class DataCache(Endpoint):
         super().__init__(url, dev_id, auth_key, loop=loop)
         self._default_language = Language.English
         self._cache: Dict[Language, CacheEntry] = {}
-        self._locks: WeakValueDictionary[str, asyncio.Lock] = WeakValueDefaultDict(
+        self._locks: WeakValueDefaultDict[Any, asyncio.Lock] = WeakValueDefaultDict(
             lambda: asyncio.Lock()
         )
         self.refresh_every = timedelta(hours=12)
