@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import asyncio
+from itertools import chain
 from datetime import datetime, timedelta
-from typing import Any, Optional, Union, List, Dict, Iterator
+from typing import Any, Optional, Union, List, Dict
 
 from .items import Device
 from .endpoint import Endpoint
@@ -53,7 +54,7 @@ class DataCache(Endpoint):
 
     def set_default_language(self, language: Language):
         """
-        Sets the default language used by the API in places where one is not provided
+        Sets the default language used by the cache in places where one is not provided
         by the user.\n
         The default language set is `Language.English`.
 
@@ -123,6 +124,7 @@ class DataCache(Endpoint):
     def get_champion(
         self,
         champion: Union[str, int],
+        /,
         language: Optional[Language] = None,
         *,
         fuzzy: bool = False,
@@ -163,6 +165,7 @@ class DataCache(Endpoint):
     def get_card(
         self,
         card: Union[str, int],
+        /,
         language: Optional[Language] = None,
         *,
         fuzzy: bool = False,
@@ -203,6 +206,7 @@ class DataCache(Endpoint):
     def get_talent(
         self,
         talent: Union[str, int],
+        /,
         language: Optional[Language] = None,
         *,
         fuzzy: bool = False,
@@ -243,6 +247,7 @@ class DataCache(Endpoint):
     def get_item(
         self,
         item: Union[str, int],
+        /,
         language: Optional[Language] = None,
         *,
         fuzzy: bool = False,
@@ -280,6 +285,47 @@ class DataCache(Endpoint):
             return entry.get_item(item, fuzzy=fuzzy)
         return None
 
+    def get_device(
+        self,
+        device: Union[str, int],
+        /,
+        language: Optional[Language] = None,
+        *,
+        fuzzy: bool = False,
+    ) -> Optional[Device]:
+        """
+        Returns a device for the given Name or ID, and Language specified.
+        Case sensitive.
+
+        This method can return `None` or stale data if the entry hasn't been fetched yet,
+        or haven't been updated in a while.\n
+        Consider using the `get_champion_info` method from the main API instead.
+
+        Parameters
+        ----------
+        device : Union[str, int]
+            The Name or ID of the item you want to get.
+        language : Optional[Language]
+            The `Language` you want to get the device in.\n
+            Default language is used if not provided.
+        fuzzy : bool
+            When set to `True`, makes the Name search case insensitive.\n
+            Defaults to `False`.
+
+        Returns
+        -------
+        Optional[Device]
+            The device you requested.\n
+            `None` is returned if a device couldn't be found, or the entry for the language
+            specified hasn't been fetched yet.
+        """
+        if language is None:
+            language = self._default_language
+        entry = self._cache.get(language)
+        if entry:
+            return entry.get_device(device, fuzzy=fuzzy)
+        return None
+
 
 class CacheEntry:
     """
@@ -292,15 +338,22 @@ class CacheEntry:
         The language of this entry.
     champions : Lookup[Champion]
         An object that lets you iterate over all champions.\n
-        Use ``list()`` to get a list instead.
+        Use ``list(...)`` to get a list instead.
     abilities : Lookup[Ability]
         An object that lets you iterate over all champion's abilities.\n
-        Use ``list()`` to get a list instead.
+        Use ``list(...)`` to get a list instead.
+    items : Lookup[Device]
+        An object that lets you iterate over all shop items.\n
+        Use ``list(...)`` to get a list instead.
+    cards : Lookup[Device]
+        An object that lets you iterate over all cards.\n
+        Use ``list(...)`` to get a list instead.
+    talents : Lookup[Device]
+        An object that lets you iterate over all talents.\n
+        Use ``list(...)`` to get a list instead.
     devices : Lookup[Device]
-        An object that lets you iterate over all devices (cards, talents and shop items).\n
-        This also includes other devices that are returned from the API,
-        but are considered invalid.\n
-        Use ``list()`` to get a list instead.
+        An object that lets you iterate over all devices (shop items, cards and talents).\n
+        Use ``list(...)`` to get a list instead.
     """
     def __init__(
         self, language: Language, expires_at: datetime, champions_data: dict, items_data: dict
@@ -308,10 +361,25 @@ class CacheEntry:
         self.language = language
         self._expires_at = expires_at
         sorted_devices: Dict[int, List[Device]] = {}
-        for d in items_data:
-            champ_list = sorted_devices.setdefault(d["champion_id"], [])
-            champ_list.append(Device(d))
-        self.devices: Lookup[Device] = Lookup(d for dl in sorted_devices.values() for d in dl)
+        items = []
+        cards = []
+        talents = []
+        for device_data in items_data:
+            device = Device(device_data)
+            if device.type == DeviceType.Undefined:
+                # skip invalid / unknown devices
+                continue
+            sorted_devices.setdefault(device_data["champion_id"], []).append(device)
+            if device.type == DeviceType.Card:
+                cards.append(device)
+            elif device.type == DeviceType.Talent:
+                talents.append(device)
+            elif device.type == DeviceType.Item:
+                items.append(device)
+        self.items: Lookup[Device] = Lookup(items)
+        self.cards: Lookup[Device] = Lookup(cards)
+        self.talents: Lookup[Device] = Lookup(talents)
+        self.devices: Lookup[Device] = Lookup(chain(items, cards, talents))
         self.champions: Lookup[Champion] = Lookup(
             Champion(sorted_devices.get(c["id"], []), c) for c in champions_data
         )
@@ -319,38 +387,8 @@ class CacheEntry:
             a for c in self.champions for a in c.abilities
         )
 
-    @property
-    def cards(self) -> Iterator[Device]:
-        """
-        A filtered iterator that lets you iterate over all cards.
-
-        Use ``list()`` to get a list instead.
-        """
-        dt = DeviceType["Card"]
-        return filter(lambda d: d.type == dt, self.devices)
-
-    @property
-    def talents(self) -> Iterator[Device]:
-        """
-        A filtered iterator that lets you iterate over all talents.
-
-        Use ``list()`` to get a list instead.
-        """
-        dt = DeviceType["Talent"]
-        return filter(lambda d: d.type == dt, self.devices)
-
-    @property
-    def items(self) -> Iterator[Device]:
-        """
-        A filtered iterator that lets you iterate over all shop items.
-
-        Use ``list()`` to get a list instead.
-        """
-        dt = DeviceType["Item"]
-        return filter(lambda d: d.type == dt, self.devices)
-
     def get_champion(
-        self, champion: Union[str, int], *, fuzzy: bool = False
+        self, champion: Union[str, int], /, *, fuzzy: bool = False
     ) -> Optional[Champion]:
         """
         Returns a champion for the given Name or ID.
@@ -372,7 +410,7 @@ class CacheEntry:
         """
         return self.champions.lookup(champion, fuzzy=fuzzy)
 
-    def get_card(self, card: Union[str, int], *, fuzzy: bool = False) -> Optional[Device]:
+    def get_card(self, card: Union[str, int], /, *, fuzzy: bool = False) -> Optional[Device]:
         """
         Returns a champion's card for the given Name or ID.
         Case sensitive.
@@ -391,9 +429,9 @@ class CacheEntry:
             The card you requested.\n
             `None` is returned if a card with the requested Name or ID couldn't be found.
         """
-        return self.devices.lookup(card, fuzzy=fuzzy)
+        return self.cards.lookup(card, fuzzy=fuzzy)
 
-    def get_talent(self, talent: Union[str, int], *, fuzzy: bool = False) -> Optional[Device]:
+    def get_talent(self, talent: Union[str, int], /, *, fuzzy: bool = False) -> Optional[Device]:
         """
         Returns a champion's talent for the given Name or ID.
         Case sensitive.
@@ -412,9 +450,9 @@ class CacheEntry:
             The talent you requested.\n
             `None` is returned if a talent with the requested Name or ID couldn't be found.
         """
-        return self.devices.lookup(talent, fuzzy=fuzzy)
+        return self.talents.lookup(talent, fuzzy=fuzzy)
 
-    def get_item(self, item: Union[str, int], *, fuzzy: bool = False) -> Optional[Device]:
+    def get_item(self, item: Union[str, int], /, *, fuzzy: bool = False) -> Optional[Device]:
         """
         Returns a shop item for the given Name or ID.
         Case sensitive.
@@ -433,4 +471,25 @@ class CacheEntry:
             The shop item you requested.\n
             `None` is returned if a shop item with the requested Name or ID couldn't be found.
         """
-        return self.devices.lookup(item, fuzzy=fuzzy)
+        return self.items.lookup(item, fuzzy=fuzzy)
+
+    def get_device(self, device: Union[str, int], /, *, fuzzy: bool = False) -> Optional[Device]:
+        """
+        Returns a device for the given Name or ID.
+        Case sensitive.
+
+        Parameters
+        ----------
+        device : Union[str, int]
+            The Name or ID of the device you want to get.
+        fuzzy : bool
+            When set to `True`, makes the Name search case insensitive.\n
+            Defaults to `False`.
+
+        Returns
+        -------
+        Optional[Device]
+            The device you requested.\n
+            `None` is returned if a device with the requested Name or ID couldn't be found.
+        """
+        return self.devices.lookup(device, fuzzy=fuzzy)

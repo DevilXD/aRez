@@ -72,16 +72,16 @@ class Device:
                 self.scale = float(match.group(2))
         item_type = device_data["item_type"]
         if item_type == "Inventory Vendor - Talents":
-            self.type = DeviceType["Talent"]
+            self.type = DeviceType.Talent
         elif (
             item_type.startswith("Card Vendor Rank")
             or item_type == "Inventory Vendor - Champion Cards"
         ):
-            self.type = DeviceType["Card"]
+            self.type = DeviceType.Card
         elif item_type.startswith("Burn Card"):
-            self.type = DeviceType["Item"]
+            self.type = DeviceType.Item
         else:
-            self.type = DeviceType["Undefined"]
+            self.type = DeviceType.Undefined
         # later overwritten when the device is added to a champion
         self.champion: Optional["Champion"] = None
         self.name: str = device_data["DeviceName"]

@@ -91,13 +91,13 @@ class Champion:
         The champion's speed.
     abilities : Lookup[Ability]
         An object that lets you iterate over all abilities this champion has.\n
-        Use ``list()`` to get a list instead.
+        Use ``list(...)`` to get a list instead.
     talents : Lookup[Device]
         An object that lets you iterate over all talents this champion has.\n
-        Use ``list()`` to get a list instead.
+        Use ``list(...)`` to get a list instead.
     cards : Lookup[Device]
         An iterator that lets you iterate over all cards this champion has.\n
-        Use ``list()`` to get a list instead.
+        Use ``list(...)`` to get a list instead.
     """
     def __init__(self, devices: List["Device"], champion_data: dict):
         self.name: str = champion_data["Name"]
@@ -121,11 +121,9 @@ class Champion:
         talents: List["Device"] = []
         cards: List["Device"] = []
         for d in devices:
-            if d.type == DeviceType["Undefined"]:
-                continue
-            elif d.type == DeviceType["Card"]:
+            if d.type == DeviceType.Card:
                 cards.append(d)
-            elif d.type == DeviceType["Talent"]:
+            elif d.type == DeviceType.Talent:
                 talents.append(d)
             d._attach_champion(self)
         talents.sort(key=lambda d: d.unlocked_at)
@@ -144,7 +142,7 @@ class Champion:
     def __bool__(self) -> bool:
         return len(self.cards) == 16 and len(self.talents) == 3
 
-    def get_ability(self, ability: Union[str, int], *, fuzzy: bool = False) -> Optional[Ability]:
+    def get_ability(self, ability: Union[str, int], /, *, fuzzy: bool = False) -> Optional[Ability]:
         """
         Returns an ability for this champion with the given Name or ID.
 
@@ -164,7 +162,7 @@ class Champion:
         """
         return self.abilities.lookup(ability, fuzzy=fuzzy)
 
-    def get_card(self, card: Union[str, int], *, fuzzy: bool = False) -> Optional["Device"]:
+    def get_card(self, card: Union[str, int], /, *, fuzzy: bool = False) -> Optional["Device"]:
         """
         Returns a card for this champion with the given Name or ID.
 
@@ -184,7 +182,7 @@ class Champion:
         """
         return self.cards.lookup(card, fuzzy=fuzzy)
 
-    def get_talent(self, talent: Union[str, int], *, fuzzy: bool = False) -> Optional["Device"]:
+    def get_talent(self, talent: Union[str, int], /, *, fuzzy: bool = False) -> Optional["Device"]:
         """
         Returns a talent for this champion with the given Name or ID.
 
