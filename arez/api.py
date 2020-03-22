@@ -21,6 +21,11 @@ class PaladinsAPI(DataCache):
 
     Inherits from `DataCache`.
 
+    .. note::
+
+        You can request your developer ID and authorization key `here.
+        <https://fs12.formsite.com/HiRez/form48/secure_index.html>`_
+
     Parameters
     ----------
     dev_id : Union[int, str]
@@ -124,7 +129,7 @@ class PaladinsAPI(DataCache):
         """
         Wraps player ID, Name and Platform into a `PartialPlayer` object.
 
-        Note that since there is no input validation, so there's no guarantee an object created
+        Note that since there is no input validation, there's no guarantee an object created
         this way will return any meaningful results when it's methods are used.
 
         Parameters
