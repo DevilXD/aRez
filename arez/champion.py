@@ -142,7 +142,9 @@ class Champion:
     def __bool__(self) -> bool:
         return len(self.cards) == 16 and len(self.talents) == 3
 
-    def get_ability(self, ability: Union[str, int], /, *, fuzzy: bool = False) -> Optional[Ability]:
+    def get_ability(
+        self, ability: Union[str, int], /, *, fuzzy: bool = False
+    ) -> Optional[Ability]:
         """
         Returns an ability for this champion with the given Name or ID.
 
