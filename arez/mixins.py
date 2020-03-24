@@ -108,9 +108,9 @@ class KDAMixin:
         The amount of assists.
     """
     def __init__(self, *, kills: int, deaths: int, assists: int):
-        self.kills = kills
-        self.deaths = deaths
-        self.assists = assists
+        self.kills: int = kills
+        self.deaths: int = deaths
+        self.assists: int = assists
 
     @property
     def kda(self) -> float:
@@ -122,6 +122,29 @@ class KDAMixin:
         :type: float
         """
         return (self.kills + self.assists / 2) / self.deaths if self.deaths > 0 else nan
+
+    @property
+    def kda2(self) -> float:
+        """
+        The calculated KDA.\n
+        The formula is: ``(kills + assists / 2) / max(deaths, 1)``, treating 0 and 1 deaths
+        the same, meaning this will never return `nan`.
+
+        :type: float
+        """
+        return (self.kills + self.assists / 2) / max(self.deaths, 1)
+
+    @property
+    def df(self) -> int:
+        """
+        The Dominance Factor.\n
+        The formula is: ``kills * 2 + deaths * -3 + assists``.\n
+        The value signifies how "useful" the person was to the team overall.
+        Best used when scaled and compared between team members in a match (allied and enemy).
+
+        :type: int
+        """
+        return self.kills * 2 + self.deaths * -3 + self.assists
 
     @property
     def kda_text(self) -> str:
