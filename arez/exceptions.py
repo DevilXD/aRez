@@ -60,3 +60,15 @@ class Unauthorized(ArezException):
     """
     def __init__(self):
         super().__init__("Your authorization credentials are invalid!")
+
+
+class Unavailable(ArezException):
+    """
+    The exception raised when the Hi-Rez API is switched into emergency mode,
+    returning ``503: Service Unavailable`` HTTP status code on all endpoints / methods,
+    except the server status one. Generally means the API is currently down.
+
+    Inherits from `ArezException`.
+    """
+    def __init__(self):
+        super().__init__("Hi-Rez API is currently down!")

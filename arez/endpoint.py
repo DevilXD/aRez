@@ -7,7 +7,7 @@ from random import gauss
 from typing import Optional, Union
 from datetime import datetime, timedelta
 
-from .exceptions import HTTPException, Unauthorized
+from .exceptions import HTTPException, Unauthorized, Unavailable
 
 session_lifetime = timedelta(minutes=15)
 timeout = aiohttp.ClientTimeout(total=20, connect=5)
@@ -48,9 +48,7 @@ class Endpoint:
         self.url = url.rstrip('/')
         self._session_key = ''
         self._session_expires = datetime.utcnow()
-        self._http_session = aiohttp.ClientSession(
-            raise_for_status=True, timeout=timeout, loop=loop
-        )
+        self._http_session = aiohttp.ClientSession(timeout=timeout, loop=loop)
         self.__dev_id = str(dev_id)
         self.__auth_key = auth_key.upper()
 
@@ -131,6 +129,14 @@ class Endpoint:
                 req_url = '/'.join(req_stack)
 
                 async with self._http_session.get(req_url) as response:
+                    # Handle special HTTP status codes
+                    if response.status == 503:
+                        # '503: Service Unavailable'
+                        raise Unavailable
+                    else:
+                        # Raise for any other error code, if applicable
+                        response.raise_for_status()
+
                     res_data: Union[list, dict] = await response.json()
 
                     if res_data:
@@ -162,8 +168,9 @@ class Endpoint:
                 else:
                     print("Unknown error, retrying...")
                 await asyncio.sleep(tries * 0.5 * gauss(1, 0.1))
-            # For the case where 'createsession' raises this - just pass it along
-            except Unauthorized:
+            # For the case where 'createsession' raises it recursively,
+            # or the Hi-Rez API is down - just pass it along
+            except (Unauthorized, Unavailable):
                 raise
             # Some other exception happened, so just wrap it and propagate along
             except Exception as exc:
