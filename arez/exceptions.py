@@ -19,7 +19,9 @@ class HTTPException(ArezException):
     ----------
     cause : Optional[Exception]
         The original exception cause. This is usually:\n
-        • `aiohttp.ClientResponseError` or it's subclasses.\n
+        • `aiohttp.ClientResponseError` when the request results in an unhandled HTTP error.\n
+        • `aiohttp.ClientConnectionError` when the request couldn't complete \
+        due to connection problems.
         • `asyncio.TimeoutError` when the request times out.\n
         • `None` if the cause was unknown.
     """

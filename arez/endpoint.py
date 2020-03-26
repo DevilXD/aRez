@@ -100,11 +100,18 @@ class Endpoint:
         ------
         HTTPException
             Whenever it was impossible to fetch the data in a reliable manner.\n
-            Check the ``cause`` attribute for the original exception that lead to this.
+            Check the `HTTPException.cause` attribute for the original exception (and reason)
+            that lead to this.
+        Unauthorized
+            When the developer's ID (devId) or the developer's authentication key (authKey)
+            are deemed invalid.
+        Unavailable
+            When the Hi-Rez API switches to emergency mode, and no data could be returned
+            at this time.
         """
+        last_exc = None
         method_name = method_name.lower()
 
-        last_exc = None
         for tries in range(5):
             try:
                 now = datetime.utcnow()
@@ -134,7 +141,7 @@ class Endpoint:
                         # '503: Service Unavailable'
                         raise Unavailable
                     else:
-                        # Raise for any other error code, if applicable
+                        # Raise for any other error code
                         response.raise_for_status()
 
                     res_data: Union[list, dict] = await response.json()
@@ -151,23 +158,21 @@ class Endpoint:
 
                             # Invalid session
                             if error == "Invalid session id.":
-                                # Invalidate the current session by expiring it
+                                # Invalidate the current session by expiring it, then retry
                                 self._session_expires = now
-                                continue  # retry
+                                continue
 
                     return res_data
 
-            # For some reason, sometimes we get disconnected or timed out here.
-            # If this happens, just give the api a short break and try again.
-            except (aiohttp.ServerDisconnectedError, asyncio.TimeoutError) as exc:
+            # When connection problems happen, just give the api a short break and try again.
+            except (aiohttp.ClientConnectionError, asyncio.TimeoutError) as exc:
                 last_exc = exc  # store for the last iteration raise
-                if isinstance(exc, aiohttp.ServerDisconnectedError):
-                    print("Server disconnected, retrying...")
-                elif isinstance(exc, asyncio.TimeoutError):
+                if isinstance(exc, asyncio.TimeoutError):
                     print("Timed out, retrying...")
+                elif isinstance(exc, aiohttp.ServerDisconnectedError):
+                    print("Server disconnected, retrying...")
                 else:
-                    print("Unknown error, retrying...")
-                await asyncio.sleep(tries * 0.5 * gauss(1, 0.1))
+                    print("Connection problems, retrying...")
             # For the case where 'createsession' raises it recursively,
             # or the Hi-Rez API is down - just pass it along
             except (Unauthorized, Unavailable):
@@ -175,6 +180,9 @@ class Endpoint:
             # Some other exception happened, so just wrap it and propagate along
             except Exception as exc:
                 raise HTTPException(exc)
+
+            # Sleep before retrying
+            await asyncio.sleep(tries * 0.5 * gauss(1, 0.1))
 
         # we've run out of tries, so ¯\_(ツ)_/¯
         # we shouldn't ever end up here, this is a fail-safe

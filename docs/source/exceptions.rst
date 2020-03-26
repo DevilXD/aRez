@@ -18,6 +18,9 @@ Exceptions
 .. autoexception:: Unauthorized
     :members:
 
+.. autoexception:: Unavailable
+    :members:
+
 Exceptions Hierarchy
 --------------------
 
@@ -27,3 +30,4 @@ Exceptions Hierarchy
             - :exc:`Private`
             - :exc:`NotFound`
             - :exc:`Unauthorized`
+            - :exc:`Unavailable`
