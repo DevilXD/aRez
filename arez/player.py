@@ -388,6 +388,6 @@ class Player(PartialPlayer):
 
         :type: RankedStats
         """
-        if self.ranked_controller.rank == self.ranked_keyboard.rank:
+        if self.ranked_controller.rank.value == self.ranked_keyboard.rank.value:
             return max(self.ranked_keyboard, self.ranked_controller, key=lambda r: r.winrate)
-        return max(self.ranked_keyboard, self.ranked_controller, key=lambda r: r.rank)
+        return max(self.ranked_keyboard, self.ranked_controller, key=lambda r: r.rank.value)
