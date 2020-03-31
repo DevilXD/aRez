@@ -1,3 +1,4 @@
+import re
 from typing import Optional, Union, List, Literal, TYPE_CHECKING
 
 from .utils import Lookup
@@ -36,11 +37,15 @@ class Ability:
     icon_url : str
         A URL of this ability's icon.
     """
+    _desc_pattern = re.compile(r" ?<br>(?:<br>)? ?")  # replace the <br> tags with a new line
+
     def __init__(self, champion: "Champion", ability_data: dict):
         self.name: str = ability_data["Summary"]
         self.id: int = ability_data["Id"]
         self.champion = champion
-        self.description: str = ability_data["Description"].strip().replace('\r', '')
+        desc = ability_data["Description"].strip().replace('\r', '')
+        desc = self._desc_pattern.sub('\n', desc)
+        self.description: str = desc
         self.type = AbilityType.get(ability_data["damageType"]) or AbilityType(0)
         self.cooldown: int = ability_data["rechargeSeconds"]
         self.icon_url: str = ability_data["URL"]
