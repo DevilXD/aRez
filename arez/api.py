@@ -172,7 +172,7 @@ class PaladinsAPI(DataCache):
         """
         Fetches a Player object for the given player ID or player name.
 
-        Only players with `Platform.Steam`, `Platform.HiRez` and `Platform.Discord`
+        Only players with `Platform.PC`, `Platform.Steam` and `Platform.Discord`
         platforms (PC players) will be returned when using this method with player name
         as input. For player ID inputs, players from all platforms will be returned.
 
@@ -319,7 +319,7 @@ class PaladinsAPI(DataCache):
         assert isinstance(player_name, str)
         assert platform is None or isinstance(platform, Platform)
         if platform:
-            if platform in (Platform.HiRez, Platform.Steam, Platform.Discord):
+            if platform in (Platform.PC, Platform.Steam, Platform.Discord):
                 # PC platforms, with unique names
                 list_response = await self.request("getplayeridbyname", player_name)
             else:

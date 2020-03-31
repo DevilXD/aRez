@@ -197,12 +197,12 @@ class MatchMixin:
                 match_data["Team{}Score".format(my_team)],
                 match_data["Team{}Score".format(other_team)],
             )
-        self.queue = Queue.get(queue) or Queue(0)
-        self.region = Region.get(match_data["Region"]) or Region(0)
+        self.queue = Queue(queue, return_default=True)
+        self.region = Region(match_data["Region"], return_default=True)
         self.timestamp = convert_timestamp(stamp)
         self.duration = Duration(seconds=match_data["Time_In_Match_Seconds"])
         self.map_name: str = match_data["Map_Game"]
-        if self.queue in (469, 470):
+        if self.queue.value in (469, 470):
             # Score correction for TDM matches
             score = (score[0] + 36, score[1] + 36)
         self.score: Tuple[int, int] = score

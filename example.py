@@ -25,8 +25,9 @@ async def main():
 
     # OR
 
-    # get an instance of Platform (this is safe for user input, and supports multiple aliases)
-    platform = arez.Platform.get("xbox")
+    # get an instance of Platform
+    # this is safe for user input, and supports multiple different aliases
+    platform = arez.Platform("xbox")
     # check if the user input matched any platform
     if not platform:
         # handle this here

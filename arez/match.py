@@ -351,7 +351,7 @@ class LivePlayer(APIClient, WinLoseMixin):
         self.champion: Optional[Champion] = self._api.get_champion(
             player_data["ChampionId"], language
         )
-        self.rank = Rank.get(player_data["Tier"])
+        self.rank = Rank(player_data["Tier"], return_default=True)
         self.account_level: int = player_data["Account_Level"]
         self.mastery_level: int = player_data["Mastery_Level"]
 
@@ -390,8 +390,8 @@ class LiveMatch(APIClient):
         first_player = match_data[0]
         self.id: int = first_player["Match"]
         self.map_name: str = first_player["mapGame"]
-        self.queue = Queue.get(int(first_player["Queue"])) or Queue(0)
-        self.region = Region.get(first_player["playerRegion"]) or Region(0)
+        self.queue = Queue(int(first_player["Queue"]), return_default=True)
+        self.region = Region(first_player["playerRegion"], return_default=True)
         self.team1: List[LivePlayer] = []
         self.team2: List[LivePlayer] = []
         for p in match_data:

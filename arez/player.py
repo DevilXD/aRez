@@ -44,7 +44,7 @@ class PartialPlayer(APIClient, Expandable):
         self._name = str(name)
         if isinstance(platform, str) and platform.isdecimal():
             platform = int(platform)
-        self._platform = Platform.get(platform) or Platform(0)
+        self._platform = Platform(platform, return_default=True)
         self._private = bool(private)
 
     async def _expand(self) -> Optional[Player]:
@@ -133,14 +133,14 @@ class PartialPlayer(APIClient, Expandable):
         Returns
         -------
         bool
-            `True` for PC players (`Platform.HiRez`, `Platform.Steam` and `Platform.Discord`),
+            `True` for PC players (`Platform.PC`, `Platform.Steam` and `Platform.Discord`),
             `False` otherwise.
         """
         return (
             bool(self._name)  # name isn't an empty string
             and self._id != 0  # ID isn't 0 / private account
             # platform is one of the PC ones
-            and self._platform in (Platform.HiRez, Platform.Steam, Platform.Discord)
+            and self._platform in (Platform.PC, Platform.Steam, Platform.Discord)
         )
 
     async def get_status(self) -> Optional[PlayerStatus]:
@@ -372,7 +372,7 @@ class Player(PartialPlayer):
         self.title: str = player_data["Title"]
         self.playtime = Duration(hours=player_data["HoursPlayed"])
         self.champion_count: int = player_data["MasteryLevel"]
-        self.region = Region.get(player_data["Region"]) or Region(0)
+        self.region = Region(player_data["Region"], return_default=True)
         self.total_achievements: int = player_data["Total_Achievements"]
         self.total_experience: int = player_data["Total_Worshippers"]
         self.casual = Stats(player_data)

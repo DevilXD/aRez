@@ -46,7 +46,7 @@ class Ability:
         desc = ability_data["Description"].strip().replace('\r', '')
         desc = self._desc_pattern.sub('\n', desc)
         self.description: str = desc
-        self.type = AbilityType.get(ability_data["damageType"]) or AbilityType(0)
+        self.type = AbilityType(ability_data["damageType"], return_default=True)
         self.cooldown: int = ability_data["rechargeSeconds"]
         self.icon_url: str = ability_data["URL"]
 
