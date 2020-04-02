@@ -1,6 +1,8 @@
 ﻿from __future__ import annotations
 
+import operator
 from enum import IntEnum
+from functools import partialmethod
 from typing import Any, Optional, Union, List, Dict, Tuple, TYPE_CHECKING
 
 __all__ = [
@@ -67,12 +69,22 @@ class EnumValue:
     def __hash__(self) -> int:
         return hash(self._name)
 
-    # Compare using values and class only
-    def __eq__(self, other) -> bool:
+    # Compare using values and optionally the class
+    def _cmp(self, opr, other: Union[EnumValue, int]) -> bool:
         try:
-            return self._class is other._class and self.value == other.value
+            if isinstance(other, int):
+                return opr(self._value, other)
+            else:
+                return self._class is other._class and opr(self._value, other._value)
         except AttributeError:
             return False
+
+    __eq__ = partialmethod(_cmp, operator.eq)  # type: ignore
+    __ne__ = partialmethod(_cmp, operator.ne)  # type: ignore
+    __lt__ = partialmethod(_cmp, operator.lt)
+    __gt__ = partialmethod(_cmp, operator.gt)
+    __le__ = partialmethod(_cmp, operator.le)
+    __ge__ = partialmethod(_cmp, operator.ge)
 
 
 # For special methods defined on enums
