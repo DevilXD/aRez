@@ -47,6 +47,7 @@ class Endpoint:
             loop = asyncio.get_event_loop()
         self.url = url.rstrip('/')
         self._session_key = ''
+        self._session_lock = asyncio.Lock()
         self._session_expires = datetime.utcnow()
         self._http_session = aiohttp.ClientSession(timeout=timeout, loop=loop)
         self.__dev_id = str(dev_id)
@@ -114,14 +115,15 @@ class Endpoint:
 
         for tries in range(5):
             try:
-                now = datetime.utcnow()
                 req_stack = [self.url, "{}json".format(method_name)]
-                if method_name != "ping":
-                    timestamp = now.strftime("%Y%m%d%H%M%S")
-                    req_stack.extend((self.__dev_id, self._get_signature(method_name, timestamp)))
-                    if method_name == "createsession":
-                        req_stack.append(timestamp)
-                    else:
+                if method_name == "createsession":
+                    timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+                    req_stack.extend(
+                        (self.__dev_id, self._get_signature(method_name, timestamp), timestamp)
+                    )
+                elif method_name != "ping":
+                    async with self._session_lock:
+                        now = datetime.utcnow()
                         if now >= self._session_expires:
                             session_response = await self.request("createsession")  # recursion
                             session_id = session_response.get("session_id")
@@ -129,7 +131,14 @@ class Endpoint:
                                 raise Unauthorized
                             self._session_key = session_id
                         self._session_expires = now + session_lifetime
-                        req_stack.extend((self._session_key, timestamp))
+                    # reacquire the current time
+                    timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+                    req_stack.extend((
+                        self.__dev_id,
+                        self._get_signature(method_name, timestamp),
+                        self._session_key,
+                        timestamp,
+                    ))
                 if data:
                     req_stack.extend(map(str, data))
 
@@ -159,7 +168,7 @@ class Endpoint:
                             # Invalid session
                             if error == "Invalid session id.":
                                 # Invalidate the current session by expiring it, then retry
-                                self._session_expires = now
+                                self._session_expires = datetime.utcnow()
                                 continue
 
                     return res_data
