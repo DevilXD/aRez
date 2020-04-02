@@ -222,6 +222,7 @@ class Platform(Enum, default_value=0):
         Aliases: ``nintendo_switch``.
     Discord
     Epic_Games
+        Aliases: ``epic``.
     """
 
     Unknown         =  0
@@ -245,6 +246,7 @@ class Platform(Enum, default_value=0):
     switch          = 22
     Discord         = 25
     Epic_Games      = 28
+    epic            = 28
 
 
 class Region(Enum, default_value=0):
