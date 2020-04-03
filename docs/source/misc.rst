@@ -1,5 +1,5 @@
-Miscleaneous
-============
+Miscellaneous
+=============
 
 .. currentmodule:: arez.utils
 

@@ -29,8 +29,8 @@ Data Classes
     enumerations
     status
 
-Miscleaneous
-------------
+Miscellaneous
+-------------
 
 .. toctree::
     :maxdepth: 2
