@@ -134,7 +134,7 @@ class EnumMeta(type):
         cls = super().__new__(meta_cls, name, bases, new_attrs)
         # Assign to members for future 'isinstance' checks
         for m in value_mapping.values():
-            m._class = cls
+            m.set_class(cls)
         return cls
 
     # Add our special enum member constructor
