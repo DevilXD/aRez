@@ -39,7 +39,7 @@ class EnumValue:
         return self
 
     # Used to support isinstance checks
-    def set_class(self, cls: type):
+    def _set_class(self, cls: type):
         self._class = cls
 
     # Enum names are immutable
@@ -134,7 +134,7 @@ class EnumMeta(type):
         cls = super().__new__(meta_cls, name, bases, new_attrs)
         # Assign to members for future 'isinstance' checks
         for m in value_mapping.values():
-            m.set_class(cls)
+            m._set_class(cls)
         return cls
 
     # Add our special enum member constructor
