@@ -218,6 +218,9 @@ class Platform(Enum, default_value=0):
     Xbox
         Aliases: ``xb``, ``xboxlive``, ``xbox_live``, ``xboxone``, ``xbox_one``, ``xbox1``,
         ``xbox_1``.
+    Facebook
+    Google
+    Mixer
     Switch
         Aliases: ``nintendo_switch``.
     Discord
@@ -241,6 +244,8 @@ class Platform(Enum, default_value=0):
     xbox_one        = 10
     xbox1           = 10
     xbox_1          = 10
+    Facebook        = 12
+    Google          = 13
     Mixer           = 14
     Nintendo_Switch = 22
     switch          = 22
