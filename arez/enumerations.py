@@ -519,12 +519,12 @@ class AbilityType(Enum, default_value=0):
     ----------
     Undefined
         Represents an undefined ability type. Those abilities often deal no damage,
-        or serve another  purpose that doesn't involve them doing so.
+        or serve another purpose that doesn't involve them doing so.
     Direct_Damage
-        The ability does Direct Damage.
+        The ability does Direct Damage.\n
         Aliases: ``direct``.
     Area_Damage
-        The ability does Area Damage.
+        The ability does Area Damage.\n
         Aliases: ``aoe``.
     """
 
