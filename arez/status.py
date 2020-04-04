@@ -24,7 +24,8 @@ class Status:
     limited_access : bool
         `True` if this server has limited access, `False` otherwise.
     version : str
-        The current version of this server.
+        The current version of this server.\n
+        This will be an empty string if the information wasn't available.
     """
     def __init__(self, status_data: dict):
         self.platform: Literal["pc", "ps4", "xbox", "switch", "pts"] = status_data["platform"]
@@ -33,7 +34,7 @@ class Status:
             self.platform = env
         self.up: bool = status_data["status"] == "UP"
         self.limited_access: bool = status_data["limited_access"]
-        self.version: str = status_data["version"]
+        self.version: str = status_data["version"] or ''
 
     def __repr__(self) -> str:
         up = "Up" if self.up else "Down"
