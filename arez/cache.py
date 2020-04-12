@@ -97,6 +97,9 @@ class DataCache(Endpoint):
                     )
         return entry
 
+    async def _ensure_entry(self, language: Language):
+        await self._fetch_entry(language)
+
     def get_entry(self, language: Optional[Language] = None) -> Optional[CacheEntry]:
         """
         Returns a cache entry for the given language specified.

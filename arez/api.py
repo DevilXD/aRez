@@ -427,7 +427,7 @@ class PaladinsAPI(DataCache):
         if language is None:
             language = self._default_language
         # ensure we have champion information first
-        await self.get_champion_info(language)
+        await self._ensure_entry(language)
         response = await self.request("getmatchdetails", match_id)
         if not response:
             raise NotFound("Match")
@@ -462,7 +462,7 @@ class PaladinsAPI(DataCache):
         if language is None:
             language = self._default_language
         # ensure we have champion information first
-        await self.get_champion_info(language)
+        await self._ensure_entry(language)
         matches: List[Match] = []
         for chunk_ids in chunk(ids_list, 10):  # chunk the IDs into groups of 10
             response = await self.request("getmatchdetailsbatch", ','.join(map(str, chunk_ids)))
@@ -539,7 +539,7 @@ class PaladinsAPI(DataCache):
         if language is None:
             language = self._default_language
         # ensure we have champion information first
-        await self.get_champion_info(language)
+        await self._ensure_entry(language)
 
         # Generates API-valid series of date and hour parameters
         def date_gen(start, end, *, reverse=False):

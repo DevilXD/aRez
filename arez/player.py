@@ -220,7 +220,7 @@ class PartialPlayer(APIClient, Expandable):
         if language is None:
             language = self._api._default_language
         # ensure we have champion information first
-        await self._api.get_champion_info(language)
+        await self._api._ensure_entry(language)
         response = await self._api.request("getplayerloadouts", self._id, language.value)
         if not response or response and not response[0]["playerId"]:
             return []
@@ -256,7 +256,7 @@ class PartialPlayer(APIClient, Expandable):
         if language is None:
             language = self._api._default_language
         # ensure we have champion information first
-        await self._api.get_champion_info(language)
+        await self._api._ensure_entry(language)
         response = await self._api.request("getgodranks", self._id)
         return [ChampionStats(self, language, s) for s in response]
 
@@ -288,7 +288,7 @@ class PartialPlayer(APIClient, Expandable):
         if language is None:
             language = self._api._default_language
         # ensure we have champion information first
-        await self._api.get_champion_info(language)
+        await self._api._ensure_entry(language)
         response = await self._api.request("getmatchhistory", self._id)
         if not response or response and response[0]["ret_msg"]:
             return []

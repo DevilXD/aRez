@@ -152,7 +152,7 @@ class PlayerStatus(APIClient):
             if language is None:
                 language = self._api._default_language
             # ensure we have champion information first
-            await self._api.get_champion_info(language)
+            await self._api._ensure_entry(language)
             response = await self.player._api.request("getmatchplayerdetails", self.live_match_id)
             if response:
                 if response[0] and response[0]["ret_msg"]:
