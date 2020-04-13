@@ -24,7 +24,9 @@ class EnumValue:
     _value_mapping: Dict[int, EnumValue]
 
     # Exists only to stop MyPy from complaining about wrong instance init arguments
-    def __init__(self, key_or_value: Optional[Union[str, int]], *, return_default: bool = False):
+    def __init__(
+        self, key_or_value: Optional[Union[str, int]], /, *, return_default: bool = False
+    ):
         # This never runs cos of metaclass
         self._class: type
         self._name: str
@@ -139,7 +141,7 @@ class EnumMeta(type):
 
     # Add our special enum member constructor
     def __call__(  # type: ignore
-        cls: EnumValue, key_or_value: Optional[Union[str, int]], *, return_default: bool = False
+        cls: EnumValue, key_or_value: Optional[Union[str, int]], /, *, return_default: bool = False
     ) -> Optional[Union[int, str, EnumValue]]:
         if isinstance(key_or_value, str):
             member = cls._name_mapping.get(key_or_value.lower())
@@ -422,7 +424,7 @@ class Rank(EnumValue, metaclass=RankMeta):
     All attributes include an alias consisting of their name and a single digit
     representing the rank's level, alternatively with and without the dividing space existing
     or being replaced with an underscore. For example, all of these will result in the
-    'Gold IV' rank: ``gold_iv``, ``gold iv``, ``gold_4``, ``gold4``.
+    ``Gold IV`` rank: ``gold_iv``, ``gold iv``, ``gold_4``, ``gold4``.
 
     Attributes
     ----------
