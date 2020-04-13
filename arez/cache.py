@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from itertools import chain
 from datetime import datetime, timedelta
 from typing import Any, Optional, Union, List, Dict
@@ -10,6 +11,9 @@ from .endpoint import Endpoint
 from .champion import Champion, Ability
 from .enumerations import Language, DeviceType
 from .utils import Lookup, WeakValueDefaultDict
+
+
+logger = logging.getLogger(__package__)
 
 
 class DataCache(Endpoint):
@@ -64,6 +68,7 @@ class DataCache(Endpoint):
             The new default language you want to set.
         """
         assert isinstance(language, Language)
+        logger.info(f"cache.set_default_language({language=})")
         self._default_language = language
 
     async def initialize(self) -> bool:
@@ -76,7 +81,9 @@ class DataCache(Endpoint):
         bool
             `True` if the initialization succeeded without problems, `False` otherwise.
         """
-        entry = await self._fetch_entry(self._default_language, force_refresh=True)
+        language = self._default_language
+        logger.info(f"cache.initialize({language=})")
+        entry = await self._fetch_entry(language, force_refresh=True)
         return bool(entry)
 
     async def _fetch_entry(
@@ -98,6 +105,7 @@ class DataCache(Endpoint):
         return entry
 
     async def _ensure_entry(self, language: Language):
+        logger.debug(f"cache.ensure_entry({language=})")
         await self._fetch_entry(language)
 
     def get_entry(self, language: Optional[Language] = None) -> Optional[CacheEntry]:
@@ -122,6 +130,7 @@ class DataCache(Endpoint):
         """
         if language is None:
             language = self._default_language
+        logger.info(f"cache.get_entry({language=})")
         return self._cache.get(language)
 
     def get_champion(
@@ -388,6 +397,12 @@ class CacheEntry:
         )
         self.abilities: Lookup[Ability] = Lookup(
             a for c in self.champions for a in c.abilities
+        )
+        logger.debug(
+            f"CacheEntry({language=}, expires_at={self._expires_at}, "
+            f"len(champions)={len(self.champions)}, len(devices)={len(self.devices)}, "
+            f"len(items)={len(self.items)}, len(cards)={len(self.cards)}, "
+            f"len(talents)={len(self.talents)}) -> created"
         )
 
     def get_champion(

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from functools import cached_property
 from typing import Optional, Union, List, SupportsInt, TYPE_CHECKING
 
@@ -14,6 +15,9 @@ from .stats import Stats, RankedStats, ChampionStats
 
 if TYPE_CHECKING:
     from .api import PaladinsAPI
+
+
+logger = logging.getLogger(__package__)
 
 
 class PartialPlayer(APIClient, Expandable):
@@ -46,6 +50,10 @@ class PartialPlayer(APIClient, Expandable):
             platform = int(platform)
         self._platform = Platform(platform, return_default=True)
         self._private = bool(private)
+        logger.debug(
+            f"Player(id={self._id}, name={self._name}, platform={self._platform.name}, "
+            f"private={self._private}) -> created"
+        )
 
     async def _expand(self) -> Optional[Player]:
         """
@@ -67,6 +75,7 @@ class PartialPlayer(APIClient, Expandable):
         """
         if self.private:
             raise Private
+        logger.info(f"Player(id={self._id}).expand()")
         player_list = await self._api.request("getplayer", self._id)
         if not player_list:
             raise NotFound("Player")
@@ -162,6 +171,7 @@ class PartialPlayer(APIClient, Expandable):
         """
         if self.private:
             raise Private
+        logger.info(f"Player(id={self._id}).get_status()")
         response = await self._api.request("getplayerstatus", self._id)
         if response and response[0]["status"] != 5:
             return PlayerStatus(self, response[0])
@@ -185,6 +195,7 @@ class PartialPlayer(APIClient, Expandable):
         """
         if self.private:
             raise Private
+        logger.info(f"Player(id={self._id}).get_friends()")
         response = await self._api.request("getfriends", self._id)
         return [
             PartialPlayer(self._api, id=p["player_id"], name=p["name"])
@@ -221,6 +232,7 @@ class PartialPlayer(APIClient, Expandable):
             language = self._api._default_language
         # ensure we have champion information first
         await self._api._ensure_entry(language)
+        logger.info(f"Player(id={self._id}).get_loadouts({language=})")
         response = await self._api.request("getplayerloadouts", self._id, language.value)
         if not response or response and not response[0]["playerId"]:
             return []
@@ -257,6 +269,7 @@ class PartialPlayer(APIClient, Expandable):
             language = self._api._default_language
         # ensure we have champion information first
         await self._api._ensure_entry(language)
+        logger.info(f"Player(id={self._id}).get_champion_stats({language=})")
         response = await self._api.request("getgodranks", self._id)
         return [ChampionStats(self, language, s) for s in response]
 
@@ -289,6 +302,7 @@ class PartialPlayer(APIClient, Expandable):
             language = self._api._default_language
         # ensure we have champion information first
         await self._api._ensure_entry(language)
+        logger.info(f"Player(id={self._id}).get_match_history({language=})")
         response = await self._api.request("getmatchhistory", self._id)
         if not response or response and response[0]["ret_msg"]:
             return []

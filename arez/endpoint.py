@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import aiohttp
 import asyncio
+import logging
 from hashlib import md5
 from random import gauss
 from typing import Optional, Union
@@ -11,6 +12,7 @@ from .exceptions import HTTPException, Unauthorized, Unavailable
 
 session_lifetime = timedelta(minutes=15)
 timeout = aiohttp.ClientTimeout(total=20, connect=5)
+logger = logging.getLogger(__package__)
 
 
 class Endpoint:
@@ -143,6 +145,7 @@ class Endpoint:
                     req_stack.extend(map(str, data))
 
                 req_url = '/'.join(req_stack)
+                logger.debug(f"endpoint.request: {method_name}: {req_url}")
 
                 async with self._http_session.get(req_url) as response:
                     # Handle special HTTP status codes
@@ -177,17 +180,23 @@ class Endpoint:
             except (aiohttp.ClientConnectionError, asyncio.TimeoutError) as exc:
                 last_exc = exc  # store for the last iteration raise
                 if isinstance(exc, asyncio.TimeoutError):
-                    print("Timed out, retrying...")
+                    logger.warning("Timed out, retrying...")
                 elif isinstance(exc, aiohttp.ServerDisconnectedError):
-                    print("Server disconnected, retrying...")
+                    logger.warning("Server disconnected, retrying...")
                 else:
-                    print("Connection problems, retrying...")
+                    logger.warning("Connection problems, retrying...")
+                # pass and retry on the next loop
             # For the case where 'createsession' raises it recursively,
             # or the Hi-Rez API is down - just pass it along
-            except (Unauthorized, Unavailable):
+            except (Unauthorized, Unavailable) as exc:
+                if isinstance(exc, Unauthorized):
+                    logger.error("Got Unauthorized")
+                elif isinstance(exc, Unavailable):
+                    logger.warning("Got Unavailable")
                 raise
             # Some other exception happened, so just wrap it and propagate along
             except Exception as exc:
+                logger.exception("Got an unexpected exception")
                 raise HTTPException(exc)
 
             # Sleep before retrying
@@ -195,4 +204,5 @@ class Endpoint:
 
         # we've run out of tries, so ¯\_(ツ)_/¯
         # we shouldn't ever end up here, this is a fail-safe
+        logger.error("Ran out of retries", exc_info=last_exc)
         raise HTTPException(last_exc)

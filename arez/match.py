@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from itertools import count
 from typing import Optional, Union, List, Dict, Set, Generator, TYPE_CHECKING
 
@@ -12,6 +13,9 @@ if TYPE_CHECKING:
     from .api import PaladinsAPI
     from .champion import Champion
     from .player import PartialPlayer, Player  # noqa
+
+
+logger = logging.getLogger(__package__)
 
 
 class PartialMatch(MatchPlayerMixin, MatchMixin, Expandable):
@@ -111,6 +115,7 @@ class PartialMatch(MatchPlayerMixin, MatchMixin, Expandable):
         NotFound
             The match could not be found.
         """
+        logger.info(f"PartialMatch(id={self.id}).expand()")
         response = await self._api.request("getmatchdetails", self.id)
         if not response:
             raise NotFound("Match")
@@ -270,6 +275,7 @@ class Match(APIClient, MatchMixin):
         APIClient.__init__(self, api)
         first_player = match_data[0]
         MatchMixin.__init__(self, first_player)
+        logger.debug(f"Match(id={self.id}) -> creating...")
         self.replay_available: bool = first_player["hasReplay"] == "y"
         self.bans: List[Champion] = []
         for i in range(1, 5):
@@ -302,6 +308,7 @@ class Match(APIClient, MatchMixin):
             ).append(
                 MatchPlayer(self._api, language, p, parties)
             )
+        logger.debug(f"Match(id={self.id}) -> created")
 
     @property
     def players(self) -> Generator[MatchPlayer, None, None]:

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 import asyncio
+import logging
 from collections import defaultdict, OrderedDict
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Union, List, Dict, Iterable, AsyncGenerator, Literal, overload
@@ -13,6 +14,9 @@ from .cache import DataCache, CacheEntry
 from .exceptions import Private, NotFound
 from .player import Player, PartialPlayer
 from .enumerations import Language, Platform, Queue
+
+
+logger = logging.getLogger(__package__)
 
 
 class PaladinsAPI(DataCache):
@@ -80,9 +84,12 @@ class PaladinsAPI(DataCache):
                 or datetime.utcnow() - timedelta(minutes=1) >= self._server_status.timestamp
                 or force_refresh
             ):
+                logger.info(f"api.get_server_status({force_refresh=}) -> fetching new")
                 response = await self.request("gethirezserverstatus")
                 if response:
                     self._server_status = ServerStatus(response)
+            else:
+                logger.info(f"api.get_server_status({force_refresh=}) -> using cached")
 
         return self._server_status
 
@@ -117,6 +124,7 @@ class PaladinsAPI(DataCache):
         assert language is None or isinstance(language, Language)
         if language is None:
             language = self._default_language
+        logger.info(f"api.get_champion_info({language=}, {force_refresh=})")
         return await self._fetch_entry(language, force_refresh=force_refresh)
 
     def wrap_player(
@@ -152,6 +160,7 @@ class PaladinsAPI(DataCache):
             The wrapped player object.
         """
         assert isinstance(player_id, int)
+        logger.debug(f"api.wrap_player({player_id=}, {player_name=}, {platform=}, {private=})")
         return PartialPlayer(
             self, id=player_id, name=player_name, platform=platform, private=private
         )
@@ -207,6 +216,7 @@ class PaladinsAPI(DataCache):
         # save on the request by returning None for zero straight away
         if player == '0':
             return None
+        logger.info(f"api.get_player({player=}, {return_private=})")
         player_list = await self.request("getplayer", player)
         if not player_list:
             # No one got returned
@@ -265,9 +275,15 @@ class PaladinsAPI(DataCache):
             or their profile was private.
         """
         ids_list: List[int] = list(OrderedDict.fromkeys(player_ids))  # remove duplicates
+        assert all(isinstance(player_id, int) for player_id in ids_list)
         if 0 in ids_list:
             # remove private accounts
             ids_list.remove(0)
+        if not ids_list:
+            return []
+        logger.info(
+            f"api.get_players(player_ids=[{', '.join(map(str, ids_list))}], {return_private=})"
+        )
         player_list: List[Union[Player, PartialPlayer]] = []
         for chunk_ids in chunk(ids_list, 20):
             chunk_response = await self.request("getplayerbatch", ','.join(map(str, chunk_ids)))
@@ -318,7 +334,9 @@ class PaladinsAPI(DataCache):
         """
         assert isinstance(player_name, str)
         assert platform is None or isinstance(platform, Platform)
-        if platform:
+        if platform is not None:
+            # Specific platform
+            logger.info(f"api.search_players({player_name=}, platform={platform.name})")
             if platform in (Platform.PC, Platform.Steam, Platform.Discord):
                 # PC platforms, with unique names
                 list_response = await self.request("getplayeridbyname", player_name)
@@ -341,6 +359,7 @@ class PaladinsAPI(DataCache):
             ]
         else:
             # All platforms
+            logger.info(f"api.search_players({player_name=}, {platform=})")
             response = await self.request("searchplayers", player_name)
             player_name = player_name.lower()
             list_response = [r for r in response if r["Name"].lower() == player_name]
@@ -390,6 +409,7 @@ class PaladinsAPI(DataCache):
         """
         assert isinstance(platform_id, int)
         assert isinstance(platform, Platform)
+        logger.info(f"api.get_from_platform({platform_id=}, platform={platform.name})")
         response = await self.request("getplayeridbyportaluserid", platform.value, platform_id)
         if not response:
             raise NotFound("Linked profile")
@@ -428,6 +448,7 @@ class PaladinsAPI(DataCache):
             language = self._default_language
         # ensure we have champion information first
         await self._ensure_entry(language)
+        logger.info(f"api.get_match({match_id=}, {language=})")
         response = await self.request("getmatchdetails", match_id)
         if not response:
             raise NotFound("Match")
@@ -459,10 +480,12 @@ class PaladinsAPI(DataCache):
         ids_list: List[int] = list(OrderedDict.fromkeys(match_ids))  # remove duplicates
         if not ids_list:
             return []
+        assert all(isinstance(match_id, int) for match_id in ids_list)
         if language is None:
             language = self._default_language
         # ensure we have champion information first
         await self._ensure_entry(language)
+        logger.info(f"api.get_matches(match_ids=[{', '.join(map(str, ids_list))}], {language=})")
         matches: List[Match] = []
         for chunk_ids in chunk(ids_list, 10):  # chunk the IDs into groups of 10
             response = await self.request("getmatchdetailsbatch", ','.join(map(str, chunk_ids)))
@@ -540,6 +563,9 @@ class PaladinsAPI(DataCache):
             language = self._default_language
         # ensure we have champion information first
         await self._ensure_entry(language)
+        logger.info(
+            f"api.get_matches_for_queue({queue=}, {language=}, {start=}, {end=}, {reverse=})"
+        )
 
         # Generates API-valid series of date and hour parameters
         def date_gen(start, end, *, reverse=False):
