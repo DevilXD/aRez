@@ -336,6 +336,12 @@ class Player(PartialPlayer):
         where the platform allows nicknames (Steam profiles).
     title : str
         The player's currently equipped title.
+    avatar_id : int
+        The player's curremtly equipped avatar ID.
+    avatar_url : str
+        The player's currently equipped avatar URL.
+    loading_frame : str
+        The player's currently equipped loading frame name.
     level : int
         The in-game level of this profile.
     playtime : Duration
@@ -384,6 +390,9 @@ class Player(PartialPlayer):
         self.last_login = convert_timestamp(player_data["Last_Login_Datetime"])
         self.level: int = player_data["Level"]
         self.title: str = player_data["Title"]
+        self.avatar_id: int = player_data["AvatarId"]
+        self.avatar_url: str = player_data["AvatarURL"]
+        self.loading_frame: str = player_data["LoadingFrame"]
         self.playtime = Duration(hours=player_data["HoursPlayed"])
         self.champion_count: int = player_data["MasteryLevel"]
         self.region = Region(player_data["Region"], return_default=True)
