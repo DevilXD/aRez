@@ -186,13 +186,17 @@ class Endpoint:
                 else:
                     logger.warning("Connection problems, retrying...")
                 # pass and retry on the next loop
+            # When '.raise_for_status()' generates this one, just wrap it and raise
+            except aiohttp.ClientResponseError as exc:
+                logger.exception("Got a response error")
+                raise HTTPException(exc)
             # For the case where 'createsession' raises it recursively,
             # or the Hi-Rez API is down - just pass it along
             except (Unauthorized, Unavailable) as exc:
                 if isinstance(exc, Unauthorized):
-                    logger.error("Got Unauthorized")
+                    logger.error("You are Unauthorized")
                 elif isinstance(exc, Unavailable):
-                    logger.warning("Got Unavailable")
+                    logger.warning("Hi-Rez API is Unavailable")
                 raise
             # Some other exception happened, so just wrap it and propagate along
             except Exception as exc:
