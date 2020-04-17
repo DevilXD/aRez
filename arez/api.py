@@ -418,7 +418,9 @@ class PaladinsAPI(DataCache):
             self, id=p["player_id"], platform=p["portal_id"], private=p["privacy_flag"] == 'y'
         )
 
-    async def get_match(self, match_id: int, language: Optional[Language] = None) -> Match:
+    async def get_match(
+        self, match_id: int, language: Optional[Language] = None, *, expand_players: bool = False
+    ) -> Match:
         """
         Fetches a match for the given Match ID.
 
@@ -431,6 +433,11 @@ class PaladinsAPI(DataCache):
         language : Optional[Language]
             The `Language` you want to fetch the information in.\n
             Default language is used if not provided.
+        expand_players : bool
+            When set to `True`, partial player objects in the returned match object will
+            automatically be expanded into full `Player` objects, if possible.\n
+            Uses an addtional request to do the expansion.\n
+            Defaults to `False`.
 
         Returns
         -------
@@ -452,10 +459,18 @@ class PaladinsAPI(DataCache):
         response = await self.request("getmatchdetails", match_id)
         if not response:
             raise NotFound("Match")
-        return Match(self, language, response)
+        players: Dict[int, Player] = {}
+        if expand_players:
+            players_list = await self.get_players((int(p["playerId"]) for p in response))
+            players = {p.id: p for p in players_list}
+        return Match(self, language, response, players)
 
     async def get_matches(
-        self, match_ids: Iterable[int], language: Optional[Language] = None
+        self,
+        match_ids: Iterable[int],
+        language: Optional[Language] = None,
+        *,
+        expand_players: bool = False,
     ) -> List[Match]:
         """
         Fetches multiple matches in a batch, for the given Match IDs. Removes duplicates.
@@ -469,6 +484,11 @@ class PaladinsAPI(DataCache):
         language : Optional[Language]
             The `Language` you want to fetch the information in.\n
             Default language is used if not provided.
+        expand_players : bool
+            When set to `True`, partial player objects in the returned match objects will
+            automatically be expanded into full `Player` objects, if possible.\n
+            Uses an addtional request for every 2 matches returned, to do the expansion.\n
+            Defaults to `False`.
 
         Returns
         -------
@@ -487,13 +507,20 @@ class PaladinsAPI(DataCache):
         await self._ensure_entry(language)
         logger.info(f"api.get_matches(match_ids=[{', '.join(map(str, ids_list))}], {language=})")
         matches: List[Match] = []
+        players: Dict[int, Player] = {}
         for chunk_ids in chunk(ids_list, 10):  # chunk the IDs into groups of 10
             response = await self.request("getmatchdetailsbatch", ','.join(map(str, chunk_ids)))
             bunched_matches: Dict[int, list] = defaultdict(list)
             for p in response:
                 bunched_matches[p["Match"]].append(p)
+            if expand_players:
+                players_list = await self.get_players(
+                    (int(p["playerId"]) for p in response if int(p["playerId"]) not in players)
+                )
+                players.update({p.id: p for p in players_list})
             chunked_matches: List[Match] = [
-                Match(self, language, match_list) for match_list in bunched_matches.values()
+                Match(self, language, match_list, players)
+                for match_list in bunched_matches.values()
             ]
             matches.extend(chunked_matches)
         return matches
@@ -505,7 +532,8 @@ class PaladinsAPI(DataCache):
         *,
         start: datetime,
         end: datetime,
-        reverse: bool = False
+        reverse: bool = False,
+        expand_players: bool = False,
     ) -> AsyncGenerator[Match, None]:
         """
         Creates an async generator that lets you iterate over all matches played
@@ -534,6 +562,11 @@ class PaladinsAPI(DataCache):
         reverse : bool
             Reverses the order of the matches being returned.\n
             Defaults to `False`.
+        expand_players : bool
+            When set to `True`, partial player objects in the returned match object will
+            automatically be expanded into full `Player` objects, if possible.\n
+            Uses an addtional request to do the expansion.\n
+            Defaults to `False`.
 
         Returns
         -------
@@ -546,6 +579,7 @@ class PaladinsAPI(DataCache):
         assert isinstance(start, datetime)
         assert isinstance(end, datetime)
         assert isinstance(reverse, bool)
+        assert isinstance(expand_players, bool)
         # normalize and floor start and end to 10 minutes step resolution
         start = start.replace(minute=(
             start.minute // 10 * 10
@@ -609,6 +643,7 @@ class PaladinsAPI(DataCache):
                         start += ten_minutes
 
         # Use the generated date and hour values to iterate over and fetch matches
+        players: Dict[int, Player] = {}
         for date, hour in date_gen(start, end, reverse=reverse):
             response = await self.request("getmatchidsbyqueue", queue.value, date, hour)
             if reverse:
@@ -626,8 +661,14 @@ class PaladinsAPI(DataCache):
                 bunched_matches: Dict[int, list] = defaultdict(list)
                 for p in response:
                     bunched_matches[p["Match"]].append(p)
+                if expand_players:
+                    players_list = await self.get_players(
+                        (int(p["playerId"]) for p in response if int(p["playerId"]) not in players)
+                    )
+                    players.update({p.id: p for p in players_list})
                 chunked_matches = [
-                    Match(self, language, match_list) for match_list in bunched_matches.values()
+                    Match(self, language, match_list, players)
+                    for match_list in bunched_matches.values()
                 ]
                 chunked_matches.sort(key=lambda m: chunk_ids.index(m.id))
                 for match in chunked_matches:

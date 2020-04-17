@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from itertools import count
-from typing import Optional, Union, List, Dict, Generator, TYPE_CHECKING
+from typing import Any, Optional, Union, List, Dict, Generator, TYPE_CHECKING
 
 from .exceptions import NotFound
 from .enumerations import Queue, Language, Region, Rank
@@ -119,7 +119,7 @@ class PartialMatch(MatchPlayerMixin, MatchMixin, Expandable):
         response = await self._api.request("getmatchdetails", self.id)
         if not response:
             raise NotFound("Match")
-        return Match(self._api, self._language, response)
+        return Match(self._api, self._language, response, {})
 
     def __repr__(self) -> str:
         champion_name = self.champion.name if self.champion is not None else "Unknown"
@@ -201,14 +201,24 @@ class MatchPlayer(MatchPlayerMixin):
         A number denoting the party the player belonged to.\n
         ``0`` means the player wasn't in a party.
     """
-    def __init__(self, api: "PaladinsAPI", language: Language, player_data: dict, parties: dict):
-        from .player import PartialPlayer  # noqa, cyclic imports
-        player = PartialPlayer(
-            api,
-            id=player_data["playerId"],
-            name=player_data["playerName"],
-            platform=player_data["playerPortalId"],
-        )
+    def __init__(
+        self,
+        api: "PaladinsAPI",
+        language: Language,
+        player_data: Dict[str, Any],
+        parties: Dict[int, int],
+        players: Dict[int, Player],
+    ):
+        player = players.get(int(player_data["playerId"]))
+        if player is None:
+            # if no full player was found
+            from .player import PartialPlayer  # noqa, cyclic imports
+            player = PartialPlayer(
+                api,
+                id=player_data["playerId"],
+                name=player_data["playerName"],
+                platform=player_data["playerPortalId"],
+            )
         super().__init__(player, language, player_data)
         self.points_captured: int = player_data["Kills_Gold_Fury"]
         self.push_successes: int = player_data["Kills_Fire_Giant"]
@@ -271,7 +281,13 @@ class Match(APIClient, MatchMixin):
     players : Generator[MatchPlayer]
         A generator that iterates over all match players in the match.
     """
-    def __init__(self, api: "PaladinsAPI", language: Language, match_data: List[dict]):
+    def __init__(
+        self,
+        api: "PaladinsAPI",
+        language: Language,
+        match_data: List[Dict[str, Any]],
+        players: Dict[int, Player],
+    ):
         APIClient.__init__(self, api)
         first_player = match_data[0]
         MatchMixin.__init__(self, first_player)
@@ -285,11 +301,13 @@ class Match(APIClient, MatchMixin):
             ban_champ = self._api.get_champion(ban_id, language)
             if ban_champ:  # TODO: Use the walrus operator here
                 self.bans.append(ban_champ)
+        self.team1: List[MatchPlayer] = []
+        self.team2: List[MatchPlayer] = []
+        # We need to do this here because apparently one-man parties are a thing
         party_count = count(1)
         parties: Dict[int, int] = {}
-        # We need to do this here because apparently one-man parties are a thing
-        for p in match_data:
-            pid = p["PartyId"]
+        for player_data in match_data:
+            pid = player_data["PartyId"]
             if not pid:
                 # skip 0s
                 continue
@@ -299,14 +317,12 @@ class Match(APIClient, MatchMixin):
             elif parties[pid] == 0:
                 # we've seen this one, and it doesn't have a number assigned - assign one
                 parties[pid] = next(party_count)
-        self.team1: List[MatchPlayer] = []
-        self.team2: List[MatchPlayer] = []
-        for p in match_data:
-            getattr(
-                self, "team{}".format(p["TaskForce"])
-            ).append(
-                MatchPlayer(self._api, language, p, parties)
-            )
+            match_player = MatchPlayer(self._api, language, player_data, parties, players)
+            team_number = player_data['TaskForce']
+            if team_number == 1:
+                self.team1.append(match_player)
+            elif team_number == 2:
+                self.team2.append(match_player)
         logger.debug(f"Match(id={self.id}) -> created")
 
     @property
@@ -319,6 +335,24 @@ class Match(APIClient, MatchMixin):
     def __repr__(self) -> str:
         return "{0.queue.name}({0.id}): {0.score}".format(self)
 
+    async def expand_players(self):
+        """
+        Makes partial player objects in the containing match player objects be expanded into
+        full `Player` objects, if possible.
+
+        Uses up a single request to do the expansion.
+        """
+        players = await self._api.get_players((p.player.id for p in self.players))
+        players = {p.id: p for p in players}
+        for mp in self.players:
+            pid = mp.player.id
+            if not pid:
+                # skip 0s
+                continue
+            p = players.get(pid)
+            if p is not None:  # TODO: (maybe) use a walrus operator here
+                mp.player = p
+
 
 class LivePlayer(APIClient, WinLoseMixin):
     """
@@ -327,7 +361,7 @@ class LivePlayer(APIClient, WinLoseMixin):
 
     Attributes
     ----------
-    player : PartialPlayer
+    player : Union[PartialPlayer, Player]
         The actual player playing in this match.
     champion : Optional[Champion]
         The champion the player is using in this match.\n
@@ -343,17 +377,27 @@ class LivePlayer(APIClient, WinLoseMixin):
     losses : int
         The amount of losses.
     """
-    def __init__(self, api: "PaladinsAPI", language: Language, player_data: dict):
+    def __init__(
+        self,
+        api: "PaladinsAPI",
+        language: Language,
+        player_data: Dict[str, Any],
+        players: Dict[int, Player],
+    ):
         APIClient.__init__(self, api)
         WinLoseMixin.__init__(
             self,
             wins=player_data["tierWins"],
             losses=player_data["tierLosses"],
         )
-        from .player import PartialPlayer  # noqa, cyclic imports
-        self.player = PartialPlayer(
-            api, id=player_data["playerId"], name=player_data["playerName"]
-        )
+        player = players.get(int(player_data["playerId"]))
+        if player is None:
+            # if no full player was found
+            from .player import PartialPlayer  # noqa, cyclic imports
+            player = PartialPlayer(
+                api, id=player_data["playerId"], name=player_data["playerName"]
+            )
+        self.player = player
         self.champion: Optional[Champion] = self._api.get_champion(
             player_data["ChampionId"], language
         )
@@ -391,7 +435,13 @@ class LiveMatch(APIClient):
     players : Generator[LivePlayer]
         A generator that iterates over all live match players in the match.
     """
-    def __init__(self, api: "PaladinsAPI", language: Language, match_data: List[dict]):
+    def __init__(
+        self,
+        api: "PaladinsAPI",
+        language: Language,
+        match_data: List[dict],
+        players: Dict[int, Player],
+    ):
         super().__init__(api)
         first_player = match_data[0]
         self.id: int = first_player["Match"]
@@ -414,3 +464,21 @@ class LiveMatch(APIClient):
             yield p
         for p in self.team2:
             yield p
+
+    async def expand_players(self):
+        """
+        Makes partial player objects in the containing match player objects be expanded into
+        full `Player` objects, if possible.
+
+        Uses up a single request to do the expansion.
+        """
+        players = await self._api.get_players((p.player.id for p in self.players))
+        players = {p.id: p for p in players}
+        for mp in self.players:
+            pid = mp.player.id
+            if not pid:
+                # skip 0s
+                continue
+            p = players.get(pid)
+            if p is not None:  # TODO: (maybe) use a walrus operator here
+                mp.player = p
