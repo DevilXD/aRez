@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from itertools import count
-from typing import Optional, Union, List, Dict, Set, Generator, TYPE_CHECKING
+from typing import Optional, Union, List, Dict, Generator, TYPE_CHECKING
 
 from .exceptions import NotFound
 from .enumerations import Queue, Language, Region, Rank
@@ -287,17 +287,16 @@ class Match(APIClient, MatchMixin):
                 self.bans.append(ban_champ)
         party_count = count(1)
         parties: Dict[int, int] = {}
-        party_seen: Set[int] = set()
         # We need to do this here because apparently one-man parties are a thing
         for p in match_data:
             pid = p["PartyId"]
             if not pid:
                 # skip 0s
                 continue
-            if pid not in party_seen:
-                # haven't seen this one yet, make a note of it
-                party_seen.add(pid)
-            elif pid not in parties:
+            if pid not in parties:
+                # haven't seen this one yet, assign zero
+                parties[pid] = 0
+            elif parties[pid] == 0:
                 # we've seen this one, and it doesn't have a number assigned - assign one
                 parties[pid] = next(party_count)
         self.team1: List[MatchPlayer] = []
