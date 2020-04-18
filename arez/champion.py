@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 def _card_ability_sort(card: "Device") -> str:
     ability = card.ability
     if ability is None or isinstance(ability, str):
-        return "z{}".format(ability)  # push the card to the very end
+        return f"z{ability}"  # push the card to the very end
     return ability.name
 
 
@@ -51,7 +51,7 @@ class Ability:
         self.icon_url: str = ability_data["URL"]
 
     def __repr__(self) -> str:
-        return "{0.__class__.__name__}: {0.name}({0.id})".format(self)
+        return f"{self.__class__.__name__}: {self.name}({self.id})"
 
 
 class Champion:
@@ -118,7 +118,7 @@ class Champion:
 
         # Abilities
         self.abilities: Lookup[Ability] = Lookup(
-            Ability(self, champion_data["Ability_{}".format(i)])
+            Ability(self, champion_data[f"Ability_{i}"])
             for i in range(1, 6)
         )
 
@@ -142,7 +142,7 @@ class Champion:
         return self.id == other.id
 
     def __repr__(self) -> str:
-        return "{0.__class__.__name__}: {0.name}({0.id})".format(self)
+        return f"{self.__class__.__name__}: {self.name}({self.id})"
 
     def __bool__(self) -> bool:
         return len(self.cards) == 16 and len(self.talents) == 3

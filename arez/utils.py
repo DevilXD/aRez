@@ -113,7 +113,7 @@ class Lookup(Iterable[LookupType]):
             self._fuzzy_lookup[e.name.lower()] = e
 
     def __repr__(self) -> str:
-        return "{}({})".format(self.__class__.__name__, self._list_lookup.__repr__())
+        return f"{self.__class__.__name__}({self._list_lookup.__repr__()})"
 
     def __len__(self) -> int:
         """
@@ -322,23 +322,23 @@ class Duration:
             args.append(("seconds", self._hours * 3600 + self._minutes * 60 + self._seconds))
         if self._microseconds:
             args.append(("microseconds", self._microseconds))
-        return "Duration({})".format(", ".join("{}={}".format(*a) for a in args))
+        return f"Duration({', '.join(f'{unit}={amount}' for unit, amount in args)})"
 
     def __str__(self) -> str:
         if self._days:
             s = 's' if abs(self._days) > 1 else ''
-            days = "{} day{}, ".format(self._days, s)
+            days = f"{self._days} day{s}, "
         else:
             days = ''
         if self._hours:
-            hours = "{}:".format(self._hours)
+            hours = f"{self._hours}:"
         else:
             hours = ''
         if self._microseconds:
-            ms = ".{:06}".format(self._microseconds)
+            ms = f".{self._microseconds:06}"
         else:
             ms = ''
-        return "{}{}{:02}:{:02}{}".format(days, hours, self._minutes, self._seconds, ms)
+        return f"{days}{hours}{self._minutes:02}:{self._seconds:02}{ms}"
 
     def _get_delta(self, other) -> timedelta:
         if isinstance(other, type(self)):

@@ -55,7 +55,7 @@ class EnumValue:
         return self._value
 
     def __repr__(self) -> str:
-        return "<{0.name}: {0.value}>".format(self)
+        return f"<{self.name}: {self.value}>"
 
     # Show only the most relevant bits in VSCode
     def __dir__(self) -> List[str]:
@@ -187,9 +187,9 @@ class RankMeta(EnumMeta):
                 continue
             name, _, level = k.partition('_')
             level_int = roman_numerals[level]  # change the roman number to int
-            more_aliases["{}_{}".format(name, level_int)] = v  # roman replaced with integer
-            more_aliases["{} {}".format(name, level_int)] = v  # same but with a space
-            more_aliases["{}{}".format(name, level_int)] = v  # no delimiter
+            more_aliases[f"{name}_{level_int}"] = v  # roman replaced with integer
+            more_aliases[f"{name} {level_int}"] = v  # same but with a space
+            more_aliases[f"{name}{level_int}"] = v  # no delimiter
         # add the aliases
         new_cls._name_mapping.update(more_aliases)
         return new_cls

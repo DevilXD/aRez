@@ -38,9 +38,10 @@ class Status:
 
     def __repr__(self) -> str:
         up = "Up" if self.up else "Down"
+        la_text = ''
         if self.limited_access:
-            return "{0.__class__.__name__}({0.platform}: {1}, Limited Access)".format(self, up)
-        return "{0.__class__.__name__}({0.platform}: {1})".format(self, up)
+            la_text = ", Limited Access"
+        return f"{self.__class__.__name__}({self.platform}: {up}{la_text})"
 
 
 class ServerStatus:
@@ -95,9 +96,10 @@ class ServerStatus:
 
     def __repr__(self) -> str:
         status = "All Up" if self.all_up else "Partially Down"
+        la_text = ''
         if self.limited_access:
-            return "{0.__class__.__name__}({1}, Limited Access)".format(self, status)
-        return "{0.__class__.__name__}({1})".format(self, status)
+            la_text = ", Limited Access"
+        return f"{self.__class__.__name__}({status}{la_text})"
 
 
 class PlayerStatus(APIClient):
@@ -127,7 +129,7 @@ class PlayerStatus(APIClient):
         self.status = Activity(status_data["status"])
 
     def __repr__(self) -> str:
-        return "{0.player.name}({0.player.id}): {0.status.name}".format(self)
+        return f"{self.player.name}({self.player.id}): {self.status.name}"
 
     async def get_live_match(self, language: Optional[Language] = None) -> Optional[LiveMatch]:
         """

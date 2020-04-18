@@ -611,7 +611,7 @@ class PaladinsAPI(DataCache):
                     closest_hour = end.replace(minute=0)
                     while end > closest_hour and end > start:
                         end -= ten_minutes
-                        yield (end.strftime("%Y%m%d"), "{},{:02}".format(end.hour, end.minute))
+                        yield (end.strftime("%Y%m%d"), f"{end.hour},{end.minute:02}")
                 # round up to the nearest hour
                 closest_hour = start.replace(minute=0) + timedelta(hours=1)
                 while end > closest_hour and end > start:
@@ -620,14 +620,14 @@ class PaladinsAPI(DataCache):
                 if start.minute > 0:
                     while end > start:
                         end -= ten_minutes
-                        yield (end.strftime("%Y%m%d"), "{},{:02}".format(end.hour, end.minute))
+                        yield (end.strftime("%Y%m%d"), f"{end.hour},{end.minute:02}")
             else:
                 if start.minute > 0:
                     # round up to the nearest hour
                     closest_hour = start.replace(minute=0) + timedelta(hours=1)
                     while start < closest_hour and start < end:
                         yield (
-                            start.strftime("%Y%m%d"), "{},{:02}".format(start.hour, start.minute)
+                            start.strftime("%Y%m%d"), f"{start.hour},{start.minute:02}"
                         )
                         start += ten_minutes
                 # round down to the nearest hour
@@ -638,7 +638,7 @@ class PaladinsAPI(DataCache):
                 if end.minute > 0:
                     while start < end:
                         yield (
-                            start.strftime("%Y%m%d"), "{},{:02}".format(start.hour, start.minute)
+                            start.strftime("%Y%m%d"), f"{start.hour},{start.minute:02}"
                         )
                         start += ten_minutes
 

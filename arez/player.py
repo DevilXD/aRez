@@ -88,9 +88,8 @@ class PartialPlayer(APIClient, Expandable):
         assert isinstance(other, self.__class__)
         return self._id != 0 and other.id != 0 and self._id == other.id
 
-    def __repr__(self):
-        platform = self.platform.name if self.platform else None
-        return "{0.__class__.__name__}: {0.name}({0.id} / {1})".format(self, platform)
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}: {self.name}({self.id} / {self.platform.name})"
 
     @property
     def id(self) -> int:

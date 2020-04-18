@@ -91,7 +91,7 @@ class WinLoseMixin:
 
         :type: str
         """
-        return "{}%".format(round(self.winrate * 100, 3)) if self.matches_played > 0 else "N/A"
+        return f"{round(self.winrate * 100, 3)}%" if self.matches_played > 0 else "N/A"
 
 
 class KDAMixin:
@@ -154,7 +154,7 @@ class KDAMixin:
 
         :type: str
         """
-        return "{0.kills}/{0.deaths}/{0.assists}".format(self)
+        return f"{self.kills}/{self.deaths}/{self.assists}"
 
 
 class MatchMixin:
@@ -194,8 +194,8 @@ class MatchMixin:
             my_team = match_data["TaskForce"]
             other_team = 1 if my_team == 2 else 2
             score = (
-                match_data["Team{}Score".format(my_team)],
-                match_data["Team{}Score".format(other_team)],
+                match_data[f"Team{my_team}Score"],
+                match_data[f"Team{other_team}Score"],
             )
         self.queue = Queue(queue, return_default=True)
         self.region = Region(match_data["Region"], return_default=True)
@@ -292,17 +292,17 @@ class MatchPlayerMixin(APIClient, KDAMixin):
         self.multikill_max: int = match_data["Multi_kill_Max"]
         # self.skin  # TODO: Ask for this to be added/fixed properly
         self.team_number: Literal[1, 2] = match_data["TaskForce"]
-        self.team_score: int = match_data["Team{}Score".format(self.team_number)]
+        self.team_score: int = match_data[f"Team{self.team_number}Score"]
         self.winner: bool = self.team_number == match_data["Winning_TaskForce"]
 
         from .items import MatchLoadout, MatchItem  # cyclic imports
         self.items: List[MatchItem] = []
         for i in range(1, 5):
-            item_id = match_data["ActiveId{}".format(i)]
+            item_id = match_data[f"ActiveId{i}"]
             if not item_id:
                 continue
             item = self._api.get_item(item_id, language)
-            level = match_data["ActiveLevel{}".format(i)] // 4 + 1
+            level = match_data[f"ActiveLevel{i}"] // 4 + 1
             self.items.append(MatchItem(item, level))
         self.loadout = MatchLoadout(self._api, language, match_data)
 

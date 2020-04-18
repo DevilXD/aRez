@@ -27,7 +27,7 @@ class HTTPException(ArezException):
     """
     def __init__(self, original_exc: Optional[Exception] = None):
         super().__init__(
-            "There was an error while processing the request: {!r}".format(original_exc)
+            f"There was an error while processing the request: {original_exc!r}"
         )
         self.cause = original_exc
 
@@ -50,7 +50,7 @@ class NotFound(ArezException):
     Inherits from `ArezException`.
     """
     def __init__(self, name: str = "Data"):
-        super().__init__("{} not found!".format(name))
+        super().__init__(f"{name} not found!")
 
 
 class Unauthorized(ArezException):

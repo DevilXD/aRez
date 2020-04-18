@@ -96,7 +96,7 @@ class Device:
         return self.id == other.id
 
     def __repr__(self) -> str:
-        return "{0.type.name}: {0.name}".format(self)
+        return f"{self.type.name}: {self.name}"
 
     def _attach_champion(self, champion: "Champion"):
         self.champion = champion
@@ -125,7 +125,7 @@ class LoadoutCard:
 
     def __repr__(self) -> str:
         card_name = self.card.name if self.card else "Unknown"
-        return "{1}: {0.points}".format(self, card_name)
+        return f"{card_name}: {self.points}"
 
 
 class Loadout(APIClient):
@@ -167,7 +167,7 @@ class Loadout(APIClient):
 
     def __repr__(self) -> str:
         champion_name = self.champion.name if self.champion is not None else "Unknown"
-        return "{1}: {0.name}".format(self, champion_name)
+        return f"{champion_name}: {self.name}"
 
 
 class MatchItem:
@@ -188,7 +188,7 @@ class MatchItem:
 
     def __repr__(self) -> str:
         item_name = self.item.name if self.item else "Unknown"
-        return "{1}: {0.level}".format(self, item_name)
+        return f"{item_name}: {self.level}"
 
 
 class MatchLoadout:
@@ -207,13 +207,13 @@ class MatchLoadout:
     def __init__(self, api, language: Language, match_data: dict):
         self.cards = []
         for i in range(1, 6):
-            card_id = match_data["ItemId{}".format(i)]
+            card_id = match_data[f"ItemId{i}"]
             if not card_id:
                 continue
             self.cards.append(
                 LoadoutCard(
                     api.get_card(card_id, language),
-                    match_data["ItemLevel{}".format(i)]
+                    match_data[f"ItemLevel{i}"]
                 )
             )
         self.cards.sort(key=lambda c: c.points, reverse=True)
@@ -222,7 +222,7 @@ class MatchLoadout:
     def __repr__(self) -> str:
         if self.cards:
             talent_name = self.talent.name if self.talent else "Unknown"
-            return "{}: {}/{}/{}/{}/{}".format(talent_name, *(c.points for c in self.cards))
+            return f"{talent_name}: {'/'.join(str(c.points) for c in self.cards)}"
         else:
             # This can happen if the player haven't picked a talent / loadout during the match
             return "No Loadout"

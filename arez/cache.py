@@ -91,7 +91,7 @@ class DataCache(Endpoint):
     ) -> Optional[CacheEntry]:
         # Use a lock here to ensure no race condition between checking for an entry
         # and setting a new one. Use separate locks per each language.
-        async with self._locks["cache_fetch_{}".format(language.name)]:
+        async with self._locks[f"cache_fetch_{language.name}"]:
             now = datetime.utcnow()
             entry = self._cache.get(language)
             if entry is None or now >= entry._expires_at or force_refresh:

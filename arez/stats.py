@@ -32,7 +32,7 @@ class Stats(WinLoseMixin):
         self.leaves = stats_data["Leaves"]
 
     def __repr__(self) -> str:
-        return "{0.__class__.__name__}: {0.wins}/{0.losses} ({0.winrate_text})".format(self)
+        return f"{self.__class__.__name__}: {self.wins}/{self.losses} ({self.winrate_text})"
 
 
 class RankedStats(Stats):
@@ -128,4 +128,4 @@ class ChampionStats(WinLoseMixin, KDAMixin):
 
     def __repr__(self) -> str:
         champion_name = self.champion.name if self.champion is not None else "Unknown"
-        return "{1}({0.level}): ({0.wins}/{0.losses}) {0.kda_text}".format(self, champion_name)
+        return f"{champion_name}({self.level}): ({self.wins}/{self.losses}) {self.kda_text}"

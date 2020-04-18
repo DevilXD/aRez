@@ -117,7 +117,7 @@ class Endpoint:
 
         for tries in range(5):
             try:
-                req_stack = [self.url, "{}json".format(method_name)]
+                req_stack = [self.url, f"{method_name}json"]
                 if method_name == "createsession":
                     timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
                     req_stack.extend(

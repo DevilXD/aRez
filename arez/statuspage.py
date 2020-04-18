@@ -54,7 +54,7 @@ class _NameBase(_Base):
         self.name: str = base_data["name"]
 
     def __repr__(self) -> str:
-        return "{0.__class__.__name__}: {0.name}".format(self)
+        return f"{self.__class__.__name__}: {self.name}"
 
     @property
     def colour(self) -> int:
@@ -120,7 +120,7 @@ class Update(_Base):
         self.status: str = _convert_title(upd_data["status"])
 
     def __repr__(self) -> str:
-        return "{0.status}: {0.description}".format(self)
+        return f"{self.status}: {self.description}"
 
 
 class Incident(_BaseEvent):
@@ -426,7 +426,7 @@ class CurrentStatus:
 
 class StatusPage:
     def __init__(self, url: str):
-        self.url = "{}/api/v2".format(url.rstrip('/'))
+        self.url = f"{url.rstrip('/')}/api/v2"
         self._session = aiohttp.ClientSession(raise_for_status=True)
 
     def __del__(self):
@@ -443,7 +443,7 @@ class StatusPage:
         await self._session.close()
 
     async def request(self, endpoint: str):
-        route = "{}/{}".format(self.url, endpoint)
+        route = f"{self.url}/{endpoint}"
         async with self._session.get(route) as response:
             return await response.json()
 

@@ -123,7 +123,7 @@ class PartialMatch(MatchPlayerMixin, MatchMixin, Expandable):
 
     def __repr__(self) -> str:
         champion_name = self.champion.name if self.champion is not None else "Unknown"
-        return "{0.queue.name}: {1}: {0.kda_text}".format(self, champion_name)
+        return f"{self.queue.name}: {champion_name}: {self.kda_text}"
 
     @property
     def disconnected(self) -> bool:
@@ -239,8 +239,9 @@ class MatchPlayer(MatchPlayerMixin):
 
     def __repr__(self) -> str:
         player_name = self.player.name if self.player.id else "Unknown"
-        return "{1}({0.player.id}): ({0.kda_text}, {0.damage_done}, {0.healing_done})".format(
-            self, player_name
+        return (
+            f"{player_name}({self.player.id}): "
+            f"({self.kda_text}, {self.damage_done}, {self.healing_done})"
         )
 
 
@@ -295,7 +296,7 @@ class Match(APIClient, MatchMixin):
         self.replay_available: bool = first_player["hasReplay"] == "y"
         self.bans: List[Champion] = []
         for i in range(1, 5):
-            ban_id = first_player["BanId{}".format(i)]
+            ban_id = first_player[f"BanId{i}"]
             if not ban_id:
                 continue
             ban_champ = self._api.get_champion(ban_id, language)
@@ -333,7 +334,7 @@ class Match(APIClient, MatchMixin):
             yield p
 
     def __repr__(self) -> str:
-        return "{0.queue.name}({0.id}): {0.score}".format(self)
+        return f"{self.queue.name}({self.id}): {self.score}"
 
     async def expand_players(self):
         """
@@ -408,8 +409,10 @@ class LivePlayer(APIClient, WinLoseMixin):
     def __repr__(self) -> str:
         player_name = self.player.name if self.player.id else "Unknown"
         champion_name = self.champion.name if self.champion is not None else "Unknown"
-        return "{1}({0.player.id}): {0.account_level} level: {2}({0.mastery_level})".format(
-            self, player_name, champion_name
+        return (
+            f"{player_name}({self.player.id}): "
+            f"{self.account_level} level: "
+            f"{champion_name}({self.mastery_level})"
         )
 
 
@@ -451,12 +454,14 @@ class LiveMatch(APIClient):
         self.team1: List[LivePlayer] = []
         self.team2: List[LivePlayer] = []
         for p in match_data:
-            getattr(self, "team{}".format(p["taskForce"])).append(
-                LivePlayer(self._api, language, p)
-            )
+            live_player = LivePlayer(self._api, language, p)
+            if p["taskForce"] == 1:
+                self.team1.append(live_player)
+            elif p["taskForce"] == 2:
+                self.team2.append(live_player)
 
     def __repr__(self) -> str:
-        return "{0.__class__.__name__}({0.queue.name}): {0.map_name}".format(self)
+        return f"{self.__class__.__name__}({self.queue.name}): {self.map_name}"
 
     @property
     def players(self) -> Generator[LivePlayer, None, None]:
