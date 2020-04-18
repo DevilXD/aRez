@@ -341,12 +341,11 @@ class Duration:
         return f"{days}{hours}{self._minutes:02}:{self._seconds:02}{ms}"
 
     def _get_delta(self, other) -> timedelta:
-        if isinstance(other, type(self)):
+        if isinstance(other, Duration):
             return other._delta
         elif isinstance(other, timedelta):
             return other
-        else:
-            return NotImplemented
+        return NotImplemented
 
     def __add__(self, other: Union[Duration, timedelta]) -> Duration:
         delta = self._get_delta(other)
