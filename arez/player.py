@@ -390,7 +390,10 @@ class Player(PartialPlayer):
         self.level: int = player_data["Level"]
         self.title: str = player_data["Title"]
         self.avatar_id: int = player_data["AvatarId"]
-        self.avatar_url: str = player_data["AvatarURL"]
+        self.avatar_url: str = (
+            player_data["AvatarURL"]
+            or "https://hirez-api-docs.herokuapp.com/paladins/avatar/0"  # patch null here
+        )
         self.loading_frame: str = player_data["LoadingFrame"]
         self.playtime = Duration(hours=player_data["HoursPlayed"])
         self.champion_count: int = player_data["MasteryLevel"]
