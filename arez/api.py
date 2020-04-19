@@ -455,7 +455,7 @@ class PaladinsAPI(DataCache):
             language = self._default_language
         # ensure we have champion information first
         await self._ensure_entry(language)
-        logger.info(f"api.get_match({match_id=}, {language=})")
+        logger.info(f"api.get_match({match_id=}, {language=}, {expand_players=})")
         response = await self.request("getmatchdetails", match_id)
         if not response:
             raise NotFound("Match")
@@ -505,7 +505,10 @@ class PaladinsAPI(DataCache):
             language = self._default_language
         # ensure we have champion information first
         await self._ensure_entry(language)
-        logger.info(f"api.get_matches(match_ids=[{', '.join(map(str, ids_list))}], {language=})")
+        logger.info(
+            f"api.get_matches(match_ids=[{', '.join(map(str, ids_list))}], "
+            f"{language=}, {expand_players=})"
+        )
         matches: List[Match] = []
         players: Dict[int, Player] = {}
         for chunk_ids in chunk(ids_list, 10):  # chunk the IDs into groups of 10
