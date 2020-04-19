@@ -453,11 +453,11 @@ class LiveMatch(APIClient):
         self.region = Region(first_player["playerRegion"], return_default=True)
         self.team1: List[LivePlayer] = []
         self.team2: List[LivePlayer] = []
-        for p in match_data:
-            live_player = LivePlayer(self._api, language, p)
-            if p["taskForce"] == 1:
+        for player_data in match_data:
+            live_player = LivePlayer(self._api, language, player_data, players)
+            if player_data["taskForce"] == 1:
                 self.team1.append(live_player)
-            elif p["taskForce"] == 2:
+            elif player_data["taskForce"] == 2:
                 self.team2.append(live_player)
 
     def __repr__(self) -> str:

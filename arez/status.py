@@ -131,7 +131,9 @@ class PlayerStatus(APIClient):
     def __repr__(self) -> str:
         return f"{self.player.name}({self.player.id}): {self.status.name}"
 
-    async def get_live_match(self, language: Optional[Language] = None) -> Optional[LiveMatch]:
+    async def get_live_match(
+        self, language: Optional[Language] = None, *, expand_players: bool = False
+    ) -> Optional[LiveMatch]:
         """
         Fetches a live match the player is currently in.
 
@@ -142,6 +144,11 @@ class PlayerStatus(APIClient):
         language : Language
             The language to fetch the match in.\n
             Default language is used if not provided.
+        expand_players : bool
+            When set to `True`, partial player objects in the returned match object will
+            automatically be expanded into full `Player` objects, if possible.\n
+            Uses an addtional request to do the expansion.\n
+            Defaults to `False`.
 
         Returns
         -------
@@ -150,14 +157,20 @@ class PlayerStatus(APIClient):
             `None` is returned if the player isn't in a live match,
             or the match is played in an unsupported queue (customs).
         """
-        if self.live_match_id:
-            if language is None:
-                language = self._api._default_language
-            # ensure we have champion information first
-            await self._api._ensure_entry(language)
-            response = await self.player._api.request("getmatchplayerdetails", self.live_match_id)
-            if response:
-                if response[0] and response[0]["ret_msg"]:
-                    return None
-                return LiveMatch(self._api, language, response)
-        return None
+        if not self.live_match_id:
+            # nothing to fetch
+            return None
+        if language is None:
+            language = self._api._default_language
+        # ensure we have champion information first
+        await self._api._ensure_entry(language)
+        response = await self.player._api.request("getmatchplayerdetails", self.live_match_id)
+        if not response:
+            return None
+        if response[0]["ret_msg"]:
+            # unsupported queue
+            return None
+        if expand_players:
+            players_list = await self._api.get_players((int(p["playerId"]) for p in response))
+            players = {p.id: p for p in players_list}
+        return LiveMatch(self._api, language, response, players)
