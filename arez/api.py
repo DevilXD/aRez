@@ -487,7 +487,7 @@ class PaladinsAPI(DataCache):
         expand_players : bool
             When set to `True`, partial player objects in the returned match objects will
             automatically be expanded into full `Player` objects, if possible.\n
-            Uses an addtional request for every 2 matches returned, to do the expansion.\n
+            Uses an addtional request for every 20 unique players to do the expansion.\n
             Defaults to `False`.
 
         Returns
@@ -533,6 +533,7 @@ class PaladinsAPI(DataCache):
         start: datetime,
         end: datetime,
         reverse: bool = False,
+        local_time: bool = False,
         expand_players: bool = False,
     ) -> AsyncGenerator[Match, None]:
         """
@@ -562,10 +563,16 @@ class PaladinsAPI(DataCache):
         reverse : bool
             Reverses the order of the matches being returned.\n
             Defaults to `False`.
+        local_time : bool
+            When set to `True`, the timestamps provided are assumed to represent the local system
+            time (in your local timezone), and will be converted to UTC before processing.\n
+            When set to `False`, the timestamps provided are assumed to already represent UTC and
+            no conversion will occur.\n
+            Defaults to `False`.
         expand_players : bool
             When set to `True`, partial player objects in the returned match object will
             automatically be expanded into full `Player` objects, if possible.\n
-            Uses an addtional request to do the expansion.\n
+            Uses an addtional request for every 20 unique players to do the expansion.\n
             Defaults to `False`.
 
         Returns
@@ -590,15 +597,17 @@ class PaladinsAPI(DataCache):
         if start >= end:
             # the time slice is too short - save on processing by quitting early
             return
-        # convert aware objects into UTC ones, matching server time
-        start = start.astimezone(timezone.utc)
-        end = end.astimezone(timezone.utc)
+        if local_time:
+            # assume local timezone, convert objects into UTC ones, matching server time
+            start = start.astimezone(timezone.utc)
+            end = end.astimezone(timezone.utc)
         if language is None:
             language = self._default_language
         # ensure we have champion information first
         await self._ensure_entry(language)
         logger.info(
-            f"api.get_matches_for_queue({queue=}, {language=}, {start=}, {end=}, {reverse=})"
+            f"api.get_matches_for_queue({queue=}, {language=}, {start=} UTC, {end=} UTC, "
+            f"{reverse=}, {local_time=}, {expand_players=})"
         )
 
         # Generates API-valid series of date and hour parameters
