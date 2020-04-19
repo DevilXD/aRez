@@ -398,7 +398,7 @@ class LivePlayer(APIClient, WinLoseMixin):
             player = PartialPlayer(
                 api, id=player_data["playerId"], name=player_data["playerName"]
             )
-        self.player = player
+        self.player: Union[PartialPlayer, Player] = player
         self.champion: Optional[Champion] = self._api.get_champion(
             player_data["ChampionId"], language
         )
