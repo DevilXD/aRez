@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, Union, List, Literal, TYPE_CHECKING
+from typing import Optional, Union, List, Dict, Literal, TYPE_CHECKING
 
 from .match import LiveMatch
 from .mixins import APIClient
@@ -170,6 +170,7 @@ class PlayerStatus(APIClient):
         if response[0]["ret_msg"]:
             # unsupported queue
             return None
+        players: Dict[int, Player] = {}
         if expand_players:
             players_list = await self._api.get_players((int(p["playerId"]) for p in response))
             players = {p.id: p for p in players_list}
