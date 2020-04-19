@@ -3,7 +3,7 @@
 import operator
 from enum import IntEnum
 from functools import partialmethod
-from typing import Any, Optional, Union, List, Dict, Tuple, TYPE_CHECKING
+from typing import Any, Optional, Union, List, Dict, Tuple, Callable, cast, TYPE_CHECKING
 
 __all__ = [
     'Rank',
@@ -81,8 +81,8 @@ class EnumValue:
         except AttributeError:
             return False
 
-    __eq__ = partialmethod(_cmp, operator.eq)  # type: ignore
-    __ne__ = partialmethod(_cmp, operator.ne)  # type: ignore
+    __eq__ = cast(Callable[[object, object], bool], partialmethod(_cmp, operator.eq))
+    __ne__ = cast(Callable[[object, object], bool], partialmethod(_cmp, operator.ne))
     __lt__ = partialmethod(_cmp, operator.lt)
     __gt__ = partialmethod(_cmp, operator.gt)
     __le__ = partialmethod(_cmp, operator.le)
