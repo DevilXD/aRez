@@ -91,7 +91,7 @@ class WinLoseMixin:
 
         :type: str
         """
-        return f"{round(self.winrate * 100, 3)}%" if self.matches_played > 0 else "N/A"
+        return f"{self.winrate:.3%}" if self.matches_played > 0 else "N/A"
 
 
 class KDAMixin:
