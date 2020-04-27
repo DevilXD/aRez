@@ -28,6 +28,12 @@ class DataCache(Endpoint):
         You can request your developer ID and authorization key `here.
         <https://fs12.formsite.com/HiRez/form48/secure_index.html>`_
 
+    .. warning::
+
+        The main API class uses this class as base, so all of it's methods are already available
+        there. This class is listed here solely for documentation purposes.
+        Instanting it yourself is possible, but not recommended.
+
     Parameters
     ----------
     url : str
