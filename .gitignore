@@ -5,13 +5,13 @@
 # exclude the testing file
 /tests.py
 # exclude Python's cache files
-__pycache__/
+__pycache__
 # exclude built docs
 /docs/_build
 # exclude distribution and packaging stuff
-build/
-dist/
-*.egg-info/
+build
+dist
+*.egg-info
 # include the example and setup files
 !/example.py
 !/setup.py
@@ -20,5 +20,10 @@ dist/
 # VSCode stuff #
 ################
 
-# exclude the MyPy cache
+# exclude MyPy cache
 .mypy_cache
+# exclude Pytest cache
+.pytest_cache
+# exclude api creds and cassettes test files
+/tests/secret.py
+/tests/cassettes
