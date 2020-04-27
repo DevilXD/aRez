@@ -145,8 +145,10 @@ class PartialPlayer(APIClient, Expandable):
             `False` otherwise.
         """
         return (
-            bool(self._name)  # name isn't an empty string
-            and self._id != 0  # ID isn't 0 / private account
+            # name isn't an empty string and has correct length (>3)
+            len(self._name) > 3
+            # ID isn't 0 / private account
+            and self._id != 0
             # platform is one of the PC ones
             and self._platform in (Platform.PC, Platform.Steam, Platform.Discord)
         )
