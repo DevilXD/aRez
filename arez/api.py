@@ -5,7 +5,7 @@ import asyncio
 import logging
 from collections import defaultdict, OrderedDict
 from datetime import datetime, timedelta, timezone
-from typing import Optional, Union, List, Dict, Iterable, AsyncGenerator, Literal, overload
+from typing import Any, Optional, Union, List, Dict, Iterable, AsyncGenerator, Literal, overload
 
 from .match import Match
 from .utils import chunk
@@ -303,13 +303,18 @@ class PaladinsAPI(DataCache):
         return player_list
 
     async def search_players(
-        self, player_name: str, platform: Optional[Platform] = None
+        self, player_name: str, platform: Optional[Platform] = None, *, return_private: bool = True
     ) -> List[PartialPlayer]:
         """
         Fetches all players whose name matches the name specified.
         The search is fuzzy - player name capitalisation doesn't matter.
 
         Uses up a single request.
+
+        .. note::
+
+            Searching on all platforms may limit the number of players returned to ~500.
+            Specifying a particular platform does not have this limitation.
 
         Parameters
         ----------
@@ -319,13 +324,20 @@ class PaladinsAPI(DataCache):
             Platform you want to limit the search to.\n
             Specifying `None` will search on all platforms.\n
             Defaults to `None`.
+        return_private : bool
+            When set to `True` and one of the requested profiles is determined private,
+            this method will return a `PartialPlayer` object with the player ID and privacy flag
+            set.\n
+            When set to `False`, private profiles are omitted from the output list.\n
+            Defaults to `True`.
 
         Returns
         -------
         List[PartialPlayer]
             A list of players whose name (and optionally platform) matches
             the specified name.\n
-            Note that some of them might be set as private.
+            Note that some of them might be set as private, unless appropriate input parameters
+            were used.
 
         Raises
         ------
@@ -334,9 +346,12 @@ class PaladinsAPI(DataCache):
         """
         assert isinstance(player_name, str)
         assert platform is None or isinstance(platform, Platform)
+        list_response: List[Dict[str, Any]]
         if platform is not None:
             # Specific platform
-            logger.info(f"api.search_players({player_name=}, platform={platform.name})")
+            logger.info(
+                f"api.search_players({player_name=}, platform={platform.name}, {return_private=})"
+            )
             if platform in (Platform.PC, Platform.Steam, Platform.Discord):
                 # PC platforms, with unique names
                 list_response = await self.request("getplayeridbyname", player_name)
@@ -345,26 +360,16 @@ class PaladinsAPI(DataCache):
                 list_response = await self.request(
                     "getplayeridsbygamertag", platform.value, player_name
                 )
-            if not list_response:
-                raise NotFound("Player")
-            return [
-                PartialPlayer(
-                    self,
-                    id=p["player_id"],
-                    name=player_name,
-                    platform=p["portal_id"],
-                    private=p["privacy_flag"] == 'y',
-                )
-                for p in list_response
-            ]
         else:
             # All platforms
-            logger.info(f"api.search_players({player_name=}, {platform=})")
+            logger.info(f"api.search_players({player_name=}, {platform=}, {return_private=})")
             response = await self.request("searchplayers", player_name)
             player_name = player_name.lower()
             list_response = [r for r in response if r["Name"].lower() == player_name]
-            if not list_response:
-                raise NotFound("Player")
+        if not list_response:
+            raise NotFound("Player")
+        if return_private:
+            # Include private accounts
             return [
                 PartialPlayer(
                     self,
@@ -374,6 +379,18 @@ class PaladinsAPI(DataCache):
                     private=p["privacy_flag"] == 'y',
                 )
                 for p in list_response
+            ]
+        else:
+            # Omit private accounts
+            return [
+                PartialPlayer(
+                    self,
+                    id=p["player_id"],
+                    name=p["Name"],
+                    platform=p["portal_id"],
+                )
+                for p in list_response
+                if p["privacy_flag"] != 'y'
             ]
 
     async def get_from_platform(
