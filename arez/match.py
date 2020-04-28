@@ -15,6 +15,13 @@ if TYPE_CHECKING:
     from .player import PartialPlayer, Player  # noqa
 
 
+__all__ = [
+    "PartialMatch",
+    "MatchPlayer",
+    "Match",
+    "LivePlayer",
+    "LiveMatch",
+]
 logger = logging.getLogger(__package__)
 
 

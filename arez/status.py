@@ -9,6 +9,13 @@ if TYPE_CHECKING:
     from .player import PartialPlayer, Player  # noqa
 
 
+__all__ = [
+    "Status",
+    "ServerStatus",
+    "PlayerStatus",
+]
+
+
 class Status:
     """
     Represets a single server status.

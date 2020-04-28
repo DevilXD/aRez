@@ -9,6 +9,13 @@ if TYPE_CHECKING:
     from .player import PartialPlayer, Player  # noqa
 
 
+__all__ = [
+    "Stats",
+    "RankedStats",
+    "ChampionStats",
+]
+
+
 class Stats(WinLoseMixin):
     """
     Represents casual player stats.

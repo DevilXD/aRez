@@ -1,9 +1,10 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import operator
 from enum import IntEnum
 from functools import partialmethod
 from typing import Any, Optional, Union, List, Dict, Tuple, Callable, cast, TYPE_CHECKING
+
 
 __all__ = [
     'Rank',

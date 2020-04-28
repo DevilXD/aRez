@@ -1,6 +1,16 @@
 from typing import Optional
 
 
+__all__ = [
+    "ArezException",
+    "HTTPException",
+    "Private",
+    "NotFound",
+    "Unauthorized",
+    "Unavailable",
+]
+
+
 class ArezException(Exception):
     """
     The base exception type for this entire package.

@@ -16,6 +16,7 @@ from .player import Player, PartialPlayer
 from .enumerations import Language, Platform, Queue
 
 
+__all__ = ["PaladinsAPI"]
 logger = logging.getLogger(__package__)
 
 

@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from .api import PaladinsAPI
 
 
+__all__ = ["PartialPlayer", "Player"]
 logger = logging.getLogger(__package__)
 
 

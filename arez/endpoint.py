@@ -10,6 +10,8 @@ from datetime import datetime, timedelta
 
 from .exceptions import HTTPException, Unauthorized, Unavailable
 
+
+__all__ = ["Endpoint"]
 session_lifetime = timedelta(minutes=15)
 timeout = aiohttp.ClientTimeout(total=20, connect=5)
 logger = logging.getLogger(__package__)

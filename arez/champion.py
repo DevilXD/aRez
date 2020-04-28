@@ -8,6 +8,12 @@ if TYPE_CHECKING:
     from .items import Device
 
 
+__all__ = [
+    "Ability",
+    "Champion",
+]
+
+
 def _card_ability_sort(card: "Device") -> str:
     ability = card.ability
     if ability is None or isinstance(ability, str):

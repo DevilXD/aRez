@@ -13,6 +13,10 @@ from .enumerations import Language, DeviceType
 from .utils import Lookup, WeakValueDefaultDict
 
 
+__all__ = [
+    "DataCache",
+    "CacheEntry",
+]
 logger = logging.getLogger(__package__)
 
 
