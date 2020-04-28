@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import operator
 from enum import IntEnum
@@ -7,14 +7,15 @@ from typing import Any, Optional, Union, List, Dict, Tuple, Callable, cast, TYPE
 
 
 __all__ = [
-    'Rank',
-    'Queue',
-    'Region',
-    'Activity',
-    'Language',
-    'Platform',
-    'DeviceType',
-    'AbilityType',
+    "Rank",
+    "Queue",
+    "Region",
+    "Activity",
+    "Language",
+    "Platform",
+    "DeviceType",
+    "AbilityType",
+    "PC_PLATFORMS",
 ]
 
 
@@ -564,3 +565,7 @@ class Activity(Enum, default_value=5):
     In_Match            = 3
     Online              = 4
     Unknown             = 5
+
+
+# PC platforms constant
+PC_PLATFORMS = (Platform.PC, Platform.Steam, Platform.Discord)

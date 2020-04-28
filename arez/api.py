@@ -13,7 +13,7 @@ from .status import ServerStatus
 from .cache import DataCache, CacheEntry
 from .exceptions import Private, NotFound
 from .player import Player, PartialPlayer
-from .enumerations import Language, Platform, Queue
+from .enumerations import Language, Platform, Queue, PC_PLATFORMS
 
 
 __all__ = ["PaladinsAPI"]
@@ -353,7 +353,7 @@ class PaladinsAPI(DataCache):
             logger.info(
                 f"api.search_players({player_name=}, platform={platform.name}, {return_private=})"
             )
-            if platform in (Platform.PC, Platform.Steam, Platform.Discord):
+            if platform in PC_PLATFORMS:
                 # PC platforms, with unique names
                 list_response = await self.request("getplayeridbyname", player_name)
             else:

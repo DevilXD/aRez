@@ -10,8 +10,8 @@ from .status import PlayerStatus
 from .exceptions import Private, NotFound
 from .mixins import APIClient, Expandable
 from .utils import convert_timestamp, Duration
-from .enumerations import Language, Platform, Region
 from .stats import Stats, RankedStats, ChampionStats
+from .enumerations import Language, Platform, Region, PC_PLATFORMS
 
 if TYPE_CHECKING:
     from .api import PaladinsAPI
@@ -151,7 +151,7 @@ class PartialPlayer(APIClient, Expandable):
             # ID isn't 0 / private account
             and self._id != 0
             # platform is one of the PC ones
-            and self._platform in (Platform.PC, Platform.Steam, Platform.Discord)
+            and self._platform in PC_PLATFORMS
         )
 
     async def get_status(self) -> Optional[PlayerStatus]:
