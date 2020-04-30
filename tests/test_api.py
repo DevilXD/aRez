@@ -9,7 +9,7 @@ pytestmark = [
     pytest.mark.asyncio,
     pytest.mark.dependency(
         depends=["tests/test_misc.py::test_enum", "tests/test_endpoint.py::test_session"],
-        scope="session"
+        scope="session",
     )
 ]
 
@@ -48,7 +48,7 @@ async def test_champion_info(api_langs: arez.PaladinsAPI):
 
 async def test_get_player(api: arez.PaladinsAPI):
     player = await api.get_player("DevilXD")
-    assert player is not None
+    assert isinstance(player, arez.Player)
 
 
 async def test_get_players(api: arez.PaladinsAPI):
@@ -57,13 +57,13 @@ async def test_get_players(api: arez.PaladinsAPI):
 
 
 async def test_search_players(api: arez.PaladinsAPI):
-    steam = arez.Platform("steam")
+    steam = arez.Platform.Steam
     player_list = await api.search_players("DevilXD", steam)
-    assert len(player_list) > 0
+    assert player_list and all(isinstance(p, arez.PartialPlayer) for p in player_list)
 
 
 async def test_get_from_platform(api: arez.PaladinsAPI):
-    discord = arez.Platform("discord")
+    discord = arez.Platform.Discord
     player = await api.get_from_platform(157205897611968514, discord)
     assert isinstance(player, arez.PartialPlayer)
 

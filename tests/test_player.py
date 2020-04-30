@@ -29,6 +29,7 @@ async def test_player_live_match(api_player: arez.PartialPlayer):
     assert status is not None
     live_match = await status.get_live_match(expand_players=True)
     assert isinstance(live_match, arez.LiveMatch)
+    assert all(isinstance(p.player, arez.Player) or p.player.private for p in live_match.players)
 
 
 async def test_player_friends(api_player: arez.PartialPlayer):

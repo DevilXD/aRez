@@ -6,13 +6,15 @@ import pytest
 @pytest.mark.dependency(scope="session")
 def test_enum():
     p = arez.Platform("steam")
-    assert arez.Platform.Steam is p
+    assert p is arez.Platform.Steam
     assert str(p) == "Steam"
     assert int(p) == 5
+    l = arez.Language(2)
+    assert l is arez.Language.German
     r = arez.Region("1234")
     assert r is None
     r = arez.Region("1234", return_default=True)
-    assert arez.Region.Unknown is r
+    assert r is arez.Region.Unknown
 
 
 @pytest.mark.vcr()
