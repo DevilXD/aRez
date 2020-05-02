@@ -178,7 +178,9 @@ class PaladinsAPI(DataCache):
     ) -> Union[Player, PartialPlayer]:
         ...
 
-    async def get_player(self, player: Union[int, str], *, return_private: bool = False):
+    async def get_player(
+        self, player: Union[int, str], *, return_private: bool = False
+    ) -> Union[Player, PartialPlayer]:
         """
         Fetches a Player object for the given player ID or player name.
 
@@ -214,9 +216,9 @@ class PaladinsAPI(DataCache):
         """
         assert isinstance(player, (int, str))
         player = str(player)  # explicit cast to str
-        # save on the request by returning None for zero straight away
+        # save on the request by raising Notfound for zero straight away
         if player == '0':
-            return None
+            raise NotFound("Player")
         logger.info(f"api.get_player({player=}, {return_private=})")
         player_list = await self.request("getplayer", player)
         if not player_list:
