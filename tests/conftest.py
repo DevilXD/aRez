@@ -28,23 +28,6 @@ async def api():
         yield api
 
 
-# makes sure to test all languages
-@pytest.fixture(scope="session", params=[
-    2,   # German
-    3,   # French
-    pytest.param(5, marks=pytest.mark.xfail),  # Chinese
-    9,   # Spanish
-    10,  # Portuguese
-    11,  # Russian
-    12,  # Polish
-    13,  # Turkish
-    1,   # English, at the end for it to be left as set to this
-])
-def api_langs(request, api):
-    api.set_default_language(arez.Language(request.param))
-    return api
-
-
 @pytest.fixture(scope="session")
 def api_player(api):
     return api.wrap_player(5959045)

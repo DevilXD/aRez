@@ -15,8 +15,19 @@ pytestmark = [
 
 
 @pytest.mark.dependency(depends=["tests/utils/test_lookup.py::test_lookup"], scope="session")
-async def test_champion_info(api_langs: arez.PaladinsAPI):
-    champion_info = await api_langs.get_champion_info()
+@pytest.mark.parametrize("lang_num", [
+    1,   # English
+    2,   # German
+    3,   # French
+    pytest.param(5, marks=pytest.mark.xfail),  # Chinese
+    9,   # Spanish
+    10,  # Portuguese
+    11,  # Russian
+    12,  # Polish
+    13,  # Turkish
+])
+async def test_champion_info(api: arez.PaladinsAPI, lang_num: int):
+    champion_info = await api.get_champion_info(arez.Language(lang_num))
     assert champion_info is not None
     champion_count = len(champion_info.champions)
     # verify all 3 device categories separately
