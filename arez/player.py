@@ -11,7 +11,7 @@ from .exceptions import Private, NotFound
 from .mixins import APIClient, Expandable
 from .utils import convert_timestamp, Duration
 from .stats import Stats, RankedStats, ChampionStats
-from .enumerations import Language, Platform, Region, PC_PLATFORMS
+from .enumerations import Language, Platform, Region
 
 if TYPE_CHECKING:
     from .api import PaladinsAPI
@@ -133,26 +133,6 @@ class PartialPlayer(APIClient, Expandable):
             `True` if this player profile is considered private, `False` otherwise.
         """
         return self._private or self._id == 0
-
-    @cached_property
-    def unique(self) -> bool:
-        """
-        Checks to see if this profile has a unique combination of the name and platform.
-
-        Returns
-        -------
-        bool
-            `True` for PC players (`Platform.PC`, `Platform.Steam` and `Platform.Discord`),
-            `False` otherwise.
-        """
-        return (
-            # name isn't an empty string and has correct length (>3)
-            len(self._name) > 3
-            # ID isn't 0 / private account
-            and self._id != 0
-            # platform is one of the PC ones
-            and self._platform in PC_PLATFORMS
-        )
 
     async def get_status(self) -> Optional[PlayerStatus]:
         """
