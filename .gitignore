@@ -27,3 +27,6 @@ dist
 # exclude api creds and cassettes test files
 /tests/secret.py
 /tests/cassettes
+# exclude coverage report data
+/.coverage
+/coverage.xml
