@@ -5,7 +5,9 @@ import asyncio
 import logging
 from collections import defaultdict, OrderedDict
 from datetime import datetime, timedelta, timezone
-from typing import Any, Optional, Union, List, Dict, Iterable, AsyncGenerator, Literal, overload
+from typing import (
+    Any, Optional, Union, List, Dict, Iterable, Sequence, AsyncGenerator, Literal, overload
+)
 
 from .match import Match
 from .utils import chunk
@@ -242,16 +244,18 @@ class PaladinsAPI(DataCache):
     @overload
     async def get_players(
         self, player_ids: Iterable[int], *, return_private: Literal[False] = False
-    ) -> List[Player]:
+    ) -> Sequence[Player]:
         ...
 
     @overload
     async def get_players(
         self, player_ids: Iterable[int], *, return_private: Literal[True]
-    ) -> List[Union[Player, PartialPlayer]]:
+    ) -> Sequence[Union[Player, PartialPlayer]]:
         ...
 
-    async def get_players(self, player_ids: Iterable[int], *, return_private: bool = False):
+    async def get_players(
+        self, player_ids: Iterable[int], *, return_private: bool = False
+    ) -> Sequence[Union[Player, PartialPlayer]]:
         """
         Fetches multiple players in a batch, and returns their list. Removes duplicates.
 
