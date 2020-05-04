@@ -1,5 +1,6 @@
 # flake8: noqa
 
+from .cache import *
 from .items import *
 from .match import *
 from .stats import *
