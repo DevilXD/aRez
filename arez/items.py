@@ -101,8 +101,7 @@ class Device:
         self.unlocked_at: int = device_data["talent_reward_level"]
 
     def __eq__(self, other) -> bool:
-        assert isinstance(other, self.__class__)
-        return self.id == other.id
+        return isinstance(other, self.__class__) and self.id == other.id
 
     def __repr__(self) -> str:
         return f"{self.type.name}: {self.name}"

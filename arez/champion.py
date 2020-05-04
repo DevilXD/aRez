@@ -144,8 +144,7 @@ class Champion:
         self.cards: Lookup["Device"] = Lookup(cards)
 
     def __eq__(self, other) -> bool:
-        assert isinstance(other, self.__class__)
-        return self.id == other.id
+        return isinstance(other, self.__class__) and self.id == other.id
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}: {self.name}({self.id})"

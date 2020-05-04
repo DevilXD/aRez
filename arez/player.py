@@ -86,8 +86,11 @@ class PartialPlayer(APIClient, Expandable):
         return Player(self._api, player_data)
 
     def __eq__(self, other) -> bool:
-        assert isinstance(other, self.__class__)
-        return self._id != 0 and other.id != 0 and self._id == other.id
+        return (
+            isinstance(other, (PartialPlayer, Player))  # player classes
+            and self._id != 0 and other.id != 0  # not private IDs
+            and self._id == other.id  # IDs match
+        )
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}: {self.name}({self.id} / {self.platform.name})"
