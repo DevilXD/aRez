@@ -216,7 +216,7 @@ class MatchPlayer(MatchPlayerMixin):
         parties: Dict[int, int],
         players: Dict[int, Player],
     ):
-        player = players.get(int(player_data["playerId"]))
+        player: Optional[Union[PartialPlayer, Player]] = players.get(int(player_data["playerId"]))
         if player is None:
             # if no full player was found
             from .player import PartialPlayer  # noqa, cyclic imports
@@ -351,13 +351,13 @@ class Match(APIClient, MatchMixin):
         Uses up a single request to do the expansion.
         """
         players = await self._api.get_players((p.player.id for p in self.players))
-        players = {p.id: p for p in players}
+        players_dict = {p.id: p for p in players}
         for mp in self.players:
             pid = mp.player.id
             if not pid:
                 # skip 0s
                 continue
-            p = players.get(pid)
+            p = players_dict.get(pid)
             if p is not None:  # TODO: (maybe) use a walrus operator here
                 mp.player = p
 
@@ -398,7 +398,7 @@ class LivePlayer(APIClient, WinLoseMixin):
             wins=player_data["tierWins"],
             losses=player_data["tierLosses"],
         )
-        player = players.get(int(player_data["playerId"]))
+        player: Optional[Union[PartialPlayer, Player]] = players.get(int(player_data["playerId"]))
         if player is None:
             # if no full player was found
             from .player import PartialPlayer  # noqa, cyclic imports
@@ -485,12 +485,12 @@ class LiveMatch(APIClient):
         Uses up a single request to do the expansion.
         """
         players = await self._api.get_players((p.player.id for p in self.players))
-        players = {p.id: p for p in players}
+        players_dict = {p.id: p for p in players}
         for mp in self.players:
             pid = mp.player.id
             if not pid:
                 # skip 0s
                 continue
-            p = players.get(pid)
+            p = players_dict.get(pid)
             if p is not None:  # TODO: (maybe) use a walrus operator here
                 mp.player = p
