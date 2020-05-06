@@ -4,7 +4,7 @@ from typing import Optional, Union, List, Literal, TYPE_CHECKING
 from .utils import Lookup
 from .enumerations import DeviceType, AbilityType
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no branch
     from .items import Device
 
 
@@ -134,7 +134,7 @@ class Champion:
         for d in devices:
             if d.type == DeviceType.Card:
                 cards.append(d)
-            elif d.type == DeviceType.Talent:
+            elif d.type == DeviceType.Talent:  # pragma: no branch
                 talents.append(d)
             d._attach_champion(self)
         talents.sort(key=lambda d: d.unlocked_at)

@@ -396,7 +396,7 @@ class CacheEntry:
                 cards.append(device)
             elif device.type == DeviceType.Talent:
                 talents.append(device)
-            elif device.type == DeviceType.Item:
+            elif device.type == DeviceType.Item:  # pragma: no branch
                 items.append(device)
         self.items: Lookup[Device] = Lookup(items)
         self.cards: Lookup[Device] = Lookup(cards)

@@ -13,7 +13,7 @@ from .utils import convert_timestamp, Duration
 from .stats import Stats, RankedStats, ChampionStats
 from .enumerations import Language, Platform, Region
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no branch
     from .api import PaladinsAPI
 
 
@@ -347,13 +347,13 @@ class Player(PartialPlayer):
         Player's ranked controller statistics.
     """
     def __init__(self, api: "PaladinsAPI", player_data):
-        player_name = player_data["hz_player_name"]
-        gamer_tag = player_data["hz_gamer_tag"]
+        player_name: str = player_data["hz_player_name"]
+        gamer_tag: str = player_data["hz_gamer_tag"]
         name: str = player_data["Name"]
         self.platform_name: str = name
         if player_name:
             name = player_name
-        elif gamer_tag:
+        elif gamer_tag:  # pragma: no branch
             name = gamer_tag
         super().__init__(
             api,
@@ -363,7 +363,7 @@ class Player(PartialPlayer):
             # No private kwarg here, since this object can only exist for non-private accounts
         )
         self.active_player: Optional[PartialPlayer] = None
-        if player_data["ActivePlayerId"] != self._id:
+        if player_data["ActivePlayerId"] != self._id:  # pragma: no branch
             self.active_player = PartialPlayer(api, id=player_data["ActivePlayerId"])
         self.merged_players: List[PartialPlayer] = []
         if player_data["MergedPlayers"]:

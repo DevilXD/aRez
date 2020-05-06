@@ -50,7 +50,7 @@ class PaladinsAPI(DataCache):
         *,
         loop: Optional[asyncio.AbstractEventLoop] = None,
     ):
-        if loop is None:
+        if loop is None:  # pragma: no branch
             loop = asyncio.get_event_loop()
         super().__init__("http://api.paladins.com/paladinsapi.svc", dev_id, auth_key, loop=loop)
         self._server_status: Optional[ServerStatus] = None
@@ -234,7 +234,7 @@ class PaladinsAPI(DataCache):
             # playerIdStr=<arg>; playerIdType=1; playerId=479353'
             if return_private:
                 match = re.search(r'playerIdType=([0-9]{1,2}); playerId=([0-9]+)', ret_msg)
-                if match:  # TODO: use the walrus operator here
+                if match:  # pragma: no branch  # TODO: use the walrus operator here
                     return PartialPlayer(
                         self, id=match.group(2), platform=match.group(1), private=True
                     )
@@ -303,7 +303,7 @@ class PaladinsAPI(DataCache):
                 elif return_private:
                     # Pack up a private player object
                     match = re.search(r'playerId=([0-9]+)', ret_msg)
-                    if match:  # TODO: use the walrus operator here
+                    if match:  # pragma: no branch  # TODO: use the walrus operator here
                         chunk_players.append(PartialPlayer(self, id=match.group(1), private=True))
             chunk_players.sort(key=lambda p: chunk_ids.index(p.id))
             player_list.extend(chunk_players)

@@ -26,12 +26,34 @@
             "args": ["-v"]
         },
         {
+            "name": "Run Tests - Fast",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-v", "-x", "-m", "not slow",]
+        },
+        {
             "name": "Run Coverage",
             "type": "python",
             "request": "launch",
             "module": "pytest",
             "args": [
                 "-v",
+                "--cov=arez",
+                "--cov-config=coverage.ini",
+                "--cov-report=xml:coverage.xml",
+            ]
+        },
+        {
+            "name": "Run Coverage - Fast",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": [
+                "-v",
+                "-x",
+                "-m",
+                "not slow",
                 "--cov=arez",
                 "--cov-config=coverage.ini",
                 "--cov-report=xml:coverage.xml",

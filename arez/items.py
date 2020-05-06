@@ -4,7 +4,7 @@ from typing import Optional, Union, TYPE_CHECKING
 from .mixins import APIClient
 from .enumerations import DeviceType, Language
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no branch
     from .champion import Champion, Ability
     from .player import PartialPlayer, Player  # noqa
 

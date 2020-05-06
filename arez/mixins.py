@@ -5,7 +5,7 @@ from typing import Optional, Union, List, Tuple, Literal, TYPE_CHECKING
 from .utils import convert_timestamp, Duration
 from .enumerations import Language, Queue, Region
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no branch
     from .api import PaladinsAPI
     from .champion import Champion
     from .player import PartialPlayer, Player

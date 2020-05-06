@@ -1,8 +1,10 @@
 import re
 import asyncio
 import warnings
+from copy import copy
+from datetime import datetime
 from typing import Optional, List, Dict
-from collections import defaultdict, deque
+from collections import defaultdict, deque, namedtuple
 
 import arez
 import pytest
@@ -13,6 +15,37 @@ from .secret import DEV_ID, AUTH_KEY
 
 
 pytest_plugins = ["asyncio", "recording", "dependency"]
+
+#####################
+# testing constants #
+#####################
+
+# base datetime - has to be within the last 30 days
+BASE_DATETIME = datetime(2020, 4, 27, 0, 0)
+
+# match IDs - no private players
+MATCH         = 969680571  # Siege or Onslaught
+MATCH_TDM     = 973464436  # TDM
+INVALID_MATCH = 1234       # invalid
+
+# named tuple for player data storage
+test_player = namedtuple("test_player", ("name", "id", "platform"))
+
+# not private player, PC platform
+PLAYER = test_player("DevilXD", 5959045, 5)
+# not private player, console platform
+CONSOLE_PLAYER = test_player("Djinscar", 501140683, 9)
+# private player, any platform
+PRIVATE_PLAYER = test_player("FenixSpider", 13307488, 1)
+# invalid player
+INVALID_PLAYER = test_player("42", 1234, 1)
+
+# named tuple for platform testing
+test_platform = namedtuple("test_platform", ("platform_id", "platform"))
+# valid
+PLATFORM_PLAYER = test_platform(157205897611968514, 25)
+# invalid
+INVALID_PLATFORM = test_platform(1234, 25)
 
 
 @pytest.fixture(scope="session")
@@ -28,9 +61,49 @@ async def api():
         yield api
 
 
+# wrap a normal player
 @pytest.fixture(scope="session")
-def api_player(api):
-    return api.wrap_player(5959045)
+def player(api: arez.PaladinsAPI):
+    return api.wrap_player(PLAYER.id)
+
+
+# wrap a 0 ID private player
+@pytest.fixture(scope="session")
+def private_player(api: arez.PaladinsAPI):
+    return api.wrap_player(0)
+
+
+# wrap an invalid player
+@pytest.fixture(scope="session")
+def invalid_player(api: arez.PaladinsAPI):
+    return api.wrap_player(INVALID_PLAYER.id)
+
+
+# wrap a private player without flag
+@pytest.fixture(scope="session")
+def no_flag_private_player(api: arez.PaladinsAPI):
+    return api.wrap_player(PRIVATE_PLAYER.id)
+
+
+# partial match
+@pytest.fixture(scope="session")
+async def partial_match(player: arez.PartialPlayer):
+    history = await player.get_match_history()
+    return history[0]
+
+
+# full match
+@pytest.fixture(scope="session")
+async def match(api: arez.PaladinsAPI):
+    return await api.get_match(MATCH)
+
+
+# invalid partial match
+@pytest.fixture(scope="session")
+async def invalid_match(partial_match: arez.PartialMatch):
+    match = copy(partial_match)
+    match.id = INVALID_MATCH
+    return match
 
 
 def filter_request(request):
@@ -53,7 +126,7 @@ def filter_response(response):
 @pytest.fixture(scope="session")
 def vcr_config():
     return {
-        "record_mode": "new_episodes",
+        "record_mode": "new_episodes",  # "once",
         "cassette_library_dir": "tests/cassettes",
         "path_transformer": VCR.ensure_suffix(".yaml"),
         "before_record_request": filter_request,
