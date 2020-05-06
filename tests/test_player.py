@@ -85,8 +85,8 @@ async def test_player_loadouts(
     # private
     with pytest.raises(arez.Private):
         loadouts = await private_player.get_loadouts()
-    # invalid
-    loadouts = await invalid_player.get_loadouts()
+    # invalid + explicit language
+    loadouts = await invalid_player.get_loadouts(language=arez.Language.English)
     assert len(loadouts) == 0
     # no privacy flag private
     loadouts = await no_flag_private_player.get_loadouts()
@@ -105,8 +105,8 @@ async def test_player_champion_stats(
     # private
     with pytest.raises(arez.Private):
         stats = await private_player.get_champion_stats()
-    # invalid
-    stats = await invalid_player.get_champion_stats()
+    # invalid + explicit language
+    stats = await invalid_player.get_champion_stats(language=arez.Language.English)
     assert len(stats) == 0
     # no privacy flag private
     stats = await invalid_player.get_champion_stats()
@@ -125,8 +125,8 @@ async def test_player_match_history(
     # private
     with pytest.raises(arez.Private):
         history = await private_player.get_match_history()
-    # invalid
-    history = await invalid_player.get_match_history()
+    # invalid + explicit language
+    history = await invalid_player.get_match_history(language=arez.Language.English)
     assert len(history) == 0
     # no privacy flag private
     history = await invalid_player.get_match_history()
