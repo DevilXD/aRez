@@ -307,7 +307,7 @@ class Match(APIClient, MatchMixin):
             if not ban_id:
                 continue
             ban_champ = self._api.get_champion(ban_id, language)
-            if ban_champ:  # TODO: Use the walrus operator here
+            if ban_champ:  # pragma: no branch  # TODO: Use the walrus operator here
                 self.bans.append(ban_champ)
         self.team1: List[MatchPlayer] = []
         self.team2: List[MatchPlayer] = []
@@ -329,7 +329,7 @@ class Match(APIClient, MatchMixin):
             team_number = player_data['TaskForce']
             if team_number == 1:
                 self.team1.append(match_player)
-            elif team_number == 2:
+            elif team_number == 2:  # pragma: no branch
                 self.team2.append(match_player)
         logger.debug(f"Match(id={self.id}) -> created")
 
@@ -464,7 +464,7 @@ class LiveMatch(APIClient):
             live_player = LivePlayer(self._api, language, player_data, players)
             if player_data["taskForce"] == 1:
                 self.team1.append(live_player)
-            elif player_data["taskForce"] == 2:
+            elif player_data["taskForce"] == 2:  # pragma: no branch
                 self.team2.append(live_player)
 
     def __repr__(self) -> str:
