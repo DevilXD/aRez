@@ -55,6 +55,7 @@
                 "-m",
                 "not slow",
                 "--cov=arez",
+                "--cov-append",
                 "--cov-config=coverage.ini",
                 "--cov-report=xml:coverage.xml",
             ]
