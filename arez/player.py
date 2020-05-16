@@ -381,7 +381,7 @@ class Player(PartialPlayer):
             or "https://hirez-api-docs.herokuapp.com/paladins/avatar/0"  # patch null here
         )
         self.loading_frame: str = player_data["LoadingFrame"]
-        self.playtime = Duration(hours=player_data["HoursPlayed"])
+        self.playtime = Duration(minutes=player_data["MinutesPlayed"])
         self.champion_count: int = player_data["MasteryLevel"]
         self.region = Region(player_data["Region"], return_default=True)
         self.total_achievements: int = player_data["Total_Achievements"]
