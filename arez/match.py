@@ -316,15 +316,14 @@ class Match(APIClient, MatchMixin):
         parties: Dict[int, int] = {}
         for player_data in match_data:
             pid = player_data["PartyId"]
-            if not pid:
-                # skip 0s
-                continue
-            if pid not in parties:
-                # haven't seen this one yet, assign zero
-                parties[pid] = 0
-            elif parties[pid] == 0:
-                # we've seen this one, and it doesn't have a number assigned - assign one
-                parties[pid] = next(party_count)
+            if pid:
+                # process only non-0 parties
+                if pid not in parties:
+                    # haven't seen this one yet, assign zero
+                    parties[pid] = 0
+                elif parties[pid] == 0:
+                    # we've seen this one, and it doesn't have a number assigned - assign one
+                    parties[pid] = next(party_count)
             match_player = MatchPlayer(self._api, language, player_data, parties, players)
             team_number = player_data['TaskForce']
             if team_number == 1:
