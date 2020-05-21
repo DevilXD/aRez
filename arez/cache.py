@@ -11,6 +11,7 @@ from .endpoint import Endpoint
 from .champion import Champion, Ability
 from .enumerations import Language, DeviceType
 from .utils import Lookup, WeakValueDefaultDict
+from .exceptions import Unavailable, HTTPException
 
 
 __all__ = [
@@ -93,7 +94,10 @@ class DataCache(Endpoint):
         """
         language = self._default_language
         logger.info(f"cache.initialize({language=})")
-        entry = await self._fetch_entry(language, force_refresh=True)
+        try:
+            entry = await self._fetch_entry(language, force_refresh=True)
+        except (HTTPException, Unavailable):
+            return False
         return bool(entry)
 
     async def _fetch_entry(
