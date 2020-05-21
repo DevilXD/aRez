@@ -28,7 +28,7 @@ class EnumValue:
     # Exists only to stop MyPy from complaining about wrong instance init arguments
     def __init__(
         self, key_or_value: Optional[Union[str, int]], /, *, return_default: bool = False
-    ):
+    ):  # pragma: no branch
         # This never runs cos of metaclass
         self._class: type
         self._name: str
@@ -61,7 +61,7 @@ class EnumValue:
 
     # Show only the most relevant bits in VSCode
     def __dir__(self) -> List[str]:
-        return ["_class", "name", "value"]
+        return ["_class", "name", "value"]  # pragma: no cover
 
     def __str__(self) -> str:
         return self.name
