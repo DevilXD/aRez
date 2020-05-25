@@ -11,7 +11,7 @@ from .exceptions import Private, NotFound
 from .mixins import APIClient, Expandable
 from .utils import convert_timestamp, Duration
 from .stats import Stats, RankedStats, ChampionStats
-from .enumerations import Language, Platform, Region
+from .enumerations import Language, Platform, Region, Queue
 
 if TYPE_CHECKING:  # pragma: no branch
     from .api import PaladinsAPI
@@ -224,7 +224,7 @@ class PartialPlayer(APIClient, Expandable):
         return [Loadout(self, language, l) for l in response]
 
     async def get_champion_stats(
-        self, language: Optional[Language] = None
+        self, language: Optional[Language] = None, *, queue: Optional[Queue] = None
     ) -> List[ChampionStats]:
         """
         Fetches the player's champion statistics.
@@ -234,8 +234,11 @@ class PartialPlayer(APIClient, Expandable):
         Parameters
         ----------
         language : Optional[Language]
-            The `Language` you want to fetch the information in.
+            The `Language` you want to fetch the information in.\n
             Default language is used if not provided.
+        queue : Optional[Queue]
+            The queue you want to filter the returned stats to.\n
+            Defaults to all queues.
 
         Returns
         -------
@@ -255,8 +258,11 @@ class PartialPlayer(APIClient, Expandable):
         # ensure we have champion information first
         await self._api._ensure_entry(language)
         logger.info(f"Player(id={self._id}).get_champion_stats({language=})")
-        response = await self._api.request("getgodranks", self._id)
-        return [ChampionStats(self, language, s) for s in response]
+        if queue is None:
+            response = await self._api.request("getgodranks", self._id)
+        else:
+            response = await self._api.request("getqueuestats", self._id, queue.value)
+        return [ChampionStats(self, language, s, queue) for s in response]
 
     async def get_match_history(self, language: Optional[Language] = None) -> List[PartialMatch]:
         """
@@ -267,7 +273,7 @@ class PartialPlayer(APIClient, Expandable):
         Parameters
         ----------
         language : Optional[Language]
-            The `Language` you want to fetch the information in.
+            The `Language` you want to fetch the information in.\n
             Default language is used if not provided.
 
         Returns

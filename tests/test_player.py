@@ -102,6 +102,9 @@ async def test_player_champion_stats(
     # standard
     stats = await player.get_champion_stats()
     assert all(isinstance(l, arez.ChampionStats) for l in stats)
+    # queue filtered
+    stats = await player.get_champion_stats(queue=arez.Queue.Casual_Siege)
+    assert all(isinstance(l, arez.ChampionStats) for l in stats)
     # private
     with pytest.raises(arez.Private):
         stats = await private_player.get_champion_stats()

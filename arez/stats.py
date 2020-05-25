@@ -1,11 +1,11 @@
 from .utils import Duration
-from typing import Union, Literal, TYPE_CHECKING
+from typing import Optional, Union, Literal, TYPE_CHECKING
 
 from .utils import convert_timestamp
-from .enumerations import Rank, Language
 from .mixins import WinLoseMixin, KDAMixin
+from .enumerations import Rank, Language, Queue
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no branch
     from .player import PartialPlayer, Player  # noqa
 
 
@@ -99,19 +99,29 @@ class ChampionStats(WinLoseMixin, KDAMixin):
     champion : Optional[Champion]
         The champion these stats are for.\n
         `None` for incomplete cache.
+    queue : Queue
+        The queue these starts are for.\n
+        `None` means these stats are for all queues.
     level : int
-        The champion's mastery level.
-    last_played : datetime.datetime
-        A timestamp of when this champion was last played.
+        The champion's mastery level.\n
+        Will be ``0`` if these stats represent a single queue only.
     experience : int
         The amount of experience this champion has.
+        Will be ``0`` if these stats represent a single queue only.
+    last_played : datetime.datetime
+        A timestamp of when this champion was last played,
+        either in the given queue, or across all queues.
     credits : int
         The amount of credits earned by playing this champion.
     playtime : Duration
         The amount of time spent on playing this champion.
     """
     def __init__(
-        self, player: Union["PartialPlayer", "Player"], language: Language, stats_data: dict
+        self,
+        player: Union["PartialPlayer", "Player"],
+        language: Language,
+        stats_data: dict,
+        queue: Optional[Queue] = None,
     ):
         WinLoseMixin.__init__(
             self,
@@ -125,10 +135,15 @@ class ChampionStats(WinLoseMixin, KDAMixin):
             assists=stats_data["Assists"],
         )
         self.player = player
-        self.champion = self.player._api.get_champion(int(stats_data["champion_id"]), language)
+        self.queue = queue
+        if queue is None:
+            champion_id = int(stats_data["champion_id"])
+        else:
+            champion_id = int(stats_data['ChampionId'])
+        self.champion = self.player._api.get_champion(champion_id, language)
         self.last_played = convert_timestamp(stats_data["LastPlayed"])
-        self.level = stats_data["Rank"]
-        self.experience = stats_data["Worshippers"]
+        self.level = stats_data.get("Rank", 0)
+        self.experience = stats_data.get("Worshippers", 0)
         self.credits_earned = stats_data["Gold"]
         self.playtime = Duration(minutes=stats_data["Minutes"])
         # "MinionKills"

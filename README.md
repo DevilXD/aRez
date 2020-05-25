@@ -16,6 +16,7 @@ Currently supported:
 - [x] `getgods / getchampions` and `getitems` regarding god / champion
 and card / talent / shop item information
 - [x] `getplayer` (Player stats)
+- [x] `getplayerbatch` (Multiple player stats at once)
 - [x] `getplayeridbyname`, `getplayeridsbygamertag` and `searchplayers` under a single,
 intuitive method (Finding the players)
 - [x] `getfriends` (Player friends)
@@ -29,7 +30,7 @@ intuitive method (Finding the players)
 - [ ] `getplayerachievements` (Player overall match stats)
 - [x] `getmatchdetailsbatch` (Fetching multiple matches at once)
 - [x] `getmatchidsbyqueue` (Fetching all matches by queue)
-- [ ] `getqueuestats` (Player match stats by queue)
+- [x] `getqueuestats` (Player match stats by queue)
 
 There are plans on expanding the existing framework to incorporate the above and below:
 
