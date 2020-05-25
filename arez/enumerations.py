@@ -197,7 +197,7 @@ class RankMeta(EnumMeta):
         return new_cls
 
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no branch
     class Enum(EnumValue, IntEnum):  # type: ignore
         pass
 else:
@@ -223,6 +223,7 @@ class Platform(Enum, default_value=0):
         Aliases: ``xb``, ``xboxlive``, ``xbox_live``, ``xboxone``, ``xbox_one``, ``xbox1``,
         ``xbox_1``.
     Facebook
+        Aliases: ``fb``.
     Google
     Mixer
     Switch
@@ -249,6 +250,7 @@ class Platform(Enum, default_value=0):
     xbox1           = 10
     xbox_1          = 10
     Facebook        = 12
+    fb              = 12
     Google          = 13
     Mixer           = 14
     Switch          = 22
