@@ -26,7 +26,7 @@ intuitive method (Finding the players)
 - [x] `getmatchdetails` (Match details, by the ID or from player's recent matches)
 - [x] `getplayeridbyportaluserid` (Finding the player by their Portal ID)
 - [x] `getmatchplayerdetails` (Information about the current player's match)
-- [ ] `getplayerachievements` (Player's achievements)
+- [ ] `getplayerachievements` (Player overall match stats)
 - [x] `getmatchdetailsbatch` (Fetching multiple matches at once)
 - [x] `getmatchidsbyqueue` (Fetching all matches by queue)
 - [ ] `getqueuestats` (Player match stats by queue)
@@ -34,13 +34,12 @@ intuitive method (Finding the players)
 There are plans on expanding the existing framework to incorporate the above and below:
 
 - [x] Adding documentation
-- [ ] Making PaladinsAPI inherit from BaseAPI
-    - [ ] Support for SmiteAPI (support Smite endpoint URL)
-        - [ ] Support for Teams
-            - [ ] Support for `getteamdetails` endpoint
-            - [ ] Support for `getteamplayers` endpoint
-            - [ ] Support for `searchteams` endpoint
-    - [ ] \(Maybe) Support for RealmRoyaleAPI (support Realm Royale endpoint URL)
+- [ ] Support for SmiteAPI (support Smite endpoint URL)
+    - [ ] Support for Teams
+        - [ ] Support for `getteamdetails` endpoint
+        - [ ] Support for `getteamplayers` endpoint
+        - [ ] Support for `searchteams` endpoint
+- [ ] \(Maybe) Support for RealmRoyaleAPI (support Realm Royale endpoint URL)
 
 If you have some experience with Smite and it's API, and would be interested in working with me
 together on expanding this project, please don't hessitate to contact me
