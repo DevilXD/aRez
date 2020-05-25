@@ -58,7 +58,7 @@ class PaladinsAPI(DataCache):
     async def __aenter__(self) -> PaladinsAPI:
         return self
 
-    async def get_server_status(self, force_refresh: bool = False) -> Optional[ServerStatus]:
+    async def get_server_status(self, *, force_refresh: bool = False) -> Optional[ServerStatus]:
         """
         Fetches the server status.
 
@@ -97,7 +97,7 @@ class PaladinsAPI(DataCache):
         return self._server_status
 
     async def get_champion_info(
-        self, language: Optional[Language] = None, force_refresh: bool = False
+        self, language: Optional[Language] = None, *, force_refresh: bool = False
     ) -> Optional[CacheEntry]:
         """
         Fetches the champion information.
@@ -555,10 +555,10 @@ class PaladinsAPI(DataCache):
     async def get_matches_for_queue(
         self,
         queue: Queue,
-        language: Optional[Language] = None,
         *,
         start: datetime,
         end: datetime,
+        language: Optional[Language] = None,
         reverse: bool = False,
         local_time: bool = False,
         expand_players: bool = False,

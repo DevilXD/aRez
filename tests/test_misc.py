@@ -28,7 +28,7 @@ async def test_get_server_status(api: arez.PaladinsAPI):
     current_status = await api.get_server_status()
     assert current_status is None
     # test fetching new
-    current_status = await api.get_server_status(True)
+    current_status = await api.get_server_status(force_refresh=True)
     assert current_status is not None
     # test returning cached
     current_status2 = await api.get_server_status()
