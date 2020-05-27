@@ -1,5 +1,9 @@
+from copy import copy
+
 import arez
 import pytest
+
+from .conftest import MATCH, INVALID_MATCH
 
 
 pytestmark = [
@@ -13,7 +17,15 @@ pytestmark = [
 ]
 
 
-async def test_match_expand(partial_match: arez.PartialMatch, invalid_match: arez.PartialMatch):
+@pytest.mark.dependency(depends=["tests/test_player.py::test_player_history"], scope="session")
+async def test_match_expand(player: arez.PartialPlayer):
+    # fetch the history here
+    history = await player.get_match_history()
+    partial_match = history[0]
+    # make an invalid match out of a valid partial one, by corrupting it's ID
+    invalid_match = copy(partial_match)
+    invalid_match.id = INVALID_MATCH
+
     # standard
     match = await partial_match
     assert isinstance(match, arez.Match)
@@ -22,7 +34,21 @@ async def test_match_expand(partial_match: arez.PartialMatch, invalid_match: are
         match = await invalid_match
 
 
-async def test_match_disconnected(match: arez.Match, partial_match: arez.PartialMatch):
+@pytest.mark.dependency(
+    depends=[
+        "tests/test_api.py::test_get_match",
+        "tests/test_player.py::test_player_history",
+    ],
+    scope="session",
+)
+async def test_match_disconnected(api: arez.PaladinsAPI, player: arez.PartialPlayer):
+    # fetch the history here
+    history = await player.get_match_history()
+    partial_match = history[0]
+    # get a normal match
+    match = await api.get_match(MATCH)
+
+    # check for disconnected
     assert not partial_match.disconnected
     assert all(not mp.disconnected for mp in match.players)
 

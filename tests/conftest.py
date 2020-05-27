@@ -1,7 +1,6 @@
 import re
 import asyncio
 import warnings
-from copy import copy
 from datetime import datetime
 from typing import Optional, List, Dict
 from collections import defaultdict, deque, namedtuple
@@ -83,27 +82,6 @@ def invalid_player(api: arez.PaladinsAPI):
 @pytest.fixture(scope="session")
 def no_flag_private_player(api: arez.PaladinsAPI):
     return api.wrap_player(PRIVATE_PLAYER.id)
-
-
-# partial match
-@pytest.fixture(scope="session")
-async def partial_match(player: arez.PartialPlayer):
-    history = await player.get_match_history()
-    return history[0]
-
-
-# full match
-@pytest.fixture(scope="session")
-async def match(api: arez.PaladinsAPI):
-    return await api.get_match(MATCH)
-
-
-# invalid partial match
-@pytest.fixture(scope="session")
-async def invalid_match(partial_match: arez.PartialMatch):
-    match = copy(partial_match)
-    match.id = INVALID_MATCH
-    return match
 
 
 def filter_request(request):

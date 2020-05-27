@@ -116,7 +116,7 @@ async def test_player_champion_stats(
     assert len(stats) == 0
 
 
-async def test_player_match_history(
+async def test_player_history(
     player: arez.PartialPlayer,
     private_player: arez.PartialPlayer,
     invalid_player: arez.PartialPlayer,
