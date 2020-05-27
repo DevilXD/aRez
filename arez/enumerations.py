@@ -274,13 +274,15 @@ class Region(Enum, default_value=0):
     Europe
         Aliases: ``eu``.
     Australia
-        Aliases: ``oceania``, ``aus``, ``oce``.
+        Aliases: ``oceania``, ``au``, ``aus``, ``oce``.
     Brazil
-        Aliases: ``br``.
+        Aliases: ``br``, ``bra``.
     Latin_America_North
         Aliases: ``latam``.
     Southeast_Asia
         Aliases: ``sea``.
+    Japan
+        Aliases: ``jp``, ``jpn``.
     """
 
     Unknown             = 0
@@ -290,14 +292,19 @@ class Region(Enum, default_value=0):
     eu                  = 2
     Australia           = 3
     oceania             = 3
+    au                  = 3
     aus                 = 3
     oce                 = 3
     Brazil              = 4
     br                  = 4
+    bra                 = 4
     Latin_America_North = 5
     latam               = 5
     Southeast_Asia      = 6
     sea                 = 6
+    Japan               = 7
+    jp                  = 7
+    jpn                 = 7
 
 
 class Language(Enum):
