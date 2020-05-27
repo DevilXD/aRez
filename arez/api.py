@@ -372,6 +372,10 @@ class PaladinsAPI(DataCache):
             logger.info(f"api.search_players({player_name=}, {platform=}, {return_private=})")
             response = await self.request("searchplayers", player_name)
             player_name = player_name.lower()
+            # pre-process the names to prioritize unique names first
+            for player_dict in response:
+                if name := player_dict["hz_player_name"]:
+                    player_dict["Name"] = name
             list_response = [r for r in response if r["Name"].lower() == player_name]
         if not list_response:
             raise NotFound("Player")
