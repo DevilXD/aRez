@@ -1,7 +1,7 @@
 Statuses
 ========
 
-.. currentmodule:: arez.status
+.. currentmodule:: arez
 
 .. autoclass:: ServerStatus()
     :members:

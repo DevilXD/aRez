@@ -1,7 +1,7 @@
 Players
 =======
 
-.. currentmodule:: arez.player
+.. currentmodule:: arez
 
 .. autoclass:: PartialPlayer()
     :members:

@@ -1,7 +1,7 @@
 Items and Loadouts
 ==================
 
-.. currentmodule:: arez.items
+.. currentmodule:: arez
 
 .. autoclass:: Device()
     :members:

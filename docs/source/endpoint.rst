@@ -1,7 +1,7 @@
 Endpoint
 ========
 
-.. currentmodule:: arez.endpoint
+.. currentmodule:: arez
 
 .. autoclass:: Endpoint
     :members:

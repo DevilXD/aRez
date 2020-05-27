@@ -1,7 +1,7 @@
 Statistics
 ==========
 
-.. currentmodule:: arez.stats
+.. currentmodule:: arez
 
 .. autoclass:: Stats()
     :members:
