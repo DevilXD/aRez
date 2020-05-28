@@ -47,6 +47,12 @@ class DataCache(Endpoint):
         Your developer's ID (devId).
     auth_key : str
         Your developer's authentication key (authKey).
+    initialize : Union[bool, Language]
+        When set to `True`, it launches a task that will initialize the cache with
+        the default (English) language.\n
+        Can be set to a `Language` instance, in which case that language will be set as default
+        first, before initializing.\n
+        Defaults to `False`, where no initialization occurs.
     loop : Optional[asyncio.AbstractEventLoop]
         The event loop you want to use for this data cache.\n
         Default loop is used when not provided.
@@ -57,15 +63,22 @@ class DataCache(Endpoint):
         dev_id: Union[int, str],
         auth_key: str,
         *,
+        initialize: Union[bool, Language] = False,
         loop: Optional[asyncio.AbstractEventLoop] = None,
     ):
         super().__init__(url, dev_id, auth_key, loop=loop)
-        self._default_language = Language.English
+        self._default_language: Language
+        if isinstance(initialize, Language):
+            self._default_language = initialize
+        else:
+            self._default_language = Language.English
         self._cache: Dict[Language, CacheEntry] = {}
         self._locks: WeakValueDefaultDict[Any, asyncio.Lock] = WeakValueDefaultDict(
             lambda: asyncio.Lock()
         )
         self.refresh_every = timedelta(hours=12)
+        if initialize:
+            self.loop.create_task(self.initialize())
 
     def set_default_language(self, language: Language):
         """

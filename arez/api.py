@@ -39,6 +39,12 @@ class PaladinsAPI(DataCache):
         Your developer's ID (devId).
     auth_key : str
         Your developer's authentication key (authKey).
+    initialize : Union[bool, Language]
+        When set to `True`, it launches a task that will initialize the cache with
+        the default (English) language.\n
+        Can be set to a `Language` instance, in which case that language will be set as default
+        first, before initializing.\n
+        Defaults to `False`, where no initialization occurs.
     loop : Optional[asyncio.AbstractEventLoop]
         The event loop you want to use for this API.\n
         Default loop is used when not provided.
@@ -48,13 +54,21 @@ class PaladinsAPI(DataCache):
         dev_id: Union[int, str],
         auth_key: str,
         *,
+        initialize: Union[bool, Language] = False,
         loop: Optional[asyncio.AbstractEventLoop] = None,
     ):
         if loop is None:  # pragma: no branch
             loop = asyncio.get_event_loop()
-        super().__init__("http://api.paladins.com/paladinsapi.svc", dev_id, auth_key, loop=loop)
         self._server_status: Optional[ServerStatus] = None
+        super().__init__(
+            "http://api.paladins.com/paladinsapi.svc",
+            dev_id,
+            auth_key,
+            loop=loop,
+            initialize=initialize,
+        )
 
+    # solely for typing, __aexit__ exists in the DataCache
     async def __aenter__(self) -> PaladinsAPI:
         return self
 

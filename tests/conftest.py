@@ -56,7 +56,7 @@ def event_loop():
 @pytest.fixture(scope="session")
 async def api():
     # this manages the closing of the API after tests as well
-    async with arez.PaladinsAPI(DEV_ID, AUTH_KEY) as api:
+    async with arez.PaladinsAPI(DEV_ID, AUTH_KEY, initialize=True) as api:
         yield api
 
 

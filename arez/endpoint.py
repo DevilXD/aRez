@@ -53,8 +53,9 @@ class Endpoint:
         *,
         loop: Optional[asyncio.AbstractEventLoop] = None,
     ):
-        if loop is None:
+        if loop is None:  # pragma: no branch
             loop = asyncio.get_event_loop()
+        self.loop = loop
         self.url = url.rstrip('/')
         self._session_key = ''
         self._session_lock = asyncio.Lock()
