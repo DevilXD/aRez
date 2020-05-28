@@ -72,7 +72,7 @@ class PaladinsAPI(DataCache):
     async def __aenter__(self) -> PaladinsAPI:
         return self
 
-    async def get_server_status(self, *, force_refresh: bool = False) -> Optional[ServerStatus]:
+    async def get_server_status(self, *, force_refresh: bool = False) -> ServerStatus:
         """
         Fetches the server status.
 
@@ -89,10 +89,13 @@ class PaladinsAPI(DataCache):
 
         Returns
         -------
-        Optional[ServerStatus]
-            The server status object.\n
-            `None` is returned if there is no cached status and fetching returned
-            an empty response.
+        ServerStatus
+            The server status object.
+
+        Raises
+        ------
+        NotFound
+            There was no cached status and fetching returned an empty response.
         """
         # Use a lock to ensure we're not fetching this twice in quick succession
         async with self._locks["server_status"]:
@@ -107,12 +110,13 @@ class PaladinsAPI(DataCache):
                     self._server_status = ServerStatus(response)
             else:
                 logger.info(f"api.get_server_status({force_refresh=}) -> using cached")
-
+        if self._server_status is None:
+            raise NotFound("Server status")
         return self._server_status
 
     async def get_champion_info(
         self, language: Optional[Language] = None, *, force_refresh: bool = False
-    ) -> Optional[CacheEntry]:
+    ) -> CacheEntry:
         """
         Fetches the champion information.
 
@@ -132,17 +136,23 @@ class PaladinsAPI(DataCache):
 
         Returns
         -------
-        Optional[CacheEntry]
+        CacheEntry
             An object containing all champions, cards, talents and items information
-            in the chosen language.\n
-            `None` is returned if there was no cached information and fetching returned
-            an empty response.
+            in the chosen language.
+
+        Raises
+        ------
+        NotFound
+            The champion information couldn't be fetched.
         """
         assert language is None or isinstance(language, Language)
         if language is None:
             language = self._default_language
         logger.info(f"api.get_champion_info({language=}, {force_refresh=})")
-        return await self._fetch_entry(language, force_refresh=force_refresh)
+        entry = await self._fetch_entry(language, force_refresh=force_refresh)
+        if entry is None:
+            raise NotFound("Champion information")
+        return entry
 
     def wrap_player(
         self,

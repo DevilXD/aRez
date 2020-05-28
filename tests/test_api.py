@@ -30,6 +30,7 @@ pytestmark = [
 
 @pytest.mark.dependency(depends=["tests/utils/test_lookup.py::test_lookup"], scope="session")
 @pytest.mark.parametrize("lang_num", [
+    0,   # Nothing returned
     1,   # English
     2,   # German
     3,   # French
@@ -41,6 +42,14 @@ pytestmark = [
     13,  # Turkish
 ])
 async def test_champion_info(api: arez.PaladinsAPI, lang_num: int):
+    if lang_num == 0:
+        # hack - ensure no cache exists
+        if api._cache[arez.Language.English]:
+            del api._cache[arez.Language.English]
+        # nothing is returned, expect an exception
+        with pytest.raises(arez.NotFound):
+            champion_info = await api.get_champion_info()
+        return  # if the above passes, end here
     champion_info = await api.get_champion_info(arez.Language(lang_num))
     assert champion_info is not None
     champion_count = len(champion_info.champions)
@@ -69,13 +78,6 @@ async def test_champion_info(api: arez.PaladinsAPI, lang_num: int):
     assert len(champion_info.devices) == champion_count * (16 + 3) + 4 * 4, "Missing devices!"
     # verify all champions are valid
     assert all(c for c in champion_info.champions), "Not all champions appear to be valid!"
-
-
-@pytest.mark.dependency(depends=["tests/utils/test_lookup.py::test_lookup"], scope="session")
-async def test_champion_info_simple(api: arez.PaladinsAPI):
-    # same as above, but single and only for a default language
-    entry = await api.get_champion_info()
-    assert entry is not None
 
 
 async def test_get_player(api: arez.PaladinsAPI):
@@ -176,11 +178,11 @@ async def test_get_match(api: arez.PaladinsAPI):
     assert isinstance(match, arez.Match)
     # expand players after fetch
     await match.expand_players()
-    assert all(isinstance(mp.player, arez.Player) for mp in match.players)
+    assert all(isinstance(mp.player, arez.Player) or mp.player.private for mp in match.players)
     # expand players on fetch
     match = await api.get_match(MATCH, expand_players=True)
     assert isinstance(match, arez.Match)
-    assert all(isinstance(mp.player, arez.Player) for mp in match.players)
+    assert all(isinstance(mp.player, arez.Player) or mp.player.private for mp in match.players)
     # not found
     with pytest.raises(arez.NotFound):
         match = await api.get_match(INVALID_MATCH)
@@ -191,7 +193,7 @@ async def test_get_matches(api: arez.PaladinsAPI):
     match_list = await api.get_matches([MATCH, MATCH_TDM])
     for match in match_list:
         assert isinstance(match, arez.Match)
-        assert all(isinstance(p.player, arez.PartialPlayer) for p in match.players)
+        assert all(isinstance(mp.player, arez.PartialPlayer) for mp in match.players)
     # explicit language
     match_list = await api.get_matches([MATCH, MATCH_TDM], language=arez.Language.English)
     assert len(match_list) == 2
@@ -199,7 +201,7 @@ async def test_get_matches(api: arez.PaladinsAPI):
     match_list = await api.get_matches([MATCH, MATCH_TDM], expand_players=True)
     for match in match_list:
         assert isinstance(match, arez.Match)
-        assert all(isinstance(p.player, arez.Player) for p in match.players)
+        assert all(isinstance(mp.player, arez.Player) or mp.player.private for mp in match.players)
     # empty list
     match_list = await api.get_matches([])
     assert len(match_list) == 0

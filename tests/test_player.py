@@ -46,11 +46,11 @@ async def test_player_status(
     with pytest.raises(arez.Private):
         status = await private_player.get_status()
     # invalid
-    status = await invalid_player.get_status()
-    assert status is None
+    with pytest.raises(arez.NotFound):
+        status = await invalid_player.get_status()
     # no privacy flag private
-    status = await no_flag_private_player.get_status()
-    assert status is None
+    with pytest.raises(arez.NotFound):
+        status = await no_flag_private_player.get_status()
 
 
 async def test_player_friends(

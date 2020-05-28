@@ -24,12 +24,12 @@ def test_enum():
 @pytest.mark.asyncio()
 @pytest.mark.dependency(depends=["tests/test_endpoint.py::test_session"], scope="session")
 async def test_get_server_status(api: arez.PaladinsAPI):
-    # test None
-    current_status = await api.get_server_status()
-    assert current_status is None
+    # test Notfound
+    with pytest.raises(arez.NotFound):
+        current_status = await api.get_server_status()
     # test fetching new
     current_status = await api.get_server_status(force_refresh=True)
-    assert current_status is not None
+    assert isinstance(current_status, arez.ServerStatus)
     # test returning cached
     current_status2 = await api.get_server_status()
     assert current_status2 is current_status

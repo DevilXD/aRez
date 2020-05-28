@@ -137,7 +137,7 @@ class PartialPlayer(APIClient, Expandable):
         """
         return self._private or self._id == 0
 
-    async def get_status(self) -> Optional[PlayerStatus]:
+    async def get_status(self) -> PlayerStatus:
         """
         Fetches the player's current status.
 
@@ -153,14 +153,16 @@ class PartialPlayer(APIClient, Expandable):
         ------
         Private
             The player's profile was private.
+        NotFound
+            The player's status couldn't be found.
         """
         if self.private:
             raise Private
         logger.info(f"Player(id={self._id}).get_status()")
         response = await self._api.request("getplayerstatus", self._id)
-        if response and response[0]["status"] != 5:
-            return PlayerStatus(self, response[0])
-        return None
+        if not response or response[0]["status"] == 5:
+            raise NotFound("Player status")
+        return PlayerStatus(self, response[0])
 
     async def get_friends(self) -> List["PartialPlayer"]:
         """
