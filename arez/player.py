@@ -34,6 +34,16 @@ class PartialPlayer(APIClient, Expandable):
     .. code-block:: py
 
         player = await partial_player
+
+    .. note::
+
+        In addition to the exceptions specified below, each API request can result
+        in two additional exceptions being raised:
+
+        `Unavailable`
+            The API is currently unavailable.
+        `HTTPException`
+            Fetching the information requested failed due to connection problems.
     """
     def __init__(
         self,

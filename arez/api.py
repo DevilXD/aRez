@@ -33,6 +33,17 @@ class PaladinsAPI(DataCache):
         You can request your developer ID and authorization key `here.
         <https://fs12.formsite.com/HiRez/form48/secure_index.html>`_
 
+
+    .. note::
+
+        In addition to the exceptions specified below, each API request can result
+        in two additional exceptions being raised:
+
+        `Unavailable`
+            The API is currently unavailable.
+        `HTTPException`
+            Fetching the information requested failed due to connection problems.
+
     Parameters
     ----------
     dev_id : Union[int, str]

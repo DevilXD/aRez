@@ -16,8 +16,6 @@ Players
     .. autoattribute:: platform
     .. autoattribute:: private
 
-.. currentmodule:: arez.match
-
 .. autoclass:: MatchPlayer()
     :members:
     :inherited-members:

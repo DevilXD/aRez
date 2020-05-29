@@ -1,7 +1,7 @@
 Cache
 =====
 
-.. currentmodule:: arez.cache
+.. currentmodule:: arez
 
 .. autoclass:: DataCache()
     :members:
