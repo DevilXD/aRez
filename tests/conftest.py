@@ -22,9 +22,9 @@ pytest_plugins = ["asyncio", "recording", "dependency"]
 # base datetime - has to be within the last 30 days
 BASE_DATETIME = datetime(2020, 4, 27, 0, 0)
 
-# match IDs - no private players
-MATCH         = 969680571  # Siege or Onslaught
-MATCH_TDM     = 973464436  # TDM
+# match IDs
+MATCH         = 985881292  # Siege or Onslaught
+MATCH_TDM     = 985701279  # TDM
 INVALID_MATCH = 1234       # invalid
 
 # named tuple for player data storage
