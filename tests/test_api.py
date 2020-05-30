@@ -44,7 +44,7 @@ pytestmark = [
 async def test_champion_info(api: arez.PaladinsAPI, lang_num: int):
     if lang_num == 0:
         # hack - ensure no cache exists
-        if api._cache[arez.Language.English]:
+        if arez.Language.English in api._cache:
             del api._cache[arez.Language.English]
         # nothing is returned, expect an exception
         with pytest.raises(arez.NotFound):
