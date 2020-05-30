@@ -55,8 +55,18 @@ async def test_match_disconnected(api: arez.PaladinsAPI, player: arez.PartialPla
 
 @pytest.mark.dependency(depends=["tests/test_player.py::test_player_status"], scope="session")
 async def test_live_match(player: arez.PartialPlayer):
+    # no live match
     status = await player.get_status()
-    assert status is not None
+    assert isinstance(status, arez.PlayerStatus)
+    assert status.queue is None
+    assert status.live_match_id is None
+    assert status.status != arez.Activity.In_Match
+    # with live match
+    status = await player.get_status()
+    assert isinstance(status, arez.PlayerStatus)
+    assert isinstance(status.queue, arez.Queue)
+    assert isinstance(status.live_match_id, int)
+    assert status.status == arez.Activity.In_Match
     # standard
     live_match = await status.get_live_match()
     assert isinstance(live_match, arez.LiveMatch)
