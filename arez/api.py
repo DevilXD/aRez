@@ -154,7 +154,7 @@ class PaladinsAPI(DataCache):
         Raises
         ------
         NotFound
-            The champion information couldn't be fetched.
+            The champion information wasn't available on the server.
         """
         assert language is None or isinstance(language, Language)
         if language is None:

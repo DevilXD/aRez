@@ -448,7 +448,7 @@ class LiveMatch(APIClient):
         self,
         api: "PaladinsAPI",
         language: Language,
-        match_data: List[dict],
+        match_data: List[Dict[str, Any]],
         players: Dict[int, Player],
     ):
         super().__init__(api)

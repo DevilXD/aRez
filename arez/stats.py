@@ -80,7 +80,7 @@ class ChampionStats(WinLoseMixin, KDAMixin):
     """
     Represents player's champion stats.
 
-    You can find these from the `PartialPlayer.get_champion_stats` method.
+    You can get these from the `PartialPlayer.get_champion_stats` method.
 
     Attributes
     ----------
@@ -120,7 +120,7 @@ class ChampionStats(WinLoseMixin, KDAMixin):
         self,
         player: Union["PartialPlayer", "Player"],
         language: Language,
-        stats_data: dict,
+        stats_data: Dict[str, Any],
         queue: Optional[Queue] = None,
     ):
         WinLoseMixin.__init__(
@@ -134,8 +134,8 @@ class ChampionStats(WinLoseMixin, KDAMixin):
             deaths=stats_data["Deaths"],
             assists=stats_data["Assists"],
         )
-        self.player = player
-        self.queue = queue
+        self.player: Union[PartialPlayer, Player] = player
+        self.queue: Optional[Queue] = queue
         if queue is None:
             champion_id = int(stats_data["champion_id"])
         else:
@@ -146,7 +146,7 @@ class ChampionStats(WinLoseMixin, KDAMixin):
         self.experience = stats_data.get("Worshippers", 0)
         self.credits_earned = stats_data["Gold"]
         self.playtime = Duration(minutes=stats_data["Minutes"])
-        # "MinionKills"
+        # "MinionKills"  # kills_bot
 
     def __repr__(self) -> str:
         champion_name = self.champion.name if self.champion is not None else "Unknown"

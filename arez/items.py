@@ -6,7 +6,7 @@ from .enumerations import DeviceType, Language
 
 if TYPE_CHECKING:  # pragma: no branch
     from .champion import Champion, Ability
-    from .player import PartialPlayer, Player  # noqa
+    from .player import PartialPlayer, Player
 
 
 __all__ = [
@@ -59,7 +59,7 @@ class Device:
         ``0`` means it's unlocked by default.
     """
     _desc_pattern = re.compile(r'\[(.+?)\] (.*)')
-    _card_pattern = re.compile(r'{scale=(\d+|0\.\d+)\|(\d+|0\.\d+)}|{(\d+)}')
+    _card_pattern = re.compile(r'{scale=((?:0\.)?\d+)\|((?:0\.)?\d+)}|{(\d+)}')
 
     def __init__(self, device_data: dict):
         self.description: str = device_data["Description"].strip()
