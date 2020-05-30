@@ -183,7 +183,8 @@ class PartialPlayer(APIClient, Expandable):
         Returns
         -------
         List[PartialPlayer]
-            A list of players this player is friends with.
+            A list of players this player is friends with.\n
+            Some players might be missing if their profile is set as private.
 
         Raises
         ------
@@ -197,7 +198,7 @@ class PartialPlayer(APIClient, Expandable):
         return [
             PartialPlayer(self._api, id=p["player_id"], name=p["name"])
             for p in response
-            if p["status"] == "Friend"
+            if p["status"] == "Friend" and p["player_id"] != "0"
         ]
 
     async def get_loadouts(self, language: Optional[Language] = None) -> List[Loadout]:
