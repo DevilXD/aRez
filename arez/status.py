@@ -132,7 +132,10 @@ class PlayerStatus(APIClient):
         super().__init__(player._api)
         self.player = player
         self.live_match_id: Optional[int] = status_data["Match"] or None
-        self.queue: Queue = Queue(status_data["match_queue_id"], return_default=True)
+        queue: Optional[Queue] = None
+        if queue_id := status_data["match_queue_id"]:
+            queue = Queue(queue_id)
+        self.queue: Optional[Queue] = queue
         self.status = Activity(status_data["status"])
 
     def __repr__(self) -> str:
