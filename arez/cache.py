@@ -405,20 +405,21 @@ class CacheEntry:
         talents = []
         for device_data in items_data:
             device = Device(device_data)
-            if device.type == DeviceType.Undefined:
+            device_type = device.type
+            if device_type == DeviceType.Undefined:
                 # skip invalid / unknown devices
                 continue
             sorted_devices.setdefault(device_data["champion_id"], []).append(device)
-            if device.type == DeviceType.Card:
+            if device_type == DeviceType.Card:
                 cards.append(device)
-            elif device.type == DeviceType.Talent:
+            elif device_type == DeviceType.Talent:
                 talents.append(device)
-            elif device.type == DeviceType.Item:  # pragma: no branch
+            elif device_type == DeviceType.Item:  # pragma: no branch
                 items.append(device)
         self.items: Lookup[Device] = Lookup(items)
         self.cards: Lookup[Device] = Lookup(cards)
         self.talents: Lookup[Device] = Lookup(talents)
-        self.devices: Lookup[Device] = Lookup(chain(items, cards, talents))
+        self.devices: Lookup[Device] = Lookup(chain(items, talents, cards))
         self.champions: Lookup[Champion] = Lookup(
             Champion(sorted_devices.get(c["id"], []), c) for c in champions_data
         )
