@@ -2,6 +2,7 @@ import re
 from typing import Optional, Union, List, Literal, TYPE_CHECKING
 
 from .utils import Lookup
+from .mixins import CacheObject
 from .enumerations import DeviceType, AbilityType
 
 if TYPE_CHECKING:  # pragma: no branch
@@ -16,12 +17,14 @@ __all__ = [
 
 def _card_ability_sort(card: "Device") -> str:
     ability = card.ability
-    if ability is None or isinstance(ability, str):
-        return f"z{ability}"  # push the card to the very end
+    if ability is None:
+        return "zz"  # push the card to the very, very end
+    elif type(ability) == CacheObject:
+        return f"z{ability.name}"  # push the card to the very end
     return ability.name
 
 
-class Ability:
+class Ability(CacheObject):
     """
     Represents a Champion's Ability.
     You can find these on the `Champion.abilities` attribute.
@@ -46,8 +49,7 @@ class Ability:
     _desc_pattern = re.compile(r" ?<br>(?:<br>)? ?")  # replace the <br> tags with a new line
 
     def __init__(self, champion: "Champion", ability_data: dict):
-        self.name: str = ability_data["Summary"]
-        self.id: int = ability_data["Id"]
+        super().__init__(id=ability_data["Id"], name=ability_data["Summary"])
         self.champion = champion
         desc = ability_data["Description"].strip().replace('\r', '')
         desc = self._desc_pattern.sub('\n', desc)
@@ -60,7 +62,7 @@ class Ability:
         return f"{self.__class__.__name__}: {self.name}({self.id})"
 
 
-class Champion:
+class Champion(CacheObject):
     """
     Represents a Champion and it's information.
     You can find these on the `CacheEntry.champions` attribute, as well as various other objects
@@ -111,8 +113,7 @@ class Champion:
         Use ``list(...)`` to get a list instead.
     """
     def __init__(self, devices: List["Device"], champion_data: dict):
-        self.name: str = champion_data["Name"]
-        self.id: int = champion_data["id"]
+        super().__init__(id=champion_data["id"], name=champion_data["Name"])
         self.title: str = champion_data["Title"]
         self.role: Literal[
             "Front Line", "Support", "Damage", "Flank"

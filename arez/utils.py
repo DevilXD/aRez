@@ -17,10 +17,11 @@ from typing import (
     Iterator,
     Generator,
     AsyncGenerator,
-    Protocol,
     TypeVar,
     overload,
 )
+
+from .mixins import CacheObject
 
 
 __all__ = [
@@ -39,13 +40,7 @@ X = TypeVar("X")
 Y = TypeVar("Y")
 
 
-# LookupElement protocol, to match elements of the Lookup class
-class LookupElement(Protocol):
-    id: int
-    name: str
-
-
-LookupType = TypeVar("LookupType", bound=LookupElement)
+LookupType = TypeVar("LookupType", bound=CacheObject)
 
 
 def convert_timestamp(timestamp: str) -> Optional[datetime]:
@@ -145,7 +140,7 @@ class Lookup(Iterable[LookupType]):
         """
         return iter(self._list_lookup)
 
-    def lookup(self, name_or_id: Union[int, str], *, fuzzy: bool = False) -> Optional[LookupType]:
+    def _lookup(self, name_or_id: Union[int, str], *, fuzzy: bool = False) -> Optional[LookupType]:
         """
         Allows you to quickly lookup an element by it's Name or ID.
 

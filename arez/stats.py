@@ -1,12 +1,13 @@
 from .utils import Duration
-from typing import Optional, Union, Literal, TYPE_CHECKING
+from typing import Any, Optional, Union, Dict, Literal, TYPE_CHECKING
 
 from .utils import convert_timestamp
-from .mixins import WinLoseMixin, KDAMixin
+from .mixins import CacheObject, WinLoseMixin, KDAMixin
 from .enumerations import Rank, Language, Queue
 
 if TYPE_CHECKING:  # pragma: no branch
-    from .player import PartialPlayer, Player  # noqa
+    from .champion import Champion
+    from .player import PartialPlayer, Player
 
 
 __all__ = [
@@ -96,10 +97,10 @@ class ChampionStats(WinLoseMixin, KDAMixin):
         The amount of assists with this champion.
     player : Union[PartialPlayer, Player]
         The player these stats are for.
-    champion : Optional[Champion]
+    champion : Union[Champion, CacheObject]
         The champion these stats are for.\n
-        `None` for incomplete cache.
-    queue : Queue
+        With incomplete cache, this will be a `CacheObject` with the name and ID set.
+    queue : Optional[Queue]
         The queue these starts are for.\n
         `None` means these stats are for all queues.
     level : int
@@ -138,9 +139,16 @@ class ChampionStats(WinLoseMixin, KDAMixin):
         self.queue: Optional[Queue] = queue
         if queue is None:
             champion_id = int(stats_data["champion_id"])
+            champion_name = stats_data["champion"]
         else:
-            champion_id = int(stats_data['ChampionId'])
-        self.champion = self.player._api.get_champion(champion_id, language)
+            champion_id = int(stats_data["ChampionId"])
+            champion_name = stats_data["Champion"]
+        champion: Optional[Union[Champion, CacheObject]] = (
+            self.player._api.get_champion(champion_id, language)
+        )
+        if champion is None:
+            champion = CacheObject(id=champion_id, name=champion_name)
+        self.champion: Union[Champion, CacheObject] = champion
         self.last_played = convert_timestamp(stats_data["LastPlayed"])
         self.level = stats_data.get("Rank", 0)
         self.experience = stats_data.get("Worshippers", 0)
@@ -149,5 +157,4 @@ class ChampionStats(WinLoseMixin, KDAMixin):
         # "MinionKills"  # kills_bot
 
     def __repr__(self) -> str:
-        champion_name = self.champion.name if self.champion is not None else "Unknown"
-        return f"{champion_name}({self.level}): ({self.wins}/{self.losses}) {self.kda_text}"
+        return f"{self.champion.name}({self.level}): ({self.wins}/{self.losses}) {self.kda_text}"

@@ -2,10 +2,10 @@ from math import nan
 from abc import ABC, abstractmethod
 from typing import Optional, Union, List, Tuple, Literal, TYPE_CHECKING
 
-from .utils import convert_timestamp, Duration
 from .enumerations import Language, Queue, Region
 
 if TYPE_CHECKING:  # pragma: no branch
+    from .items import Device
     from .api import PaladinsAPI
     from .champion import Champion
     from .player import PartialPlayer, Player
@@ -13,6 +13,7 @@ if TYPE_CHECKING:  # pragma: no branch
 
 __all__ = [
     "APIClient",
+    "CacheObject",
     "Expandable",
     "WinLoseMixin",
     "KDAMixin",
@@ -30,6 +31,29 @@ class APIClient:
     """
     def __init__(self, api: "PaladinsAPI"):
         self._api = api
+
+
+class CacheObject:
+    """
+    Base class representing objects that can be returned from the data cache.
+    You will sometimes find these on objects returned from the API, when the cache was either
+    incomplete or disabled.
+
+    Attributes
+    ----------
+    id : int
+        The object's ID.\n
+        Defaults to ``0`` if not set.
+    name : str
+        The object's name.\n
+        Defaults to ``"Unknown"`` if not set.
+    """
+    def __init__(self, *, id: int = 0, name: str = "Unknown"):
+        self.id: int = id
+        self.name: str = name
+
+    def __repr__(self) -> str:
+        return f"CacheObject: {self.name}({self.id})"
 
 
 class Expandable(ABC):
@@ -208,6 +232,7 @@ class MatchMixin:
             )
         self.queue = Queue(queue, return_default=True)
         self.region = Region(match_data["Region"], return_default=True)
+        from .utils import convert_timestamp, Duration  # circular imports
         self.timestamp = convert_timestamp(stamp)
         self.duration = Duration(seconds=match_data["Time_In_Match_Seconds"])
         self.map_name: str = match_data["Map_Game"]
@@ -228,9 +253,9 @@ class MatchPlayerMixin(APIClient, KDAMixin):
         The player who participated in this match.\n
         This is usually a new partial player object.\n
         All attributes, Name, ID and Platform, should be present.
-    champion : Optional[Champion]
+    champion : Union[Champion, CacheObject]
         The champion used by the player in this match.\n
-        `None` with incomplete cache.
+        With incomplete cache, this will be a `CacheObject` with the name and ID set.
     loadout : MatchLoadout
         The loadout used by the player in this match.
     items : List[MatchItem]
@@ -277,18 +302,24 @@ class MatchPlayerMixin(APIClient, KDAMixin):
             creds = match_data["Gold_Earned"]
             kills = match_data["Kills_Player"]
             damage = match_data["Damage_Done_Physical"]
+            champion_name = match_data["Reference_Name"]
         else:
             # we're in a partial (player history) match data
             creds = match_data["Gold"]
             kills = match_data["Kills"]
             damage = match_data["Damage"]
+            champion_name = match_data["Champion"]
         KDAMixin.__init__(
             self, kills=kills, deaths=match_data["Deaths"], assists=match_data["Assists"]
         )
         self.player: Union[Player, PartialPlayer] = player
-        self.champion: Optional[Champion] = self._api.get_champion(
-            match_data["ChampionId"], language
+        champion_id = match_data["ChampionId"]
+        champion: Optional[Union[Champion, CacheObject]] = (
+            self._api.get_champion(champion_id, language)
         )
+        if champion is None:
+            champion = CacheObject(id=champion_id, name=champion_name)
+        self.champion: Union[Champion, CacheObject] = champion
         self.credits: int = creds
         self.damage_done: int = damage
         self.damage_bot: int = match_data["Damage_Bot"]
@@ -310,7 +341,15 @@ class MatchPlayerMixin(APIClient, KDAMixin):
             item_id = match_data[f"ActiveId{i}"]
             if not item_id:
                 continue
-            item = self._api.get_item(item_id, language)
+            item: Optional[Union[Device, CacheObject]] = self._api.get_item(item_id, language)
+            if item is None:
+                if "hasReplay" in match_data:
+                    # we're in a full match data
+                    item_name = match_data[f"Item_Active_{i}"]
+                else:
+                    # we're in a partial (player history) match data
+                    item_name = match_data[f"Active_{i}"]
+                item = CacheObject(id=item_id, name=item_name)
             level = match_data[f"ActiveLevel{i}"] // 4 + 1
             self.items.append(MatchItem(item, level))
         self.loadout = MatchLoadout(self._api, language, match_data)

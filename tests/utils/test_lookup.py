@@ -1,11 +1,11 @@
 import pytest
 from arez.utils import Lookup
+from arez.mixins import CacheObject
 
 
-class Element:
+class Element(CacheObject):
     def __init__(self, id, name):
-        self.id = id
-        self.name = name
+        super().__init__(id=id, name=name)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.id}, {self.name})"

@@ -1,10 +1,11 @@
 import re
-from typing import Optional, Union, TYPE_CHECKING
+from typing import Optional, Union, List, TYPE_CHECKING
 
-from .mixins import APIClient
+from .mixins import APIClient, CacheObject
 from .enumerations import DeviceType, Language
 
 if TYPE_CHECKING:  # pragma: no branch
+    from .api import PaladinsAPI
     from .champion import Champion, Ability
     from .player import PartialPlayer, Player
 
@@ -18,7 +19,7 @@ __all__ = [
 ]
 
 
-class Device:
+class Device(CacheObject):
     """
     Represents a Device - those are usually cards, talents and shop items.
 
@@ -36,11 +37,13 @@ class Device:
         The device's description.
     icon_url : str
         The URL of this device's icon.
-    ability : Optional[Union[Ability, str]]
-        The ability this device affects, or a string denoting the affected part of the champion.\n
-        Can be `None` in cases where this information couldn't be parsed.
-    champion : Optional[Champion]
+    ability : Union[Ability, CacheObject]
+        The ability this device affects, or a `CacheObject` with only the name set,
+        denoting the affected part of the champion.\n
+        The name will be set to ``"Unknown"`` in cases where this information couldn't be parsed.
+    champion : Optional[Union[Champion, CacheObject]]
         The champion this device belongs to.\n
+        This is a `CacheObject` with incomplete cache.
         `None` for shop items.
     base : float
         The base value of the card's or shop item's scaling.\n
@@ -62,11 +65,12 @@ class Device:
     _card_pattern = re.compile(r'{scale=((?:0\.)?\d+)\|((?:0\.)?\d+)}|{(\d+)}')
 
     def __init__(self, device_data: dict):
+        super().__init__(id=device_data["ItemId"], name=device_data["DeviceName"])
         self.description: str = device_data["Description"].strip()
-        self.ability: Optional[Union[Ability, str]] = None
+        self.ability: Union[Ability, CacheObject] = CacheObject()
         match = self._desc_pattern.match(self.description)
         if match:
-            self.ability = match.group(1)
+            self.ability = CacheObject(name=match.group(1))
             self.description = match.group(2)
         self.base: float = 0.0
         self.scale: float = 0.0
@@ -91,10 +95,12 @@ class Device:
             self.type = DeviceType.Item
         else:
             self.type = DeviceType.Undefined
-        # later overwritten when the device is added to a champion
-        self.champion: Optional["Champion"] = None
-        self.name: str = device_data["DeviceName"]
-        self.id: int = device_data["ItemId"]
+        # start with None by default
+        self.champion: Optional[Union["Champion", CacheObject]] = None
+        # if the champion ID is non-zero, replace it with a cache object
+        if champion_id := device_data["champion_id"]:
+            # later overwritten when the device is added to a champion
+            self.champion = CacheObject(id=champion_id)
         self.icon_url: str = device_data["itemIcon_URL"]
         self.cooldown: int = device_data["recharge_seconds"]
         self.price: int = device_data["Price"]
@@ -108,9 +114,9 @@ class Device:
 
     def _attach_champion(self, champion: "Champion"):
         self.champion = champion
-        if isinstance(self.ability, str):
-            # upgrade the ability string to a full object if possible
-            ability = champion.get_ability(self.ability)
+        if type(self.ability) == CacheObject and self.ability.name != "Unknown":
+            # upgrade the ability to a full object if possible
+            ability = champion.get_ability(self.ability.name)
             if ability:
                 self.ability = ability
 
@@ -121,22 +127,21 @@ class LoadoutCard:
 
     Attributes
     ----------
-    card : Optional[Device]
+    card : Union[Device, CacheObject]
         The actual card that belongs to this loadout.\n
-        `None` with incomplete cache.
+        `CacheObject` with incomplete cache.
     points : int
         The amount of loadout points that have been assigned to this card.
     """
-    def __init__(self, card: Optional[Device], points: int):
-        self.card = card
-        self.points = points
+    def __init__(self, card: Union[Device, CacheObject], points: int):
+        self.card: Union[Device, CacheObject] = card
+        self.points: int = points
 
     def __repr__(self) -> str:
-        card_name = self.card.name if self.card else "Unknown"
-        return f"{card_name}: {self.points}"
+        return f"{self.card.name}: {self.points}"
 
 
-class Loadout(APIClient):
+class Loadout(APIClient, CacheObject):
     """
     Represents a Champion's Loadout.
 
@@ -150,9 +155,9 @@ class Loadout(APIClient):
         Name of the loadout.
     player : Union[PartialPlayer, Player]
         The player this loadout belongs to.
-    champion : Optional[Champion]
+    champion : Union[Champion, CacheObject]
         The champion this loadout belongs to.
-        `None` with incomplete cache.
+        With incomplete cache, this will be a `CacheObject` with the name and ID set.
     language : Language
         The language of all the cards this loadout has.
     cards : List[LoadoutCard]
@@ -162,20 +167,28 @@ class Loadout(APIClient):
         self, player: Union["PartialPlayer", "Player"], language: Language, loadout_data: dict
     ):
         assert player.id == loadout_data["playerId"]
-        super().__init__(player._api)
-        self.player = player
-        self.language = language
-        self.champion = self._api.get_champion(loadout_data["ChampionId"], language)
-        self.name = loadout_data["DeckName"]
-        self.id = loadout_data["DeckId"]
-        self.cards = [
-            LoadoutCard(self._api.get_card(c["ItemId"], language), c["Points"])
-            for c in sorted(loadout_data["LoadoutItems"], key=lambda c: c["Points"], reverse=True)
-        ]
+        APIClient.__init__(self, player._api)
+        CacheObject.__init__(self, id=loadout_data["DeckId"], name=loadout_data["DeckName"])
+        self.player: Union[PartialPlayer, Player] = player
+        self.language: Language = language
+        champion_id: int = loadout_data["ChampionId"]
+        champion: Optional[Union[Champion, CacheObject]] = (
+            self._api.get_champion(champion_id, language)
+        )
+        if champion is None:
+            champion = CacheObject(id=champion_id, name=loadout_data["ChampionName"])
+        self.champion: Union[Champion, CacheObject] = champion
+        self.cards: List[LoadoutCard] = []
+        for card_data in loadout_data["LoadoutItems"]:
+            card_id: int = card_data["ItemId"]
+            card: Optional[Union[Device, CacheObject]] = self._api.get_card(card_id, language)
+            if card is None:
+                card = CacheObject(id=card_id, name=card_data["ItemName"])
+            self.cards.append(LoadoutCard(card, card_data["Points"]))
+        self.cards.sort(key=lambda lc: lc.points, reverse=True)
 
     def __repr__(self) -> str:
-        champion_name = self.champion.name if self.champion is not None else "Unknown"
-        return f"{champion_name}: {self.name}"
+        return f"{self.champion.name}: {self.name}"
 
 
 class MatchItem:
@@ -184,19 +197,18 @@ class MatchItem:
 
     Attributes
     ----------
-    item : Optional[Device]
+    item : Union[Device, CacheObject]
         The purchased item.\n
-        `None` with incomplete cache.
+        `CacheObject` with incomplete cache.
     level : int
         The level of the item purchased.
     """
-    def __init__(self, item, level):
-        self.item: Optional[Device] = item
+    def __init__(self, item: Union[Device, CacheObject], level: int):
+        self.item: Union[Device, CacheObject] = item
         self.level: int = level
 
     def __repr__(self) -> str:
-        item_name = self.item.name if self.item else "Unknown"
-        return f"{item_name}: {self.level}"
+        return f"{self.item.name}: {self.level}"
 
 
 class MatchLoadout:
@@ -207,30 +219,48 @@ class MatchLoadout:
     ----------
     cards : List[LoadoutCard]
         A list of loadout cards used.\n
-        Can be empty if the player haven't picked a loadout during the match.
-    talent : Optional[Device]
+        Will be empty if the player hasn't picked a loadout during the match.
+    talent : Optional[Union[Device, CacheObject]]
         The talent used.\n
-        `None` when the player haven't picked a talent during the match, or with incomplete cache.
+        With incomplete cache, this will be a `CacheObject` with the name and ID set.\n
+        `None` when the player hasn't picked a talent during the match.
     """
-    def __init__(self, api, language: Language, match_data: dict):
-        self.cards = []
+    def __init__(self, api: "PaladinsAPI", language: Language, match_data: dict):
+        self.cards: List[LoadoutCard] = []
         for i in range(1, 6):
-            card_id = match_data[f"ItemId{i}"]
+            card_id: int = match_data[f"ItemId{i}"]
             if not card_id:
+                # skip 0s
                 continue
-            self.cards.append(
-                LoadoutCard(
-                    api.get_card(card_id, language),
-                    match_data[f"ItemLevel{i}"]
-                )
-            )
+            card: Optional[Union[Device, CacheObject]] = api.get_card(card_id, language)
+            if card is None:
+                if "hasReplay" in match_data:
+                    # we're in a full match data
+                    card_name = match_data[f"Item_Purch_{i}"]
+                else:
+                    # we're in a partial (player history) match data
+                    card_name = match_data[f"Item_{i}"]
+                card = CacheObject(id=card_id, name=card_name)
+            self.cards.append(LoadoutCard(card, match_data[f"ItemLevel{i}"]))
         self.cards.sort(key=lambda c: c.points, reverse=True)
-        self.talent = api.get_talent(match_data["ItemId6"], language)
+        talent_id: int = match_data["ItemId6"]
+        if talent_id:
+            talent: Optional[Union[Device, CacheObject]] = api.get_talent(talent_id, language)
+            if talent is None:
+                if "hasReplay" in match_data:
+                    # we're in a full match data
+                    talent_name = match_data["Item_Purch_6"]
+                else:
+                    # we're in a partial (player history) match data
+                    talent_name = match_data["Item_6"]
+                talent = CacheObject(id=talent_id, name=talent_name)
+        else:
+            talent = None
+        self.talent: Optional[Union[Device, CacheObject]] = talent
 
     def __repr__(self) -> str:
-        if self.cards:
-            talent_name = self.talent.name if self.talent else "Unknown"
-            return f"{talent_name}: {'/'.join(str(c.points) for c in self.cards)}"
+        if self.talent:
+            return f"{self.talent.name}: {'/'.join(str(c.points) for c in self.cards)}"
         else:
             # This can happen if the player haven't picked a talent / loadout during the match
             return "No Loadout"

@@ -6,10 +6,9 @@ from typing import Any, Optional, Union, List, Dict, Generator, TYPE_CHECKING
 
 from .exceptions import NotFound
 from .enumerations import Queue, Language, Region, Rank
-from .mixins import APIClient, MatchMixin, MatchPlayerMixin, Expandable, WinLoseMixin
+from .mixins import APIClient, CacheObject, MatchMixin, MatchPlayerMixin, Expandable, WinLoseMixin
 
 if TYPE_CHECKING:  # pragma: no branch
-    from .items import Device  # noqa
     from .api import PaladinsAPI
     from .champion import Champion
     from .player import PartialPlayer, Player  # noqa
@@ -59,9 +58,9 @@ class PartialMatch(MatchPlayerMixin, MatchMixin, Expandable):
         The player who participated in this match.\n
         This is usually a new partial player object.\n
         All attributes, Name, ID and Platform, should be present.
-    champion : Optional[Champion]
+    champion : Union[Champion, CacheObject]
         The champion used by the player in this match.\n
-        `None` with incomplete cache.
+        With incomplete cache, this will be a `CacheObject` with the name and ID set.
     loadout : MatchLoadout
         The loadout used by the player in this match.
     items : List[MatchItem]
@@ -129,8 +128,7 @@ class PartialMatch(MatchPlayerMixin, MatchMixin, Expandable):
         return Match(self._api, self._language, response, {})
 
     def __repr__(self) -> str:
-        champion_name = self.champion.name if self.champion is not None else "Unknown"
-        return f"{self.queue.name}: {champion_name}: {self.kda_text}"
+        return f"{self.queue.name}: {self.champion.name}: {self.kda_text}"
 
     @property
     def disconnected(self) -> bool:
@@ -153,9 +151,9 @@ class MatchPlayer(MatchPlayerMixin):
         The player who participated in this match.\n
         This is usually a new partial player object.\n
         All attributes, Name, ID and Platform, should be present.
-    champion : Optional[Champion]
+    champion : Union[Champion, CacheObject]
         The champion used by the player in this match.\n
-        `None` with incomplete cache.
+        With incomplete cache, this will be a `CacheObject` with the name and ID set.
     loadout : MatchLoadout
         The loadout used by the player in this match.
     items : List[MatchItem]
@@ -245,9 +243,8 @@ class MatchPlayer(MatchPlayerMixin):
         return self.damage_bot > 0 or self.healing_bot > 0
 
     def __repr__(self) -> str:
-        player_name = self.player.name if self.player.id else "Unknown"
         return (
-            f"{player_name}({self.player.id}): "
+            f"{self.player.name or 'Unknown'}({self.player.id}): {self.champion.name}: "
             f"({self.kda_text}, {self.damage_done}, {self.healing_done})"
         )
 
@@ -279,9 +276,10 @@ class Match(APIClient, MatchMixin):
         The winning team of this match.
     replay_available : bool
         `True` if this match has a replay that you can watch, `False` otherwise.
-    bans : List[Champion]
+    bans : List[Union[Champion, CacheObject]]
         A list of champions banned in this match.\n
-        This is an empty list for non-ranked matches, or with incomplete cache.
+        With incomplete cache, the list will contain `CacheObject`s with the name and ID set.\n
+        This will be an empty list for non-ranked matches.
     team1 : List[MatchPlayer]
         A list of players in the first team.
     team2 : List[MatchPlayer]
@@ -301,14 +299,18 @@ class Match(APIClient, MatchMixin):
         MatchMixin.__init__(self, first_player)
         logger.debug(f"Match(id={self.id}) -> creating...")
         self.replay_available: bool = first_player["hasReplay"] == "y"
-        self.bans: List[Champion] = []
+        self.bans: List[Union[Champion, CacheObject]] = []
         for i in range(1, 5):
-            ban_id = first_player[f"BanId{i}"]
+            ban_id: int = first_player[f"BanId{i}"]
             if not ban_id:
+                # skip 0s
                 continue
-            ban_champ = self._api.get_champion(ban_id, language)
-            if ban_champ:  # pragma: no branch  # TODO: Use the walrus operator here
-                self.bans.append(ban_champ)
+            ban_champ: Optional[Union[Champion, CacheObject]] = (
+                self._api.get_champion(ban_id, language)
+            )
+            if ban_champ is None:
+                ban_champ = CacheObject(id=ban_id, name=first_player[f"Ban_{i}"])
+            self.bans.append(ban_champ)
         self.team1: List[MatchPlayer] = []
         self.team2: List[MatchPlayer] = []
         # We need to do this here because apparently one-man parties are a thing
@@ -370,9 +372,9 @@ class LivePlayer(APIClient, WinLoseMixin):
     ----------
     player : Union[PartialPlayer, Player]
         The actual player playing in this match.
-    champion : Optional[Champion]
+    champion : Union[Champion, CacheObject]
         The champion the player is using in this match.\n
-        `None` with incomplete cache.
+        With incomplete cache, this will be a `CacheObject` with the name and ID set.
     rank : Rank
         The player's rank.
     account_level : int
@@ -405,20 +407,22 @@ class LivePlayer(APIClient, WinLoseMixin):
                 api, id=player_data["playerId"], name=player_data["playerName"]
             )
         self.player: Union[PartialPlayer, Player] = player
-        self.champion: Optional[Champion] = self._api.get_champion(
-            player_data["ChampionId"], language
+        champion_id: int = player_data["ChampionId"]
+        champion: Optional[Union[Champion, CacheObject]] = (
+            self._api.get_champion(champion_id, language)
         )
+        if champion is None:
+            champion = CacheObject(id=champion_id, name=player_data["ChampionName"])
+        self.champion: Union[Champion, CacheObject] = champion
         self.rank = Rank(player_data["Tier"], return_default=True)
         self.account_level: int = player_data["Account_Level"]
         self.mastery_level: int = player_data["Mastery_Level"]
 
     def __repr__(self) -> str:
-        player_name = self.player.name if self.player.id else "Unknown"
-        champion_name = self.champion.name if self.champion is not None else "Unknown"
         return (
-            f"{player_name}({self.player.id}): "
+            f"{self.player.name or 'Unknown'}({self.player.id}): "
             f"{self.account_level} level: "
-            f"{champion_name}({self.mastery_level})"
+            f"{self.champion.name}({self.mastery_level})"
         )
 
 

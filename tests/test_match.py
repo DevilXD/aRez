@@ -11,7 +11,7 @@ pytestmark = [
     pytest.mark.match,
     pytest.mark.asyncio,
     pytest.mark.dependency(
-        depends=["tests/test_misc.py::test_enum", "tests/test_endpoint.py::test_session"],
+        depends=["tests/test_misc.py::test_enum", "tests/test_misc.py::test_cache"],
         scope="session",
     )
 ]
