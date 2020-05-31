@@ -50,6 +50,10 @@ class PaladinsAPI(DataCache):
         Your developer's ID (devId).
     auth_key : str
         Your developer's authentication key (authKey).
+    cache : bool
+        When set to `False`, this disables the data cache. This makes most objects returned
+        from the API be `CacheObject`s instead of their respective data-rich counterparts.
+        Defaults to `True`.
     initialize : Union[bool, Language]
         When set to `True`, it launches a task that will initialize the cache with
         the default (English) language.\n
@@ -65,6 +69,7 @@ class PaladinsAPI(DataCache):
         dev_id: Union[int, str],
         auth_key: str,
         *,
+        cache: bool = True,
         initialize: Union[bool, Language] = False,
         loop: Optional[asyncio.AbstractEventLoop] = None,
     ):
@@ -76,6 +81,7 @@ class PaladinsAPI(DataCache):
             dev_id,
             auth_key,
             loop=loop,
+            enabled=cache,
             initialize=initialize,
         )
 
@@ -126,7 +132,11 @@ class PaladinsAPI(DataCache):
         return self._server_status
 
     async def get_champion_info(
-        self, language: Optional[Language] = None, *, force_refresh: bool = False
+        self,
+        language: Optional[Language] = None,
+        *,
+        force_refresh: bool = False,
+        cache: Optional[bool] = None,
     ) -> CacheEntry:
         """
         Fetches the champion information.
@@ -144,6 +154,12 @@ class PaladinsAPI(DataCache):
         force_refresh : bool
             Bypasses the cache, forcing a fetch and returning a new object.\n
             Defaults to `False`.
+        cache : Optional[bool]
+            Lets you decide if the received information should be cached or not.\n
+            Setting this to `True` forces the object to be cached, even
+            when the cache is disabled.\n
+            Setting this to `False` will never cache the object.\n
+            Default behavior follows the cache existence setting.
 
         Returns
         -------
@@ -160,7 +176,7 @@ class PaladinsAPI(DataCache):
         if language is None:
             language = self._default_language
         logger.info(f"api.get_champion_info({language=}, {force_refresh=})")
-        entry = await self._fetch_entry(language, force_refresh=force_refresh)
+        entry = await self._fetch_entry(language, force_refresh=force_refresh, cache=cache)
         if entry is None:
             raise NotFound("Champion information")
         return entry

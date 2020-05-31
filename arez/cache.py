@@ -47,6 +47,10 @@ class DataCache(Endpoint):
         Your developer's ID (devId).
     auth_key : str
         Your developer's authentication key (authKey).
+    enabled : bool
+        When set to `False`, this disables the data cache. This makes most objects returned
+        from the API be `CacheObject`s instead of their respective data-rich counterparts.
+        Defaults to `True`.
     initialize : Union[bool, Language]
         When set to `True`, it launches a task that will initialize the cache with
         the default (English) language.\n
@@ -63,6 +67,7 @@ class DataCache(Endpoint):
         dev_id: Union[int, str],
         auth_key: str,
         *,
+        enabled: bool = True,
         initialize: Union[bool, Language] = False,
         loop: Optional[asyncio.AbstractEventLoop] = None,
     ):
@@ -76,6 +81,7 @@ class DataCache(Endpoint):
         self._locks: WeakValueDefaultDict[Any, asyncio.Lock] = WeakValueDefaultDict(
             lambda: asyncio.Lock()
         )
+        self.cache_enabled = enabled
         self.refresh_every = timedelta(hours=12)
         if initialize:
             self.loop.create_task(self.initialize())
@@ -95,26 +101,38 @@ class DataCache(Endpoint):
         logger.info(f"cache.set_default_language({language=})")
         self._default_language = language
 
-    async def initialize(self) -> bool:
+    async def initialize(self, *, language: Optional[Language] = None) -> bool:
         """
         Initializes the data cache, by pre-fetching and storing the `CacheEntry` for the default
         language currently set.
+
+        .. note::
+
+            This will both, force the champion information fetching,
+            as well as cache the resulting object.
+
+        Parameters
+        ----------
+        language : Optional[Language]
+            The `Language` you want to initialize the information for.\n
+            Default language is used if not provided.
 
         Returns
         -------
         bool
             `True` if the initialization succeeded without problems, `False` otherwise.
         """
-        language = self._default_language
+        if language is None:
+            language = self._default_language
         logger.info(f"cache.initialize({language=})")
         try:
-            entry = await self._fetch_entry(language, force_refresh=True)
+            entry = await self._fetch_entry(language, force_refresh=True, cache=True)
         except (HTTPException, Unavailable):
             return False
         return bool(entry)
 
     async def _fetch_entry(
-        self, language: Language, *, force_refresh: bool = False
+        self, language: Language, *, force_refresh: bool = False, cache: Optional[bool] = None
     ) -> Optional[CacheEntry]:
         # Use a lock here to ensure no race condition between checking for an entry
         # and setting a new one. Use separate locks per each language.
@@ -126,12 +144,18 @@ class DataCache(Endpoint):
                 items_data = await self.request("getitems", language.value)
                 if champions_data and items_data:
                     expires_at = now + self.refresh_every
-                    entry = self._cache[language] = CacheEntry(
+                    entry = CacheEntry(
                         language, expires_at, champions_data, items_data
                     )
+                    if cache is None:
+                        cache = self.cache_enabled
+                    if cache:
+                        self._cache[language] = entry
         return entry
 
     async def _ensure_entry(self, language: Language):
+        if not self.cache_enabled:
+            return
         logger.debug(f"cache.ensure_entry({language=})")
         await self._fetch_entry(language)
 
