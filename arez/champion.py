@@ -172,7 +172,7 @@ class Champion:
             The ability you requested.\n
             `None` is returned if the ability couldn't be found.
         """
-        return self.abilities.lookup(ability, fuzzy=fuzzy)
+        return self.abilities._lookup(ability, fuzzy=fuzzy)
 
     def get_card(self, card: Union[str, int], /, *, fuzzy: bool = False) -> Optional["Device"]:
         """
@@ -192,7 +192,7 @@ class Champion:
             The card you requested.\n
             `None` is returned if the card couldn't be found.
         """
-        return self.cards.lookup(card, fuzzy=fuzzy)
+        return self.cards._lookup(card, fuzzy=fuzzy)
 
     def get_talent(self, talent: Union[str, int], /, *, fuzzy: bool = False) -> Optional["Device"]:
         """
@@ -212,4 +212,4 @@ class Champion:
             The talent you requested.\n
             `None` is returned if the talent couldn't be found.
         """
-        return self.talents.lookup(talent, fuzzy=fuzzy)
+        return self.talents._lookup(talent, fuzzy=fuzzy)

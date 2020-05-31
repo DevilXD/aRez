@@ -29,8 +29,8 @@ def test_lookup():
         "Lookup([Element(1, One), Element(3, Three), Element(2, Two), "
         "Element(4, Four), Element(5, Five)])"
     )
-    assert lcp.lookup(4) == 4
-    assert lcp.lookup("two") is None
-    assert lcp.lookup("Two") == 2
-    assert lcp.lookup("two", fuzzy=True) == 2
-    assert lcp.lookup("six", fuzzy=True) is None
+    assert lcp._lookup(4) == 4
+    assert lcp._lookup("two") is None
+    assert lcp._lookup("Two") == 2
+    assert lcp._lookup("two", fuzzy=True) == 2
+    assert lcp._lookup("six", fuzzy=True) is None

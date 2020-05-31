@@ -454,7 +454,7 @@ class CacheEntry:
             The champion you requested.\n
             `None` is returned if a champion with the requested Name or ID couldn't be found.
         """
-        return self.champions.lookup(champion, fuzzy=fuzzy)
+        return self.champions._lookup(champion, fuzzy=fuzzy)
 
     def get_card(self, card: Union[str, int], /, *, fuzzy: bool = False) -> Optional[Device]:
         """
@@ -475,7 +475,7 @@ class CacheEntry:
             The card you requested.\n
             `None` is returned if a card with the requested Name or ID couldn't be found.
         """
-        return self.cards.lookup(card, fuzzy=fuzzy)
+        return self.cards._lookup(card, fuzzy=fuzzy)
 
     def get_talent(self, talent: Union[str, int], /, *, fuzzy: bool = False) -> Optional[Device]:
         """
@@ -496,7 +496,7 @@ class CacheEntry:
             The talent you requested.\n
             `None` is returned if a talent with the requested Name or ID couldn't be found.
         """
-        return self.talents.lookup(talent, fuzzy=fuzzy)
+        return self.talents._lookup(talent, fuzzy=fuzzy)
 
     def get_item(self, item: Union[str, int], /, *, fuzzy: bool = False) -> Optional[Device]:
         """
@@ -517,7 +517,7 @@ class CacheEntry:
             The shop item you requested.\n
             `None` is returned if a shop item with the requested Name or ID couldn't be found.
         """
-        return self.items.lookup(item, fuzzy=fuzzy)
+        return self.items._lookup(item, fuzzy=fuzzy)
 
     def get_device(self, device: Union[str, int], /, *, fuzzy: bool = False) -> Optional[Device]:
         """
@@ -538,4 +538,4 @@ class CacheEntry:
             The device you requested.\n
             `None` is returned if a device with the requested Name or ID couldn't be found.
         """
-        return self.devices.lookup(device, fuzzy=fuzzy)
+        return self.devices._lookup(device, fuzzy=fuzzy)
