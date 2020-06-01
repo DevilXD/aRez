@@ -175,7 +175,7 @@ class Champion(CacheObject):
         """
         return self.abilities._lookup(ability, fuzzy=fuzzy)
 
-    def get_card(self, card: Union[str, int], /, *, fuzzy: bool = False) -> Optional["Device"]:
+    def get_card(self, card: Union[str, int], /, *, fuzzy: bool = False) -> Optional[Device]:
         """
         Returns a card for this champion with the given Name or ID.
 
@@ -195,7 +195,7 @@ class Champion(CacheObject):
         """
         return self.cards._lookup(card, fuzzy=fuzzy)
 
-    def get_talent(self, talent: Union[str, int], /, *, fuzzy: bool = False) -> Optional["Device"]:
+    def get_talent(self, talent: Union[str, int], /, *, fuzzy: bool = False) -> Optional[Device]:
         """
         Returns a talent for this champion with the given Name or ID.
 
