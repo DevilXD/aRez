@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import re
-from typing import Optional, Union, List, Literal, TYPE_CHECKING
+from typing import Any, Optional, Union, List, Dict, Literal, TYPE_CHECKING
 
 from .utils import Lookup
 from .mixins import CacheObject
@@ -15,7 +17,7 @@ __all__ = [
 ]
 
 
-def _card_ability_sort(card: "Device") -> str:
+def _card_ability_sort(card: Device) -> str:
     ability = card.ability
     if ability is None:
         return "zz"  # push the card to the very, very end
@@ -48,7 +50,7 @@ class Ability(CacheObject):
     """
     _desc_pattern = re.compile(r" ?<br>(?:<br>)? ?")  # replace the <br> tags with a new line
 
-    def __init__(self, champion: "Champion", ability_data: dict):
+    def __init__(self, champion: Champion, ability_data: Dict[str, Any]):
         super().__init__(id=ability_data["Id"], name=ability_data["Summary"])
         self.champion = champion
         desc = ability_data["Description"].strip().replace('\r', '')
@@ -112,7 +114,7 @@ class Champion(CacheObject):
         An iterator that lets you iterate over all cards this champion has.\n
         Use ``list(...)`` to get a list instead.
     """
-    def __init__(self, devices: List["Device"], champion_data: dict):
+    def __init__(self, devices: List[Device], champion_data: Dict[str, Any]):
         super().__init__(id=champion_data["id"], name=champion_data["Name"])
         self.title: str = champion_data["Title"]
         self.role: Literal[
@@ -130,8 +132,8 @@ class Champion(CacheObject):
         )
 
         # Talents and Cards
-        talents: List["Device"] = []
-        cards: List["Device"] = []
+        talents: List[Device] = []
+        cards: List[Device] = []
         for d in devices:
             if d.type == DeviceType.Card:
                 cards.append(d)
@@ -141,8 +143,8 @@ class Champion(CacheObject):
         talents.sort(key=lambda d: d.unlocked_at)
         cards.sort(key=lambda d: d.name)
         cards.sort(key=_card_ability_sort)
-        self.talents: Lookup["Device"] = Lookup(talents)
-        self.cards: Lookup["Device"] = Lookup(cards)
+        self.talents: Lookup[Device] = Lookup(talents)
+        self.cards: Lookup[Device] = Lookup(cards)
 
     def __eq__(self, other) -> bool:
         return isinstance(other, self.__class__) and self.id == other.id

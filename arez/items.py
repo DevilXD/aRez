@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import re
-from typing import Optional, Union, List, TYPE_CHECKING
+from typing import Any, Optional, Union, List, Dict, TYPE_CHECKING
 
 from .mixins import APIClient, CacheObject
 from .enumerations import DeviceType, Language
@@ -64,7 +66,7 @@ class Device(CacheObject):
     _desc_pattern = re.compile(r'\[(.+?)\] (.*)')
     _card_pattern = re.compile(r'{scale=((?:0\.)?\d+)\|((?:0\.)?\d+)}|{(\d+)}')
 
-    def __init__(self, device_data: dict):
+    def __init__(self, device_data: Dict[str, Any]):
         super().__init__(id=device_data["ItemId"], name=device_data["DeviceName"])
         self.description: str = device_data["Description"].strip()
         self.ability: Union[Ability, CacheObject] = CacheObject()
@@ -112,7 +114,7 @@ class Device(CacheObject):
     def __repr__(self) -> str:
         return f"{self.type.name}: {self.name}"
 
-    def _attach_champion(self, champion: "Champion"):
+    def _attach_champion(self, champion: Champion):
         self.champion = champion
         if type(self.ability) == CacheObject and self.ability.name != "Unknown":
             # upgrade the ability to a full object if possible
@@ -164,7 +166,10 @@ class Loadout(APIClient, CacheObject):
         A list of loadout cards this lodaout consists of.
     """
     def __init__(
-        self, player: Union["PartialPlayer", "Player"], language: Language, loadout_data: dict
+        self,
+        player: Union[PartialPlayer, Player],
+        language: Language,
+        loadout_data: Dict[str, Any],
     ):
         assert player.id == loadout_data["playerId"]
         APIClient.__init__(self, player._api)
@@ -225,7 +230,7 @@ class MatchLoadout:
         With incomplete cache, this will be a `CacheObject` with the name and ID set.\n
         `None` when the player hasn't picked a talent during the match.
     """
-    def __init__(self, api: "PaladinsAPI", language: Language, match_data: dict):
+    def __init__(self, api: PaladinsAPI, language: Language, match_data: Dict[str, Any]):
         self.cards: List[LoadoutCard] = []
         for i in range(1, 6):
             card_id: int = match_data[f"ItemId{i}"]
