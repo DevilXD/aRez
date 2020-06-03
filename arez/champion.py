@@ -27,7 +27,10 @@ def _card_ability_sort(card: Device) -> str:
 class Ability(CacheObject):
     """
     Represents a Champion's Ability.
+
     You can find these on the `Champion.abilities` attribute.
+
+    Inherits from `CacheObject`.
 
     Attributes
     ----------
@@ -65,24 +68,30 @@ class Ability(CacheObject):
 class Champion(CacheObject):
     """
     Represents a Champion and it's information.
+
     You can find these on the `CacheEntry.champions` attribute, as well as various other objects
     returned from the API.
 
-    An object of this class can be `False` in a boolean context, if it's internal state
-    is deemed incomplete or corrupted. For the internal state to be considered valid, there has
-    to be exactly 16 cards and 3 talents assigned to the champion. If you don't plan on accessing /
-    processing those, you can use the ``is not None`` in the check instead. Examples:
+    Inherits from `CacheObject`.
 
-    .. code-block:: py
+    .. note::
 
-        if champion:
-            # champion exists and is valid
-        if not champion:
-            # champion doesn't exist, or exists in an invalid state
-        if champion is not None:
-            # champion exists but might be invalid
-        if champion is None:
-            # champion doesn't exist
+        An object of this class can be `False` in a boolean context, if it's internal state
+        is deemed incomplete or corrupted. For the internal state to be considered valid, there has
+        to be exactly 16 cards and 3 talents assigned to the champion. If you don't plan on
+        accessing / processing those, you can use the ``is not None`` in the check instead.
+        Examples:
+
+        .. code-block:: py
+
+            if champion:
+                # champion exists and is valid
+            if not champion:
+                # champion doesn't exist, or exists in an invalid state
+            if champion is not None:
+                # champion exists but might be invalid
+            if champion is None:
+                # champion doesn't exist
 
     Attributes
     ----------
@@ -105,6 +114,13 @@ class Champion(CacheObject):
     abilities : Lookup[Ability]
         An object that lets you iterate over all abilities this champion has.\n
         Use ``list(...)`` to get a list instead.
+
+        .. note::
+
+            Some champions may have 7 abilities instead of 5 - this will happen if one of their
+            other abilities allows switching the primary and secondary abilities between
+            two states.
+
     talents : Lookup[Device]
         An object that lets you iterate over all talents this champion has.\n
         Use ``list(...)`` to get a list instead.

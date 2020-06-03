@@ -1,6 +1,11 @@
 Miscellaneous
 =============
 
+.. currentmodule:: arez
+
+.. autoclass:: CacheObject
+    :members:
+
 .. currentmodule:: arez.utils
 
 .. autoclass:: Duration

@@ -27,6 +27,8 @@ class Device(CacheObject):
 
     You can find these on the `CacheEntry.devices` attribute.
 
+    Inherits from `CacheObject`.
+
     Attributes
     ----------
     id : int
@@ -42,7 +44,8 @@ class Device(CacheObject):
     ability : Union[Ability, CacheObject]
         The ability this device affects, or a `CacheObject` with only the name set,
         denoting the affected part of the champion.\n
-        The name will be set to ``"Unknown"`` in cases where this information couldn't be parsed.
+        The usual names you can find here are ``Weapon`` and ``Armor``,
+        or ``Unknown`` in cases where this information couldn't be parsed.
     champion : Optional[Union[Champion, CacheObject]]
         The champion this device belongs to.\n
         This is a `CacheObject` with incomplete cache.

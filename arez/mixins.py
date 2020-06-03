@@ -46,14 +46,14 @@ class CacheObject:
         Defaults to ``0`` if not set.
     name : str
         The object's name.\n
-        Defaults to ``"Unknown"`` if not set.
+        Defaults to ``Unknown`` if not set.
     """
     def __init__(self, *, id: int = 0, name: str = "Unknown"):
         self.id: int = id
         self.name: str = name
 
     def __repr__(self) -> str:
-        return f"CacheObject: {self.name}({self.id})"
+        return f"{self.__class__.__name__}: {self.name}({self.id})"
 
 
 class Expandable(ABC):
