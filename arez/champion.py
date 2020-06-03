@@ -55,8 +55,7 @@ class Ability(CacheObject):
         super().__init__(id=ability_data["Id"], name=ability_data["Summary"])
         self.champion = champion
         desc = ability_data["Description"].strip().replace('\r', '')
-        desc = self._desc_pattern.sub('\n', desc)
-        self.description: str = desc
+        self.description: str = self._desc_pattern.sub('\n', desc)
         self.type = AbilityType(ability_data["damageType"], return_default=True)
         self.cooldown: int = ability_data["rechargeSeconds"]
         self.icon_url: str = ability_data["URL"]
@@ -128,6 +127,10 @@ class Champion(CacheObject):
         An iterator that lets you iterate over all cards this champion has.\n
         Use ``list(...)`` to get a list instead.
     """
+    _name_pattern = re.compile(r'([a-z ]+)(?:/\w+)? \(([a-z ]+)\)', re.I)
+    _desc_pattern = re.compile(r'([A-Z][a-zA-Z ]+): ([\w\s\-\'%,.]+)(?:<br><br>|(?:\r|\n)\n|$)')
+    _url_pattern = re.compile(r'([a-z\-]+)(?=\.(?:jpg|png))')
+
     def __init__(self, devices: List[Device], champion_data: Dict[str, Any]):
         super().__init__(id=champion_data["id"], name=champion_data["Name"])
         self.title: str = champion_data["Title"]
@@ -140,10 +143,37 @@ class Champion(CacheObject):
         self.speed: int = champion_data["Speed"]
 
         # Abilities
-        self.abilities: Lookup[Ability] = Lookup(
-            Ability(self, champion_data[f"Ability_{i}"])
-            for i in range(1, 6)
-        )
+        abilities = []
+        for i in range(1, 6):
+            ability_data = champion_data[f"Ability_{i}"]
+            # see if this is a composite ability
+            match = self._name_pattern.match(ability_data["Summary"])
+            if match:
+                # yes - we need to split the data into two sets
+                composites: Dict[str, Dict[str, Any]] = {}
+                name1, name2 = match.groups()
+                composites[name1] = {"Summary": name1}
+                composites[name2] = {"Summary": name2}
+                descs = self._desc_pattern.findall(ability_data["Description"])
+                for ability_name, ability_desc in descs:
+                    ability_dict = composites.get(ability_name)
+                    if ability_dict is None:
+                        continue
+                    ability_dict["Description"] = ability_desc
+                    # modify the URL
+                    ability_dict["URL"] = self._url_pattern.sub(
+                        ability_name.lower().replace(' ', '-'), ability_data["URL"]
+                    )
+                    # copy the rest of attributes
+                    ability_dict["Id"] = ability_data["Id"]
+                    ability_dict["damageType"] = ability_data["damageType"]
+                    ability_dict["rechargeSeconds"] = ability_data["rechargeSeconds"]
+                    # add the ability
+                    abilities.append(Ability(self, ability_dict))
+            else:
+                # nope - just append it
+                abilities.append(Ability(self, ability_data))
+        self.abilities: Lookup[Ability] = Lookup(abilities)
 
         # Talents and Cards
         talents: List[Device] = []
