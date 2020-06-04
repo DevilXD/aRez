@@ -267,8 +267,7 @@ class MatchLoadout:
         self.talent: Optional[Union[Device, CacheObject]] = talent
 
     def __repr__(self) -> str:
-        if self.talent:
-            return f"{self.talent.name}: {'/'.join(str(c.points) for c in self.cards)}"
-        else:
+        if not self.talent:  # pragma: no branch
             # This can happen if the player haven't picked a talent / loadout during the match
             return "No Loadout"
+        return f"{self.talent.name}: {'/'.join(str(c.points) for c in self.cards)}"

@@ -53,6 +53,8 @@ async def test_champion_info(api: arez.PaladinsAPI, lang_num: int):
     champion_info = await api.get_champion_info(arez.Language(lang_num))
     assert champion_info is not None
     champion_count = len(champion_info.champions)
+    # repr
+    repr(champion_info)
     # verify all 3 device categories separately
     assert len(champion_info.items) == 4 * 4, "Missing shop items!"
     try:
@@ -87,6 +89,8 @@ async def test_get_player(api: arez.PaladinsAPI):
     assert player.id == PLAYER.id
     assert player.name == PLAYER.name
     assert player.platform.value == PLAYER.platform
+    # repr
+    repr(player)
     # standard - ID
     player = await api.get_player(PLAYER.id)
     assert isinstance(player, arez.Player)
@@ -99,6 +103,8 @@ async def test_get_player(api: arez.PaladinsAPI):
     # return private
     private_player = await api.get_player(PRIVATE_PLAYER.id, return_private=True)
     assert isinstance(private_player, arez.PartialPlayer)
+    # repr
+    repr(private_player)
     # zero
     with pytest.raises(arez.NotFound):
         player = await api.get_player(0)
@@ -176,6 +182,9 @@ async def test_get_match(api: arez.PaladinsAPI):
     match = await api.get_match(MATCH)
     assert isinstance(match, arez.Match)
     assert all(isinstance(mp.player, arez.PartialPlayer) for mp in match.players)
+    # repr Match and MatchPlayer
+    repr(match)
+    repr(list(match.players)[0])
     # explicit language
     match = await api.get_match(MATCH, language=arez.Language.English)
     assert isinstance(match, arez.Match)

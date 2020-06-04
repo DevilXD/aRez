@@ -42,6 +42,8 @@ async def test_player_status(
     # standard
     status = await player.get_status()
     assert status is not None
+    # repr
+    repr(status)
     # private
     with pytest.raises(arez.Private):
         status = await private_player.get_status()
@@ -82,6 +84,12 @@ async def test_player_loadouts(
     # standard
     loadouts = await player.get_loadouts()
     assert all(isinstance(l, arez.Loadout) for l in loadouts)
+    # repr of a loadout and a loadout card
+    if len(loadouts) > 0:
+        loadout = loadouts[0]
+        repr(loadout)
+        if loadout.cards:
+            repr(loadout.cards[0])
     # private
     with pytest.raises(arez.Private):
         loadouts = await private_player.get_loadouts()
@@ -102,6 +110,10 @@ async def test_player_champion_stats(
     # standard
     stats = await player.get_champion_stats()
     assert all(isinstance(l, arez.ChampionStats) for l in stats)
+    # repr
+    if len(stats) > 0:
+        repr(stats[0])
+    # TODO: Add WinLose and KDA mixin property tests here
     # queue filtered
     stats = await player.get_champion_stats(queue=arez.Queue.Casual_Siege)
     assert all(isinstance(l, arez.ChampionStats) for l in stats)
@@ -125,6 +137,13 @@ async def test_player_history(
     # standard
     history = await player.get_match_history()
     assert all(isinstance(match, arez.PartialMatch) for match in history)
+    # repr PartialMatch, MatchItem and MatchLoadout
+    if len(history) > 0:
+        match = history[0]
+        repr(match)
+        if len(match.items) > 0:
+            repr(match.items[0])
+        repr(match.loadout)
     # private
     with pytest.raises(arez.Private):
         history = await private_player.get_match_history()

@@ -11,6 +11,7 @@ def test_enum():
     assert p is arez.Platform.Steam
     assert str(p) == "Steam"
     assert int(p) == 5
+    assert repr(p) == "<Steam: 5>"
     l = arez.Language(2)
     assert l is arez.Language.German
     r = arez.Region("1234")
@@ -30,6 +31,8 @@ async def test_get_server_status(api: arez.PaladinsAPI):
     # test fetching new
     current_status = await api.get_server_status(force_refresh=True)
     assert isinstance(current_status, arez.ServerStatus)
+    # repr
+    repr(current_status)
     # test returning cached
     current_status2 = await api.get_server_status()
     assert current_status2 is current_status
@@ -54,9 +57,14 @@ async def test_cache(api: arez.PaladinsAPI):
     # getting entry
     entry = api.get_entry()
     assert isinstance(entry, arez.CacheEntry)
+    # repr
+    repr(entry)
     # get a valid champion, then an invalid card and talent
     champion = entry.get_champion("Androxus")
     assert champion is not None
+    # repr Champion and Ability
+    repr(champion)
+    repr(list(champion.abilities)[0])
     assert champion.get_card(0) is None
     assert champion.get_talent(0) is None
     # fail getting a champion, talent, card, shop item and device, due to invalid ID
