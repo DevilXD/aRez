@@ -358,8 +358,7 @@ class Match(APIClient, MatchMixin):
             if not pid:
                 # skip 0s
                 continue
-            p = players_dict.get(pid)
-            if p is not None:  # TODO: (maybe) use a walrus operator here
+            if (p := players_dict.get(pid)) is not None:  # pragma: no branch
                 mp.player = p
 
 
@@ -494,6 +493,5 @@ class LiveMatch(APIClient):
             if not pid:
                 # skip 0s
                 continue
-            p = players_dict.get(pid)
-            if p is not None:  # TODO: (maybe) use a walrus operator here
+            if (p := players_dict.get(pid)) is not None:  # pragma: no branch
                 mp.player = p
