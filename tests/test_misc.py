@@ -7,17 +7,22 @@ import pytest
 @pytest.mark.dependency()
 @pytest.mark.dependency(scope="session")
 def test_enum():
-    p = arez.Platform("steam")
-    assert p is arez.Platform.Steam
-    assert str(p) == "Steam"
-    assert int(p) == 5
-    assert repr(p) == "<Steam: 5>"
+    p = arez.Platform("steam")  # fuzzy string member getting
+    assert p is arez.Platform.Steam  # identity and attribute access
+    assert str(p) == "Steam"  # str cast
+    assert int(p) == 5  # int cast
+    assert repr(p) == "<Steam: 5>"  # repr
+    # member acquisition by value
     l = arez.Language(2)
     assert l is arez.Language.German
+    # None for unknown input
     r = arez.Region("1234")
     assert r is None
+    # Default for unknown input
     r = arez.Region("1234", return_default=True)
     assert r is arez.Region.Unknown
+    # simple comparison
+    r == None  # noqa
 
 
 @pytest.mark.api()
