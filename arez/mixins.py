@@ -73,8 +73,9 @@ class Expandable(ABC):
         # Attach the method to the subclass
         setattr(cls, "__await__", __await__)
 
+    # solely to satisfy MyPy
     def __await__(self):
-        return self._expand().__await__()
+        ...
 
     @abstractmethod
     async def _expand(self):
