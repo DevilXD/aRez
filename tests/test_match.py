@@ -71,6 +71,10 @@ async def test_live_match(player: arez.PartialPlayer):
     live_match = await status.get_live_match()
     assert isinstance(live_match, arez.LiveMatch)
     assert all(isinstance(lp.player, arez.PartialPlayer) for lp in live_match.players)
+    # repr LiveMatch and LivePlayer
+    repr(live_match)
+    if len(live_match.team1) + len(live_match.team2) > 0:
+        repr(list(live_match.players)[0])
     # expand players after fetch
     await live_match.expand_players()
     assert all(
