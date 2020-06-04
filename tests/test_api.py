@@ -217,7 +217,7 @@ async def test_get_matches_for_queue(api: arez.PaladinsAPI):
     end = BASE_DATETIME + ten_minutes
     match_count = 0
     async for match in api.get_matches_for_queue(
-        queue, language=arez.Language.English,  start=start, end=end
+        queue, language=arez.Language.English, start=start, end=end
     ):
         match_count += 1
         assert all(isinstance(p.player, arez.PartialPlayer) for p in match.players)
