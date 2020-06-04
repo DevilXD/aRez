@@ -108,24 +108,30 @@ async def test_player_champion_stats(
     no_flag_private_player: arez.PartialPlayer,
 ):
     # standard
-    stats = await player.get_champion_stats()
-    assert all(isinstance(l, arez.ChampionStats) for l in stats)
+    stats_list = await player.get_champion_stats()
+    assert all(isinstance(l, arez.ChampionStats) for l in stats_list)
     # repr
-    if len(stats) > 0:
-        repr(stats[0])
-    # TODO: Add WinLose and KDA mixin property tests here
+    if len(stats_list) > 0:
+        stats = stats_list[0]
+        repr(stats)
+        # WinLose and KDA mixin properties
+        stats.df
+        stats.kda
+        stats.kda2
+        stats.kda_text
+        stats.winrate_text
     # queue filtered
-    stats = await player.get_champion_stats(queue=arez.Queue.Casual_Siege)
-    assert all(isinstance(l, arez.ChampionStats) for l in stats)
+    stats_list = await player.get_champion_stats(queue=arez.Queue.Casual_Siege)
+    assert all(isinstance(l, arez.ChampionStats) for l in stats_list)
     # private
     with pytest.raises(arez.Private):
-        stats = await private_player.get_champion_stats()
+        stats_list = await private_player.get_champion_stats()
     # invalid + explicit language
-    stats = await invalid_player.get_champion_stats(language=arez.Language.English)
-    assert len(stats) == 0
+    stats_list = await invalid_player.get_champion_stats(language=arez.Language.English)
+    assert len(stats_list) == 0
     # no privacy flag private
-    stats = await invalid_player.get_champion_stats()
-    assert len(stats) == 0
+    stats_list = await invalid_player.get_champion_stats()
+    assert len(stats_list) == 0
 
 
 async def test_player_history(
