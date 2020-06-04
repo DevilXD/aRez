@@ -144,9 +144,24 @@ def test_signs():
     d3 = +d0
     d4 = -d0
     d5 = abs(d4)
+    d6 = abs(d0)
     assert isinstance(d3, Duration) and d3 is not d0 and d3.total_seconds() == 60 * 60
     assert isinstance(d4, Duration) and d4 is not d0 and d4.total_seconds() == -60 * 60
     assert isinstance(d5, Duration) and d5 is not d0 and d5.total_seconds() == 60 * 60
+    assert isinstance(d6, Duration) and d6 is not d0 and d6.total_seconds() == 60 * 60
+
+
+def test_attributes_methods():
+    assert d0.microseconds == 0
+    assert d0.seconds == 0
+    assert d0.minutes == 0
+    assert d0.hours == 1
+    assert d0.days == 0
+    assert d0.total_days() == 1 / 24
+    assert d0.total_hours() == 1.0
+    assert d0.total_minutes() == 60.0
+    assert d0.total_seconds() == 60 * 60.0
+    assert d0.to_timedelta() == timedelta(hours=1)
 
 
 def test_text():
@@ -157,3 +172,6 @@ def test_text():
     d3 = Duration.from_timedelta(d2)
     assert repr(d3) == "Duration(seconds=4)"
     assert str(d3) == "00:04"
+    d4 = Duration(days=1, microseconds=1)
+    assert repr(d4) == "Duration(days=1, microseconds=1)"
+    assert str(d4) == "1 day, 00:00.000001"
