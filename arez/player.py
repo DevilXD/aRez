@@ -66,7 +66,7 @@ class PartialPlayer(APIClient, Expandable):
             f"private={self._private}) -> created"
         )
 
-    async def _expand(self) -> Optional[Player]:
+    async def _expand(self) -> Player:
         """
         Upgrades this object to a full `Player` one, refreshing and ensuring information stored.
 

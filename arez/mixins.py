@@ -68,8 +68,9 @@ class Expandable(ABC):
         # Create a new await method
         def __await__(self):
             return self._expand().__await__()
-        # Copy over the docstring
+        # Copy over the docstring and annotations
         __await__.__doc__ = cls._expand.__doc__
+        __await__.__annotations__ = cls._expand.__annotations__
         # Attach the method to the subclass
         setattr(cls, "__await__", __await__)
 
