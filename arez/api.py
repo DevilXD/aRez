@@ -596,9 +596,12 @@ class PaladinsAPI(DataCache):
             for p in response:
                 bunched_matches[p["Match"]].append(p)
             if expand_players:
-                players_list = await self.get_players(
-                    (int(p["playerId"]) for p in response if int(p["playerId"]) not in players)
-                )
+                player_ids = []
+                for p in response:
+                    pid = int(p["playerId"])
+                    if pid not in players:  # pragma: no branch
+                        player_ids.append(pid)
+                players_list = await self.get_players(player_ids)
                 players.update({p.id: p for p in players_list})
             chunked_matches: List[Match] = [
                 Match(self, language, match_list, players)
@@ -753,9 +756,12 @@ class PaladinsAPI(DataCache):
                 for p in response:
                     bunched_matches[p["Match"]].append(p)
                 if expand_players:
-                    players_list = await self.get_players(
-                        (int(p["playerId"]) for p in response if int(p["playerId"]) not in players)
-                    )
+                    player_ids = []
+                    for p in response:
+                        pid = int(p["playerId"])
+                        if pid not in players:  # pragma: no branch
+                            player_ids.append(pid)
+                    players_list = await self.get_players(player_ids)
                     players.update({p.id: p for p in players_list})
                 chunked_matches = [
                     Match(self, language, match_list, players)
