@@ -455,7 +455,7 @@ class WeakValueDefaultDict(WeakValueDictionary, Mapping[X, Y]):
         try:
             return super().__getitem__(key)
         except KeyError:
-            if not self.default_factory:
+            if not self.default_factory:  # pragma: no branch
                 raise
             item = self.default_factory()
             self.__setitem__(key, item)
