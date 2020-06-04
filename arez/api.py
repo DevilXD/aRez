@@ -52,7 +52,7 @@ class PaladinsAPI(DataCache):
         Your developer's authentication key (authKey).
     cache : bool
         When set to `False`, this disables the data cache. This makes most objects returned
-        from the API be `CacheObject`s instead of their respective data-rich counterparts.
+        from the API be `CacheObject` instead of their respective data-rich counterparts.
         Defaults to `True`.
     initialize : Union[bool, Language]
         When set to `True`, it launches a task that will initialize the cache with
