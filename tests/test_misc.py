@@ -54,6 +54,11 @@ async def test_cache(api: arez.PaladinsAPI):
     # getting entry
     entry = api.get_entry()
     assert isinstance(entry, arez.CacheEntry)
+    # get a valid champion, then an invalid card and talent
+    champion = entry.get_champion("Androxus")
+    assert champion is not None
+    assert champion.get_card(0) is None
+    assert champion.get_talent(0) is None
     # fail getting a champion, talent, card, shop item and device, due to invalid ID
     assert api.get_champion(0) is None
     assert api.get_talent(0) is None
