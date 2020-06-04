@@ -22,7 +22,7 @@ def test_enum():
     r = arez.Region("1234", return_default=True)
     assert r is arez.Region.Unknown
     # simple comparison
-    r == None  # noqa
+    assert r != None  # noqa
 
 
 @pytest.mark.api()
