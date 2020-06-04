@@ -20,7 +20,7 @@ pytest_plugins = ["asyncio", "recording", "dependency"]
 #####################
 
 # base datetime - has to be within the last 30 days
-BASE_DATETIME = datetime(2020, 4, 27, 0, 0)
+BASE_DATETIME = datetime(2020, 6, 3, 0, 0)
 
 # match IDs
 MATCH         = 985881292  # Siege or Onslaught
