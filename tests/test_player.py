@@ -146,10 +146,11 @@ async def test_player_history(
     # repr PartialMatch, MatchItem and MatchLoadout
     if len(history) > 0:
         match = history[0]
-        repr(match)
+        repr(match)  # PartialMatch
         if len(match.items) > 0:
-            repr(match.items[0])
-        repr(match.loadout)
+            repr(match.items[0])  # MatchItem
+        repr(match.loadout)  # MatchLoadout
+        match.shielding  # shielding property
     # private
     with pytest.raises(arez.Private):
         history = await private_player.get_match_history()
