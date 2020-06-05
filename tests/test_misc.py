@@ -1,6 +1,8 @@
 import arez
 import pytest
 
+from .conftest import MATCH
+
 
 # test enum creation and casting
 @pytest.mark.base()
@@ -88,6 +90,52 @@ async def test_cache(api: arez.PaladinsAPI):
     assert api.get_card(0, language=german) is None
     assert api.get_item(0, language=german) is None
     assert api.get_device(0, language=german) is None
+
+
+@pytest.mark.api()
+@pytest.mark.vcr()
+@pytest.mark.base()
+@pytest.mark.asyncio()
+@pytest.mark.dependency(depends=["test_cache"])
+@pytest.mark.dependency(
+    depends=[
+        "tests/test_api.py::test_get_match",
+        "tests/test_match.py::test_live_match",
+        "tests/test_player.py::test_player_history",
+        "tests/test_player.py::test_player_loadouts",
+        "tests/test_player.py::test_player_champion_stats",
+    ],
+    scope="session",
+)
+async def test_cache_disabled(api: arez.PaladinsAPI, player: arez.Player):
+    # temporarly disable the cache, and make sure no cached entry exists
+    if arez.Language.English in api._cache:
+        del api._cache[arez.Language.English]  # delete cache
+    api.cache_enabled = False  # disable cache
+
+    # test get_match
+    match = await api.get_match(MATCH)
+    assert isinstance(match, arez.Match)
+    # test live players
+    status = await player.get_status()
+    live_match = await status.get_live_match()
+    assert isinstance(live_match, arez.LiveMatch)
+    # test player history
+    history = await player.get_match_history()
+    assert all(isinstance(match, arez.PartialMatch) for match in history)
+    # repr CacheObject
+    if len(history) > 0:
+        repr(history[0].champion)
+    # test player loadouts
+    loadouts = await player.get_loadouts()
+    assert all(isinstance(l, arez.Loadout) for l in loadouts)
+    # test player champion stats
+    stats_list = await player.get_champion_stats()
+    assert all(isinstance(l, arez.ChampionStats) for l in stats_list)
+
+    # finalize
+    player._api.cache_enabled = True  # enable cache back
+    await api.initialize()  # re-fetch the entry
 
 
 @pytest.mark.player()
