@@ -73,7 +73,7 @@ class DataCache(Endpoint):
     ):
         super().__init__(url, dev_id, auth_key, loop=loop)
         self._default_language: Language
-        if isinstance(initialize, Language):
+        if isinstance(initialize, Language):  # pragma: no cover
             self._default_language = initialize
         else:
             self._default_language = Language.English
@@ -83,7 +83,7 @@ class DataCache(Endpoint):
         )
         self.cache_enabled = enabled
         self.refresh_every = timedelta(hours=12)
-        if initialize:
+        if initialize:  # pragma: no cover
             self.loop.create_task(self.initialize())
 
     def set_default_language(self, language: Language):
