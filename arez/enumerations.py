@@ -81,7 +81,7 @@ class EnumValue:
             else:
                 return self._class is other._class and opr(self._value, other._value)
         except AttributeError:
-            return False
+            return opr is operator.ne  # NE returns True, everything else returns False
 
     __eq__ = cast(Callable[[object, object], bool], partialmethod(_cmp, operator.eq))
     __ne__ = cast(Callable[[object, object], bool], partialmethod(_cmp, operator.ne))
