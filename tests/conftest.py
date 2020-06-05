@@ -2,7 +2,7 @@ import re
 import asyncio
 import warnings
 from datetime import datetime
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Set
 from collections import defaultdict, deque, namedtuple
 
 import arez
@@ -114,17 +114,33 @@ def vcr_config():
 
 # special hook to make pytest-dependency support reordering based on deps
 def pytest_collection_modifyitems(items: List[Item]):
-    session_names: List[str] = []
-    module_names: Dict[Module, List[str]] = defaultdict(list)
+    session_names: Set[str] = set()
+    module_names: Dict[Module, Set[str]] = defaultdict(set)
 
     # gather dependency names
     for item in items:
         for marker in item.iter_markers("dependency"):
             scope = marker.kwargs.get("scope", "module")
+            name = marker.kwargs.get("name")
+            if not name:
+                nodeid = item.nodeid.replace("::()::", "::")
+                if scope == "session" or scope == "package":
+                    name = nodeid
+                elif scope == "module":
+                    name = nodeid.split("::", 1)[1]
+                elif scope == "class":
+                    name = nodeid.split("::", 2)[2]
+
+                original = item.originalname if item.originalname is not None else item.name
+                # remove the parametrization part at the end
+                if not name.endswith(original):
+                    index = name.rindex(original) + len(original)
+                    name = name[:index]
+
             if scope == "module":
-                module_names[item.module].append(item.name)
+                module_names[item.module].add(name)
             elif scope == "session":
-                session_names.append(item.nodeid)  # use 'nodeid' instead of the name
+                session_names.add(name)
 
     final_items: List[Item] = []
     session_deps: Dict[str, Item] = {}
@@ -138,6 +154,21 @@ def pytest_collection_modifyitems(items: List[Item]):
         for marker in item.iter_markers("dependency"):
             depends = marker.kwargs.get("depends", [])
             scope = marker.kwargs.get("scope", "module")
+            name = marker.kwargs.get("name")
+            if not name:
+                nodeid = item.nodeid.replace("::()::", "::")
+                if scope == "session" or scope == "package":
+                    name = nodeid
+                elif scope == "module":
+                    name = nodeid.split("::", 1)[1]
+                elif scope == "class":
+                    name = nodeid.split("::", 2)[2]
+
+                original = item.originalname if item.originalname is not None else item.name
+                # remove the parametrization part at the end
+                if not name.endswith(original):
+                    index = name.rindex(original) + len(original)
+                    name = name[:index]
             # pick a scope
             if scope == "module":
                 scope_deps = module_deps[item.module]
@@ -155,16 +186,16 @@ def pytest_collection_modifyitems(items: List[Item]):
                     else:
                         correct_order = None
                         warnings.warn(
-                            f"Dependency '{d}' of '{item.nodeid}' doesn't exist, "
+                            f"Dependency '{d}' of '{name}' doesn't exist, "
                             "or has incorrect scope!",
                             RuntimeWarning,
                         )
                 break
             # save
             if scope == "module":
-                module_deps[item.module][item.name] = item
+                module_deps[item.module][name] = item
             elif scope == "session":
-                session_deps[item.nodeid] = item  # use 'nodeid' instead of the name
+                session_deps[name] = item  # use 'nodeid' instead of the name
         # 'correct_order' possible values:
         # None  - invalid dependency, add anyway
         # True  - add it to the final list
