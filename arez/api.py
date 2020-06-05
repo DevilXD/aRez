@@ -191,8 +191,16 @@ class PaladinsAPI(DataCache):
         """
         Wraps player ID, Name and Platform into a `PartialPlayer` object.
 
-        Note that since there is no input validation, there's no guarantee an object created
-        this way will return any meaningful results when it's methods are used.
+        .. warning::
+
+            Note that since there is no input validation, there's no guarantee an object created
+            this way will return any meaningful results when it's methods are used. This method
+            is here purely for those who'd like to store player objects in something like
+            a database, offering the possibility of re-wrapping the stored data back into
+            a valid player object.
+
+            This **should not** be used to fetch stats for players based on their ID - use
+            `get_player` for this purpose instead.
 
         Parameters
         ----------
