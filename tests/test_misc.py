@@ -62,7 +62,7 @@ async def test_cache(api: arez.PaladinsAPI):
     result = await api.initialize()
     assert result is False
     # proper initialize
-    result = await api.initialize()
+    result = await api.initialize(language=arez.Language.English)
     assert result is True
     # getting entry
     entry = api.get_entry()

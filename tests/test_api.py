@@ -50,7 +50,7 @@ async def test_champion_info(api: arez.PaladinsAPI, lang_num: int):
         with pytest.raises(arez.NotFound):
             champion_info = await api.get_champion_info()
         return  # if the above passes, end here
-    champion_info = await api.get_champion_info(arez.Language(lang_num))
+    champion_info = await api.get_champion_info(arez.Language(lang_num), cache=False)
     assert champion_info is not None
     champion_count = len(champion_info.champions)
     # repr
