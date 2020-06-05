@@ -13,7 +13,7 @@ from .utils import convert_timestamp, Duration
 from .stats import Stats, RankedStats, ChampionStats
 from .enumerations import Language, Platform, Region, Queue
 
-if TYPE_CHECKING:  # pragma: no branch
+if TYPE_CHECKING:  # pragma: no cover
     from .api import PaladinsAPI
 
 
@@ -382,7 +382,7 @@ class Player(PartialPlayer):
             # No private kwarg here, since this object can only exist for non-private accounts
         )
         self.active_player: Optional[PartialPlayer] = None
-        if player_data["ActivePlayerId"] != self._id:  # pragma: no branch
+        if player_data["ActivePlayerId"] != self._id:  # pragma: no cover
             self.active_player = PartialPlayer(api, id=player_data["ActivePlayerId"])
         self.merged_players: List[PartialPlayer] = []
         if player_data["MergedPlayers"]:

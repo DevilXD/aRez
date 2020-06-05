@@ -53,7 +53,7 @@ class Endpoint:
         *,
         loop: Optional[asyncio.AbstractEventLoop] = None,
     ):
-        if loop is None:  # pragma: no branch
+        if loop is None:  # pragma: no cover
             loop = asyncio.get_event_loop()
         self.loop = loop
         self.url = url.rstrip('/')
@@ -204,7 +204,7 @@ class Endpoint:
             except (Unauthorized, Unavailable) as exc:
                 if isinstance(exc, Unauthorized):
                     logger.error("You are Unauthorized")
-                elif isinstance(exc, Unavailable):
+                elif isinstance(exc, Unavailable):  # pragma: no branch
                     logger.warning("Hi-Rez API is Unavailable")
                 raise
             # Some other exception happened, so just wrap it and propagate along

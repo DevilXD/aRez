@@ -8,7 +8,7 @@ from .exceptions import NotFound
 from .enumerations import Queue, Language, Region, Rank
 from .mixins import APIClient, CacheObject, MatchMixin, MatchPlayerMixin, Expandable, WinLoseMixin
 
-if TYPE_CHECKING:  # pragma: no branch
+if TYPE_CHECKING:  # pragma: no cover
     from .api import PaladinsAPI
     from .champion import Champion
     from .player import PartialPlayer, Player  # noqa

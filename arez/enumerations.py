@@ -28,7 +28,7 @@ class EnumValue:
     # Exists only to stop MyPy from complaining about wrong instance init arguments
     def __init__(
         self, key_or_value: Optional[Union[str, int]], /, *, return_default: bool = False
-    ):  # pragma: no branch
+    ):  # pragma: no cover
         # This never runs cos of metaclass
         self._class: type
         self._name: str
@@ -197,7 +197,7 @@ class RankMeta(EnumMeta):
         return new_cls
 
 
-if TYPE_CHECKING:  # pragma: no branch
+if TYPE_CHECKING:  # pragma: no cover
     class Enum(EnumValue, IntEnum):  # type: ignore
         pass
 else:

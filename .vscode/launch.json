@@ -40,6 +40,7 @@
             "args": [
                 "-v",
                 "--cov=arez",
+                "--cov-branch",
                 "--cov-config=coverage.ini",
                 "--cov-report=xml:coverage.xml",
             ]
@@ -56,6 +57,7 @@
                 "not slow",
                 "--cov=arez",
                 "--cov-append",
+                "--cov-branch",
                 "--cov-config=coverage.ini",
                 "--cov-report=xml:coverage.xml",
             ]

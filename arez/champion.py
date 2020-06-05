@@ -7,7 +7,7 @@ from .utils import Lookup
 from .mixins import CacheObject
 from .enumerations import DeviceType, AbilityType
 
-if TYPE_CHECKING:  # pragma: no branch
+if TYPE_CHECKING:  # pragma: no cover
     from .items import Device
 
 

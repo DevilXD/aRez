@@ -6,7 +6,7 @@ from typing import Any, Optional, Union, List, Dict, TYPE_CHECKING
 from .mixins import APIClient, CacheObject
 from .enumerations import DeviceType, Language
 
-if TYPE_CHECKING:  # pragma: no branch
+if TYPE_CHECKING:  # pragma: no cover
     from .api import PaladinsAPI
     from .champion import Champion, Ability
     from .player import PartialPlayer, Player
@@ -267,7 +267,7 @@ class MatchLoadout:
         self.talent: Optional[Union[Device, CacheObject]] = talent
 
     def __repr__(self) -> str:
-        if not self.talent:  # pragma: no branch
+        if not self.talent:  # pragma: no cover
             # This can happen if the player haven't picked a talent / loadout during the match
             return "No Loadout"
         return f"{self.talent.name}: {'/'.join(str(c.points) for c in self.cards)}"
