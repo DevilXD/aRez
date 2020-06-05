@@ -23,6 +23,9 @@ def test_enum():
     # Default for unknown input
     r = arez.Region("1234", return_default=True)
     assert r is arez.Region.Unknown
+    # Default, if no default value is set - return unchanged
+    l = arez.Language("1234", return_default=True)
+    assert l == "1234"
     # simple comparison
     assert r != None  # noqa
 
