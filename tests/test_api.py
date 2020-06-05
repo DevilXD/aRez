@@ -89,8 +89,9 @@ async def test_get_player(api: arez.PaladinsAPI):
     assert player.id == PLAYER.id
     assert player.name == PLAYER.name
     assert player.platform.value == PLAYER.platform
-    # repr
+    # repr Player and Stats
     repr(player)
+    repr(player.casual)
     # standard - ID
     player = await api.get_player(PLAYER.id)
     assert isinstance(player, arez.Player)
