@@ -127,7 +127,7 @@ class DataCache(Endpoint):
         logger.info(f"cache.initialize({language=})")
         try:
             entry = await self._fetch_entry(language, force_refresh=True, cache=True)
-        except (HTTPException, Unavailable):
+        except (HTTPException, Unavailable):  # pragma: no cover
             return False
         return bool(entry)
 
