@@ -61,12 +61,21 @@ async def test_live_match(player: arez.PartialPlayer):
     assert status.queue is None
     assert status.live_match_id is None
     assert status.status != arez.Activity.In_Match
+    # try fetching anyway
+    live_match = await status.get_live_match()
+    assert live_match is None
     # with live match
     status = await player.get_status()
     assert isinstance(status, arez.PlayerStatus)
     assert isinstance(status.queue, arez.Queue)
     assert isinstance(status.live_match_id, int)
     assert status.status == arez.Activity.In_Match
+    # empty response
+    live_match = await status.get_live_match()
+    assert live_match is None
+    # unsupported queue
+    live_match = await status.get_live_match()
+    assert live_match is None
     # standard
     live_match = await status.get_live_match()
     assert isinstance(live_match, arez.LiveMatch)
@@ -80,8 +89,8 @@ async def test_live_match(player: arez.PartialPlayer):
     assert all(
         isinstance(lp.player, arez.Player) or lp.player.private for lp in live_match.players
     )
-    # expand players on fetch
-    live_match = await status.get_live_match(expand_players=True)
+    # expand players on fetch, specific language
+    live_match = await status.get_live_match(language=arez.Language.English, expand_players=True)
     assert isinstance(live_match, arez.LiveMatch)
     assert all(
         isinstance(lp.player, arez.Player) or lp.player.private for lp in live_match.players
