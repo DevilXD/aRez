@@ -55,9 +55,17 @@ def event_loop():
 # generates an API instance
 @pytest.fixture(scope="session")
 async def api():
-    # this manages the closing of the API after tests as well
+    # this manages the closing after tests as well
     async with arez.PaladinsAPI(DEV_ID, AUTH_KEY) as api:
         yield api
+
+
+# generates a status page instance
+@pytest.fixture(scope="session")
+async def sp():
+    # this manages the closing after tests as well
+    async with arez.StatusPage("http://status.hirezstudios.com/") as page:
+        yield page
 
 
 # wrap a normal player

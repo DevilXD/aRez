@@ -159,7 +159,7 @@ class Incident(_BaseEvent):
         self.last_update = self.updates[0]
         for comp_data in inc_data["components"]:
             comp = comp_mapping.get(comp_data["id"])
-            if comp:
+            if comp:  # pragma: no branch
                 self.components.append(comp)
                 comp._add_incident(self)
 
@@ -206,7 +206,7 @@ class ScheduledMaintenance(_BaseEvent):
         self.last_update = self.updates[0]
         for comp_data in main_data["components"]:
             comp = comp_mapping.get(comp_data["id"])
-            if comp:
+            if comp:  # pragma: no branch
                 self.components.append(comp)
                 comp._add_scheduled_mainenance(self)
 
@@ -245,17 +245,17 @@ class Component(_BaseComponent):
     def __init__(self, group: Optional[ComponentGroup], comp_data: dict):
         super().__init__(comp_data)
         self.group = group
-        if group:
+        if group:  # pragma: no branch
             group._add_component(self)
 
     def _add_incident(self, incident: Incident):
         self.incidents.append(incident)
-        if self.group:
+        if self.group:  # pragma: no branch
             self.group._add_incident(incident)
 
     def _add_scheduled_mainenance(self, scheduled_maintenance: ScheduledMaintenance):
         self.scheduled_maintenances.append(scheduled_maintenance)
-        if self.group:
+        if self.group:  # pragma: no branch
             self.group._add_scheduled_mainenance(scheduled_maintenance)
 
 
@@ -433,7 +433,7 @@ class StatusPage:
         self._session.detach()
 
     async def close(self):
-        await self._session.close()
+        await self._session.close()  # pragma: no cover
 
     # async with integration
     async def __aenter__(self):
