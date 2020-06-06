@@ -38,15 +38,31 @@ async def test_get_server_status(api: arez.PaladinsAPI):
     # test Notfound
     with pytest.raises(arez.NotFound):
         current_status = await api.get_server_status()
-    # test fetching new
-    current_status = await api.get_server_status(force_refresh=True)
+    # test fetching first, limited, not all up
+    current_status = await api.get_server_status()
     assert isinstance(current_status, arez.ServerStatus)
-    # repr
+    assert not current_status.all_up
+    assert current_status.limited_access
+    # repr with limited access
+    assert len(current_status.statuses) > 0
     repr(current_status)
+    repr(current_status.statuses[0])
     # test returning cached
     current_status2 = await api.get_server_status()
     assert current_status2 is current_status
+    # test force refresh
+    current_status = await api.get_server_status(force_refresh=True)
+    assert current_status2 is not current_status
+    # test attributes
     assert len(current_status.statuses) == 5
+    assert hasattr(current_status, "pc")
+    assert hasattr(current_status, "ps4")
+    assert hasattr(current_status, "pts")
+    assert hasattr(current_status, "xbox")
+    assert hasattr(current_status, "switch")
+    # repr
+    repr(current_status)
+    repr(current_status.statuses[0])
 
 
 @pytest.mark.api()
