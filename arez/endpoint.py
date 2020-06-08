@@ -74,9 +74,9 @@ class Endpoint:
         Attempting to make a request after the connection is closed
         will result in a `RuntimeError`.
         """
-        await self._http_session.close()
+        await self._http_session.close()  # pragma: no cover
 
-    async def __aenter__(self) -> Endpoint:
+    async def __aenter__(self) -> Endpoint:  # pragma: no cover
         return self
 
     async def __aexit__(self, exc_type, exc, traceback):
@@ -124,7 +124,7 @@ class Endpoint:
         last_exc = None
         method_name = method_name.lower()
 
-        for tries in range(5):
+        for tries in range(5):  # pragma: no branch
             try:
                 req_stack = [self.url, f"{method_name}json"]
                 if method_name == "createsession":
@@ -217,5 +217,5 @@ class Endpoint:
 
         # we've run out of tries, so ¯\_(ツ)_/¯
         # we shouldn't ever end up here, this is a fail-safe
-        logger.error("Ran out of retries", exc_info=last_exc)
-        raise HTTPException(last_exc)
+        logger.error("Ran out of retries", exc_info=last_exc)  # pragma: no cover
+        raise HTTPException(last_exc)  # pragma: no cover
