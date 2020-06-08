@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime, timedelta
 
 import arez
 import pytest
@@ -53,6 +54,12 @@ async def test_unauthorized(api: arez.PaladinsAPI):
 @pytest.mark.dependency(depends=["test_ping"])
 @pytest.mark.dependency(scope="session")
 async def test_session(api: arez.PaladinsAPI):
+    # test invalid session
+    api._session_key = "ABCDEF"
+    api._session_expires = datetime.utcnow() + timedelta(seconds=30)
+    await api.request("getpatchinfo")
+    api._session_expires = datetime.utcnow() - timedelta(seconds=30)
+    # test normal session
     await api.request("testsession")
 
 
