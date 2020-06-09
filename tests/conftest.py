@@ -155,8 +155,14 @@ def pytest_collection_modifyitems(items: List[Item]):
     module_deps: Dict[Module, Dict[str, Item]] = defaultdict(dict)
 
     # group the dependencies by their scopes
+    cycles = 0
     deque_items = deque(items)
     while deque_items:
+        if cycles > len(deque_items):
+            # seems like we're stuck in a loop now
+            # just add the remaining items and finish up
+            final_items.extend(deque_items)
+            break
         item = deque_items.popleft()
         correct_order: Optional[bool] = True
         for marker in item.iter_markers("dependency"):
@@ -211,10 +217,13 @@ def pytest_collection_modifyitems(items: List[Item]):
         if correct_order is None:
             # TODO: Take the config into account here
             final_items.append(item)
+            cycles = 0
         elif correct_order:
             final_items.append(item)
+            cycles = 0
         else:
             deque_items.append(item)
+            cycles += 1
 
     assert len(items) == len(final_items) and all(i in items for i in final_items)
     items[:] = final_items
