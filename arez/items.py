@@ -145,6 +145,11 @@ class LoadoutCard:
     def __repr__(self) -> str:
         return f"{self.card.name}: {self.points}"
 
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, self.__class__):
+            return self.card == other.card and self.points == other.points
+        return NotImplemented
+
 
 class Loadout(APIClient, CacheObject):
     """
@@ -217,6 +222,11 @@ class MatchItem:
 
     def __repr__(self) -> str:
         return f"{self.item.name}: {self.level}"
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, self.__class__):
+            return self.item == other.item and self.level == other.level
+        return NotImplemented
 
 
 class MatchLoadout:

@@ -21,17 +21,42 @@ pytestmark = [
 async def test_match_expand(player: arez.PartialPlayer):
     # fetch the history here
     history = await player.get_match_history()
-    partial_match = history[0]
+    partial_match: arez.PartialMatch = history[0]
     # make an invalid match out of a valid partial one, by corrupting it's ID
     invalid_match = copy(partial_match)
     invalid_match.id = INVALID_MATCH
 
-    # standard
-    match = await partial_match
-    assert isinstance(match, arez.Match)
     # invalid
     with pytest.raises(arez.NotFound):
         match = await invalid_match
+    # standard
+    match = await partial_match
+    assert isinstance(match, arez.Match)
+    # verify that the data is consistent between partial and full matches
+    match_attrs = [
+        "queue", "region", "timestamp", "duration", "map_name", "score", "winning_team",
+    ]
+    for attr in match_attrs:
+        assert getattr(partial_match, attr) == getattr(match, attr)
+
+    mp = arez.utils.get(match.players, player__id=player.id)
+    assert isinstance(mp, arez.MatchPlayer)
+    player_attrs = [
+        "champion", "credits", "damage_done", "damage_bot", "damage_taken", "damage_mitigated",
+        "healing_done", "healing_bot", "healing_self", "objective_time", "multikill_max",
+        "team_number", "team_score", "winner",
+    ]
+    for attr in player_attrs:
+        assert getattr(partial_match, attr) == getattr(mp, attr)
+    # verify items
+    for partial_item, mp_item in zip(partial_match.items, mp.items):
+        assert partial_item == mp_item
+    # verify loadout
+    partial_loadout = partial_match.loadout
+    mp_loadout = mp.loadout
+    assert partial_loadout.talent == mp_loadout.talent
+    for partial_card, mp_card in zip(partial_loadout.cards, mp_loadout.cards):
+        assert partial_card == mp_card
 
 
 @pytest.mark.dependency(
