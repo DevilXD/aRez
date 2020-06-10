@@ -11,6 +11,31 @@ d1 = Duration(minutes=20)
 d2 = timedelta(seconds=4)
 
 
+def test_comparisons():
+    # eq
+    assert d0 == Duration(hours=1)
+    assert d0 == timedelta(hours=1)
+    # ne
+    assert d0 != d1
+    assert d0 != d2
+    # lt
+    assert d1 < d0
+    assert d1 < timedelta(hours=1)
+    # le
+    assert d1 <= d0
+    assert d1 <= d1
+    assert d1 <= timedelta(hours=1)
+    assert d1 <= timedelta(minutes=20)
+    # gt
+    assert d0 > d1
+    assert d0 > timedelta(minutes=20)
+    # ge
+    assert d0 >= d1
+    assert d0 >= d0
+    assert d0 >= timedelta(minutes=20)
+    assert d0 >= timedelta(hours=1)
+
+
 def test_addition():
     d3 = d0 + d1
     d4 = d1 + d0
