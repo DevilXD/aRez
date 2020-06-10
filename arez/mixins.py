@@ -352,7 +352,12 @@ class MatchPlayerMixin(APIClient, KDAMixin):
                     # we're in a partial (player history) match data
                     item_name = match_data[f"Active_{i}"]
                 item = CacheObject(id=item_id, name=item_name)
-            level = match_data[f"ActiveLevel{i}"] // 4 + 1
+            if "hasReplay" in match_data:
+                # we're in a full match data
+                level = match_data[f"ActiveLevel{i}"] + 1
+            else:
+                # we're in a partial (player history) match data
+                level = match_data[f"ActiveLevel{i}"] // 4 + 1
             self.items.append(MatchItem(item, level))
         self.loadout = MatchLoadout(self._api, language, match_data)
 
