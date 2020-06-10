@@ -3,6 +3,7 @@
 from math import floor
 from datetime import timedelta
 
+import pytest
 from arez.utils import Duration
 
 
@@ -34,106 +35,154 @@ def test_comparisons():
     assert d0 >= d0
     assert d0 >= timedelta(minutes=20)
     assert d0 >= timedelta(hours=1)
+    # NotImplemented
+    assert (d0 == None) is False  # noqa
+    assert (d0 != None) is True  # noqa
+    # other comparisons raise TypeError
+    with pytest.raises(TypeError):
+        d0 < None
+    with pytest.raises(TypeError):
+        d0 <= None
+    with pytest.raises(TypeError):
+        d0 > None
+    with pytest.raises(TypeError):
+        d0 >= None
 
 
 def test_addition():
+    # Duration + Duration
     d3 = d0 + d1
     d4 = d1 + d0
     assert isinstance(d3, Duration) and d3.total_seconds() == 80 * 60
     assert isinstance(d4, Duration) and d4.total_seconds() == 80 * 60
 
-    d3 = d0 + d2
-    d4 = d2 + d0
-    assert isinstance(d3, Duration) and d3.total_seconds() == 60 * 60 + 4
-    assert isinstance(d4, Duration) and d4.total_seconds() == 60 * 60 + 4
-
+    # Duration + timedelta
     d3 = d1 + d2
     d4 = d2 + d1
     assert isinstance(d3, Duration) and d3.total_seconds() == 20 * 60 + 4
     assert isinstance(d4, Duration) and d4.total_seconds() == 20 * 60 + 4
 
+    # Duration + NotImplemented, NotImplemented + Duration
+    with pytest.raises(TypeError):
+        d3 = d0 + None  # type: ignore
+    with pytest.raises(TypeError):
+        d4 = None + d0  # type: ignore
+
 
 def test_substraction():
+    # Duration - Duration
     d3 = d0 - d1
     d4 = d1 - d0
     assert isinstance(d3, Duration) and d3.total_seconds() == 40 * 60
     assert isinstance(d4, Duration) and d4.total_seconds() == -40 * 60
 
+    # Duration - timedelta, timedelta - Duration
     d3 = d0 - d2
     d4 = d2 - d0
     assert isinstance(d3, Duration) and d3.total_seconds() == 60 * 60 - 4
     assert isinstance(d4, Duration) and d4.total_seconds() == 4 - 60 * 60
 
-    d3 = d1 - d2
-    d4 = d2 - d1
-    assert isinstance(d3, Duration) and d3.total_seconds() == 20 * 60 - 4
-    assert isinstance(d4, Duration) and d4.total_seconds() == 4 - 20 * 60
+    # Duration - NotImplemented, NotImplemented - Duration
+    with pytest.raises(TypeError):
+        d3 = d0 - None  # type: ignore
+    with pytest.raises(TypeError):
+        d4 = None - d0  # type: ignore
 
 
 def test_multiplication():
+    # Duration * int, int * Duration
     d3 = d0 * 3
     d4 = 3 * d0
     assert isinstance(d3, Duration) and d3.total_seconds() == 60 * 60 * 3
     assert isinstance(d4, Duration) and d4.total_seconds() == 60 * 60 * 3
 
+    # Duration * float, float * Duration
     d3 = d0 * 2.34
     d4 = 2.34 * d0
     assert isinstance(d3, Duration) and d3.total_seconds() == 60 * 60 * 2.34
     assert isinstance(d4, Duration) and d4.total_seconds() == 60 * 60 * 2.34
 
+    # Duration * NotImplemented, NotImplemented * Duration
+    with pytest.raises(TypeError):
+        d3 = d0 * None  # type: ignore
+    with pytest.raises(TypeError):
+        d4 = None * d0  # type: ignore
+
 
 def test_division():
+    # Duration / int, Duration / float
     d3 = d0 / 3
     d4 = d0 / 2.34
     assert isinstance(d3, Duration) and d3.total_seconds() == 20 * 60
     assert isinstance(d4, Duration) and d4.total_seconds() == round((60 * 60) / 2.34, 6)
 
+    # Duration / Duration
     d3 = d0 / d1
     d4 = d1 / d0
     assert isinstance(d3, float) and d3 == 3
     assert isinstance(d4, float) and d4 == 1 / 3
 
+    # Duration / timedelta, timedelta / Duration
     d3 = d0 / d2
     d4 = d2 / d0
     assert isinstance(d3, float) and d3 == 900
     assert isinstance(d4, float) and d4 == 1 / 900
 
+    # Duration / NotImplemented, NotImplemented / Duration
+    with pytest.raises(TypeError):
+        d3 = d0 / None  # type: ignore
+    with pytest.raises(TypeError):
+        d4 = None / d0  # type: ignore
+
 
 def test_modulo():
+    # Duration % Duration
     d3 = d0 % d1
     d4 = d1 % d0
     assert isinstance(d3, Duration) and d3.total_seconds() == 0
     assert isinstance(d4, Duration) and d4.total_seconds() == 20 * 60
 
+    # Duration % timedelta, timedelta % Duration
     d3 = d0 % d2
     d4 = d2 % d0
     assert isinstance(d3, Duration) and d3.total_seconds() == 0
     assert isinstance(d4, Duration) and d4.total_seconds() == 4
 
-    d3 = d1 % d2
-    d4 = d2 % d1
-    assert isinstance(d3, Duration) and d3.total_seconds() == 0
-    assert isinstance(d4, Duration) and d4.total_seconds() == 4
+    # Duration % NotImplemented, NotImplemented % Duration
+    with pytest.raises(TypeError):
+        d3 = d0 % None  # type: ignore
+    with pytest.raises(TypeError):
+        d4 = None % d0  # type: ignore
 
 
 def test_intdiv():
+    # Duration // int, compare to normal division
     d3 = d0 // 3599
     d4 = d0 / 3599
     assert isinstance(d3, Duration) and d3.total_seconds() == floor(3600 * 1e6 // 3599) / 1e6
     assert isinstance(d4, Duration) and d4.total_seconds() == round(3600 * 1e6 / 3599) / 1e6
 
+    # Duration // Duration
     d3 = d0 // d1
     d4 = d1 // d0
     assert isinstance(d3, int) and d3 == 3
     assert isinstance(d4, int) and d4 == 0
 
+    # Duration // timedelta, timedelta // Duration
     d3 = d0 // d2
     d4 = d2 // d0
     assert isinstance(d3, int) and d3 == 900
     assert isinstance(d4, int) and d4 == 0
 
+    # Duration // NotImplemented, NotImplemented // Duration
+    with pytest.raises(TypeError):
+        d3 = d0 // None  # type: ignore
+    with pytest.raises(TypeError):
+        d4 = None // d0  # type: ignore
+
 
 def test_divmod():
+    # divmod(Duration, Duration)
     n1, r1 = divmod(d0, d1)
     n2, r2 = divmod(d1, d0)
     assert (
@@ -149,6 +198,7 @@ def test_divmod():
         and r2.total_seconds() == 20 * 60
     )
 
+    # divmod(Duration, timedelta), divmod(timedelta, Duration)
     n1, r1 = divmod(d0, d2)
     n2, r2 = divmod(d2, d0)
     assert (
@@ -163,6 +213,12 @@ def test_divmod():
         and n2 == 0
         and r2.total_seconds() == 4
     )
+
+    # divmod(Duration, NotImplemented), divmod(NotImplemented, Duration)
+    with pytest.raises(TypeError):
+        n1, r1 = divmod(d0, None)  # type: ignore
+    with pytest.raises(TypeError):
+        n2, r2 = divmod(None, d0)  # type: ignore
 
 
 def test_signs():

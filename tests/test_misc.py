@@ -157,9 +157,15 @@ async def test_cache_disabled(api: arez.PaladinsAPI, player: arez.Player):
     await api.initialize()  # re-fetch the entry
 
 
+@pytest.mark.api()
+@pytest.mark.vcr()
+@pytest.mark.base()
+@pytest.mark.match()
 @pytest.mark.player()
+@pytest.mark.asyncio()
 @pytest.mark.dependency(depends=["test_cache"])
-def test_comparisons(
+@pytest.mark.dependency(depends=["tests/test_player.py::test_player_history"], scope="session")
+async def test_comparisons(
     api: arez.PaladinsAPI, player: arez.PartialPlayer, private_player: arez.PartialPlayer
 ):
     # players
@@ -172,6 +178,19 @@ def test_comparisons(
     # devices
     devices = list(entry.devices)
     assert devices[0] != devices[1]
+
+    history = await player.get_match_history()
+    partial_match = history[0]
+    # match item
+    items = partial_match.items
+    assert items[0] != items[1]
+    # NotImplemented
+    assert items[0] != None  # noqa
+    # loadout card
+    cards = partial_match.loadout.cards
+    assert cards[0] != cards[1]
+    # NotImplemented
+    assert cards[0] != None  # noqa
 
 
 @pytest.mark.vcr()
