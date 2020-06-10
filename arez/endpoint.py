@@ -186,7 +186,9 @@ class Endpoint:
                     return res_data
 
             # When connection problems happen, just give the api a short break and try again.
-            except (aiohttp.ClientConnectionError, asyncio.TimeoutError) as exc:
+            except (
+                aiohttp.ClientConnectionError, asyncio.TimeoutError
+            ) as exc:  # pragma: no cover
                 last_exc = exc  # store for the last iteration raise
                 if isinstance(exc, asyncio.TimeoutError):
                     logger.warning("Timed out, retrying...")
@@ -213,7 +215,7 @@ class Endpoint:
                 raise HTTPException(exc)
 
             # Sleep before retrying
-            await asyncio.sleep(tries * 0.5 * gauss(1, 0.1))
+            await asyncio.sleep(tries * 0.5 * gauss(1, 0.1))  # pragma: no cover
 
         # we've run out of tries, so ¯\_(ツ)_/¯
         # we shouldn't ever end up here, this is a fail-safe

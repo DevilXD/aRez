@@ -1,39 +1,14 @@
-import asyncio
 from datetime import datetime, timedelta
 
 import arez
 import pytest
-import aiohttp
 
 
 pytestmark = [pytest.mark.vcr, pytest.mark.base, pytest.mark.asyncio]
 
 
-# test network timeouts and disconnects
-@pytest.mark.dependency()
-async def test_stability(api: arez.PaladinsAPI):
-    # test timeout error
-    coro = api.request("ping")
-    task = asyncio.create_task(coro)
-    await asyncio.sleep(0.1)
-    try:
-        coro.throw(asyncio.TimeoutError)
-        await task
-    except (RuntimeError, OSError):
-        pass
-    # test disconnected error
-    coro = api.request("ping")
-    task = asyncio.create_task(coro)
-    await asyncio.sleep(0.1)
-    try:
-        coro.throw(aiohttp.ServerDisconnectedError)
-        await task
-    except (RuntimeError, OSError):
-        pass
-
-
 # test ping
-@pytest.mark.dependency(depends=["test_stability"])
+@pytest.mark.dependency()
 async def test_ping(api: arez.PaladinsAPI):
     await api.request("ping")
 
