@@ -346,7 +346,7 @@ class Duration:
             ms = ''
         return f"{days}{hours}{self._minutes:02}:{self._seconds:02}{ms}"
 
-    def _get_delta(self, other) -> Union[timedelta, NotImplemented]:
+    def _get_delta(self, other: object) -> Union[timedelta, NotImplemented]:
         if isinstance(other, Duration):
             return other._delta
         elif isinstance(other, timedelta):
@@ -355,14 +355,18 @@ class Duration:
 
     # Comparisons
 
-    def _cmp(self, opr: Callable[[object, object], bool], other: object) -> bool:
+    def _cmp(
+        self, opr: Callable[[object, object], bool], other: object, *, base: bool = False
+    ) -> bool:
         delta = self._get_delta(other)
         if delta is NotImplemented:
+            if base:
+                return opr is ne
             return NotImplemented
         return opr(self._delta, delta)
 
-    __eq__ = cast(Callable[[object, object], bool], partialmethod(_cmp, eq))
-    __ne__ = cast(Callable[[object, object], bool], partialmethod(_cmp, ne))
+    __eq__ = cast(Callable[[object, object], bool], partialmethod(_cmp, eq, base=True))
+    __ne__ = cast(Callable[[object, object], bool], partialmethod(_cmp, ne, base=True))
     __lt__ = partialmethod(_cmp, lt)
     __le__ = partialmethod(_cmp, le)
     __gt__ = partialmethod(_cmp, gt)
@@ -459,6 +463,8 @@ class Duration:
         return (int(q), Duration(seconds=r))
 
     def __rdivmod__(self, other: timedelta) -> Tuple[int, Duration]:
+        if not isinstance(other, timedelta):
+            return NotImplemented
         q, r = divmod(other.total_seconds(), self._total_seconds)
         return (int(q), Duration(seconds=r))
 
