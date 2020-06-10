@@ -28,16 +28,16 @@ MATCH_TDM     = 987401201  # TDM
 INVALID_MATCH = 1234       # invalid
 
 # named tuple for player data storage
-test_player = namedtuple("test_player", ("name", "id", "platform"))
+test_player = namedtuple("test_player", ("id", "name", "platform"))
 
 # not private player, PC platform
-PLAYER = test_player("DevilXD", 5959045, 5)
+PLAYER = test_player(5959045, "DevilXD", 5)
 # not private player, console platform
-CONSOLE_PLAYER = test_player("Djinscar", 501140683, 9)
+CONSOLE_PLAYER = test_player(501140683, "Djinscar", 9)
 # private player, any platform
-PRIVATE_PLAYER = test_player("FenixSpider", 13307488, 1)
+PRIVATE_PLAYER = test_player(13307488, "FenixSpider", 1)
 # invalid player
-INVALID_PLAYER = test_player("42", 1234, 1)
+INVALID_PLAYER = test_player(1234, "42", 1)
 
 # named tuple for platform testing
 test_platform = namedtuple("test_platform", ("platform_id", "platform"))
@@ -71,7 +71,7 @@ async def sp():
 # wrap a normal player
 @pytest.fixture(scope="session")
 def player(api: arez.PaladinsAPI):
-    return api.wrap_player(PLAYER.id)
+    return api.wrap_player(*PLAYER)
 
 
 # wrap a 0 ID private player
@@ -83,13 +83,13 @@ def private_player(api: arez.PaladinsAPI):
 # wrap an invalid player
 @pytest.fixture(scope="session")
 def invalid_player(api: arez.PaladinsAPI):
-    return api.wrap_player(INVALID_PLAYER.id)
+    return api.wrap_player(*INVALID_PLAYER)
 
 
 # wrap a private player without flag
 @pytest.fixture(scope="session")
 def no_flag_private_player(api: arez.PaladinsAPI):
-    return api.wrap_player(PRIVATE_PLAYER.id)
+    return api.wrap_player(*PRIVATE_PLAYER)
 
 
 def filter_request(request):
