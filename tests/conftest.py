@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import re
 import asyncio
 import warnings
 from datetime import datetime
-from typing import Optional, List, Dict, Set
-from collections import defaultdict, deque, namedtuple
+from collections import deque, namedtuple
+from typing import Optional, List, Dict, Set, TypedDict, Literal
 
 import arez
 import pytest
@@ -120,110 +122,124 @@ def vcr_config():
     }
 
 
+# Everything below is related to pytest-dependency changing the order of the tests so that
+# they execute in the order dictated by dependencies itself, without skipping tests if
+# the dependency is only found to be collected later. It can be removed once this gets merged
+# as base functionality - ref: https://github.com/RKrahl/pytest-dependency/pull/44
+
+Scope = Literal["module", "session"]
+
+
+class ManagerDict(TypedDict):
+    session: Optional[OrderManager]
+    module: Dict[Module, OrderManager]
+
+
+class OrderManager:
+
+    managers = ManagerDict({
+        "session": None,
+        "module": {},
+    })
+
+    def __init__(self):
+        self.names: Set[str] = set()
+        self.dependencies: Dict[str, Item] = {}
+
+    @classmethod
+    def get_for_scope(cls, item: Item, scope: Scope) -> OrderManager:
+        if scope == "session":
+            session_manager = cls.managers["session"]
+            if session_manager is None:
+                session_manager = cls.managers["session"] = cls()
+            return session_manager
+        # module scope
+        module = item.module
+        module_managers = cls.managers["module"]
+        if module not in module_managers:
+            module_managers[module] = cls()
+        return module_managers[module]
+
+    def check_dependencies(self, dependency_list: List[str], name: str) -> bool:
+        if not all(d in self.dependencies for d in dependency_list):
+            # check to see if we're ever gonna see a dep like that
+            for d in dependency_list:
+                if d not in self.names:
+                    warnings.warn(
+                        f"Dependency '{d}' of '{name}' doesn't exist, "
+                        "or has incorrect scope!",
+                        RuntimeWarning,
+                    )
+            return False
+        return True
+
+    def register_name(self, name: str):
+        self.names.add(name)
+
+    def add_dependency(self, item: Item, name: str):
+        self.dependencies[name] = item
+
+
+def remove_parametrization(item: Item, scope: Scope) -> str:
+    nodeid = item.nodeid.replace("::()::", "::")
+    if scope == "session" or scope == "package":
+        name = nodeid
+    elif scope == "module":
+        name = nodeid.split("::", 1)[1]
+    elif scope == "class":
+        name = nodeid.split("::", 2)[2]
+
+    original = item.originalname if item.originalname is not None else item.name
+    # remove the parametrization part at the end
+    if not name.endswith(original):
+        index = name.rindex(original) + len(original)
+        name = name[:index]
+    return name
+
+
 # special hook to make pytest-dependency support reordering based on deps
 def pytest_collection_modifyitems(items: List[Item]):
-    session_names: Set[str] = set()
-    module_names: Dict[Module, Set[str]] = defaultdict(set)
-
     # gather dependency names
     for item in items:
         for marker in item.iter_markers("dependency"):
             scope = marker.kwargs.get("scope", "module")
             name = marker.kwargs.get("name")
             if not name:
-                nodeid = item.nodeid.replace("::()::", "::")
-                if scope == "session" or scope == "package":
-                    name = nodeid
-                elif scope == "module":
-                    name = nodeid.split("::", 1)[1]
-                elif scope == "class":
-                    name = nodeid.split("::", 2)[2]
+                name = remove_parametrization(item, scope)
 
-                original = item.originalname if item.originalname is not None else item.name
-                # remove the parametrization part at the end
-                if not name.endswith(original):
-                    index = name.rindex(original) + len(original)
-                    name = name[:index]
-
-            if scope == "module":
-                module_names[item.module].add(name)
-            elif scope == "session":
-                session_names.add(name)
+            manager = OrderManager.get_for_scope(item, scope)
+            manager.register_name(name)
 
     final_items: List[Item] = []
-    session_deps: Dict[str, Item] = {}
-    module_deps: Dict[Module, Dict[str, Item]] = defaultdict(dict)
 
     # group the dependencies by their scopes
     cycles = 0
     deque_items = deque(items)
     while deque_items:
-        if cycles > len(deque_items):
+        if cycles >= len(deque_items):
             # seems like we're stuck in a loop now
             # just add the remaining items and finish up
             final_items.extend(deque_items)
             break
         item = deque_items.popleft()
-        correct_order: Optional[bool] = True
         for marker in item.iter_markers("dependency"):
             depends = marker.kwargs.get("depends", [])
             scope = marker.kwargs.get("scope", "module")
             name = marker.kwargs.get("name")
             if not name:
-                nodeid = item.nodeid.replace("::()::", "::")
-                if scope == "session" or scope == "package":
-                    name = nodeid
-                elif scope == "module":
-                    name = nodeid.split("::", 1)[1]
-                elif scope == "class":
-                    name = nodeid.split("::", 2)[2]
+                name = remove_parametrization(item, scope)
 
-                original = item.originalname if item.originalname is not None else item.name
-                # remove the parametrization part at the end
-                if not name.endswith(original):
-                    index = name.rindex(original) + len(original)
-                    name = name[:index]
-            # pick a scope
-            if scope == "module":
-                scope_deps = module_deps[item.module]
-                scope_names = module_names[item.module]
-            elif scope == "session":
-                scope_deps = session_deps
-                scope_names = session_names
-            # check deps
-            if not all(d in scope_deps for d in depends):
-                # check to see if we're ever gonna see a dep like that
-                for d in depends:
-                    if d in scope_names:
-                        if correct_order is not None:
-                            correct_order = False
-                    else:
-                        correct_order = None
-                        warnings.warn(
-                            f"Dependency '{d}' of '{name}' doesn't exist, "
-                            "or has incorrect scope!",
-                            RuntimeWarning,
-                        )
+            manager = OrderManager.get_for_scope(item, scope)
+            if manager.check_dependencies(depends, name):
+                manager.add_dependency(item, name)
+            else:
+                deque_items.append(item)
+                cycles += 1
                 break
-            # save
-            if scope == "module":
-                module_deps[item.module][name] = item
-            elif scope == "session":
-                session_deps[name] = item  # use 'nodeid' instead of the name
-        # 'correct_order' possible values:
-        # None  - invalid dependency, add anyway
-        # True  - add it to the final list
-        # False - missing dependency, add it back to the processing deque
-        if correct_order is None:
-            # TODO: Take the config into account here
-            final_items.append(item)
-            cycles = 0
-        elif correct_order:
-            final_items.append(item)
-            cycles = 0
         else:
-            deque_items.append(item)
-            cycles += 1
+            # runs only when the for loop wasn't broken out of
+            final_items.append(item)
+            cycles = 0
 
     assert len(items) == len(final_items) and all(i in items for i in final_items)
     items[:] = final_items
