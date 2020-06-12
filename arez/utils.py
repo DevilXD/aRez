@@ -45,7 +45,7 @@ Y = TypeVar("Y")
 LookupType = TypeVar("LookupType", bound=CacheObject)
 
 
-def convert_timestamp(timestamp: str) -> datetime:
+def convert_timestamp(timestamp: str) -> Optional[datetime]:
     """
     Converts the timestamp format returned by the API.
 
@@ -56,10 +56,13 @@ def convert_timestamp(timestamp: str) -> datetime:
 
     Returns
     -------
-    datetime
-        A converted datetime object.
+    Optional[datetime]
+        A converted datetime object.\n
+        `None` is returned if an empty string was passed.
     """
-    return datetime.strptime(timestamp, "%m/%d/%Y %I:%M:%S %p")
+    if timestamp:
+        return datetime.strptime(timestamp, "%m/%d/%Y %I:%M:%S %p")
+    return None
 
 
 def get(iterable: Iterable[X], **attrs) -> Optional[X]:

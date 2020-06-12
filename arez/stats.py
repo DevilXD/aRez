@@ -1,7 +1,7 @@
-from .utils import Duration
-from typing import Any, Optional, Union, Dict, Literal, TYPE_CHECKING
+from datetime import datetime
+from typing import Any, Optional, Union, Dict, Literal, TYPE_CHECKING, cast
 
-from .utils import convert_timestamp
+from .utils import Duration, convert_timestamp
 from .mixins import CacheObject, WinLoseMixin, KDAMixin
 from .enumerations import Rank, Language, Queue
 
@@ -149,7 +149,7 @@ class ChampionStats(WinLoseMixin, KDAMixin):
         if champion is None:
             champion = CacheObject(id=champion_id, name=champion_name)
         self.champion: Union[Champion, CacheObject] = champion
-        self.last_played = convert_timestamp(stats_data["LastPlayed"])
+        self.last_played: datetime = cast(datetime, convert_timestamp(stats_data["LastPlayed"]))
         self.level = stats_data.get("Rank", 0)
         self.experience = stats_data.get("Worshippers", 0)
         self.credits_earned = stats_data["Gold"]

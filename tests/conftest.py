@@ -38,6 +38,12 @@ PLAYER = test_player(5959045, "DevilXD", 5)
 CONSOLE_PLAYER = test_player(501140683, "Djinscar", 9)
 # private player, any platform
 PRIVATE_PLAYER = test_player(13307488, "FenixSpider", 1)
+# old player, any platform
+# low lever, created long time ago, some data might be missing:
+# • creation date
+# • last login date
+# • Region
+OLD_PLAYER = test_player(733658, "Endeavor", 1)
 # invalid player
 INVALID_PLAYER = test_player(1234, "42", 1)
 
@@ -80,6 +86,12 @@ def player(api: arez.PaladinsAPI):
 @pytest.fixture(scope="session")
 def private_player(api: arez.PaladinsAPI):
     return api.wrap_player(0)
+
+
+# wrap an old player
+@pytest.fixture(scope="session")
+def old_player(api: arez.PaladinsAPI):
+    return api.wrap_player(*OLD_PLAYER)
 
 
 # wrap an invalid player

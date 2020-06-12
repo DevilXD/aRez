@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from datetime import datetime
 from functools import cached_property
 from typing import Optional, Union, List, SupportsInt, TYPE_CHECKING
 
@@ -331,10 +332,12 @@ class Player(PartialPlayer):
         `None` if the current profile is the active profile.
     merged_players : List[PartialPlayer]
         A list of all merged profiles.
-    created_at : datetime.datetime
-        A timestamp of the profile's creation date.
-    last_login : datetime.datetime
+    created_at : Optional[datetime.datetime]
+        A timestamp of the profile's creation date.\n
+        This can be `None` for accounts that are really old.
+    last_login : Optional[datetime.datetime]
         A timestamp of the profile's last successful in-game login.
+        This can be `None` for accounts that are really old.
     platform_name : str
         The platform name of this profile. This is usually identical to `name`, except in cases
         where the platform allows nicknames (Steam profiles).
@@ -353,7 +356,8 @@ class Player(PartialPlayer):
     champion_count : int
         The amount of champions this player has unlocked.
     region : Region
-        The player's currently set `Region`.
+        The player's currently set `Region`.\n
+        This can be `Region.Unknown` for accounts that are really old.
     total_achievements : int
         The amount of achievements the player has.
     total_experience : int
@@ -390,8 +394,8 @@ class Player(PartialPlayer):
                 self.merged_players.append(
                     PartialPlayer(api, id=p["playerId"], platform=p["portalId"])
                 )
-        self.created_at = convert_timestamp(player_data["Created_Datetime"])
-        self.last_login = convert_timestamp(player_data["Last_Login_Datetime"])
+        self.created_at: Optional[datetime] = convert_timestamp(player_data["Created_Datetime"])
+        self.last_login: Optional[datetime] = convert_timestamp(player_data["Last_Login_Datetime"])
         self.level: int = player_data["Level"]
         self.title: str = player_data["Title"]
         self.avatar_id: int = player_data["AvatarId"]

@@ -9,6 +9,7 @@ from .conftest import (
     MATCH_TDM,
     INVALID_MATCH,
     PLAYER,
+    OLD_PLAYER,
     CONSOLE_PLAYER,
     PRIVATE_PLAYER,
     INVALID_PLAYER,
@@ -109,6 +110,11 @@ async def test_get_player(api: arez.PaladinsAPI):
     # zero
     with pytest.raises(arez.NotFound):
         player = await api.get_player(0)
+    # old
+    old_player = await api.get_player(OLD_PLAYER.id)
+    assert old_player.created_at is None
+    assert old_player.last_login is None
+    assert old_player.region is arez.Region.Unknown
     # not found
     with pytest.raises(arez.NotFound):
         player = await api.get_player(INVALID_PLAYER.id)
