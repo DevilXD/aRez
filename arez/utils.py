@@ -31,7 +31,6 @@ __all__ = [
     "get",
     "chunk",
     "expand_partial",
-    "convert_timestamp",
     # classes
     "Lookup",
     "Duration",
@@ -45,7 +44,7 @@ Y = TypeVar("Y")
 LookupType = TypeVar("LookupType", bound=CacheObject)
 
 
-def convert_timestamp(timestamp: str) -> Optional[datetime]:
+def _convert_timestamp(timestamp: str) -> Optional[datetime]:
     """
     Converts the timestamp format returned by the API.
 

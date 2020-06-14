@@ -10,7 +10,7 @@ from .match import PartialMatch
 from .status import PlayerStatus
 from .exceptions import Private, NotFound
 from .mixins import APIClient, Expandable
-from .utils import convert_timestamp, Duration
+from .utils import _convert_timestamp, Duration
 from .stats import Stats, RankedStats, ChampionStats
 from .enumerations import Language, Platform, Region, Queue
 
@@ -394,8 +394,10 @@ class Player(PartialPlayer):
                 self.merged_players.append(
                     PartialPlayer(api, id=p["playerId"], platform=p["portalId"])
                 )
-        self.created_at: Optional[datetime] = convert_timestamp(player_data["Created_Datetime"])
-        self.last_login: Optional[datetime] = convert_timestamp(player_data["Last_Login_Datetime"])
+        self.created_at: Optional[datetime] = _convert_timestamp(player_data["Created_Datetime"])
+        self.last_login: Optional[datetime] = _convert_timestamp(
+            player_data["Last_Login_Datetime"]
+        )
         self.level: int = player_data["Level"]
         self.title: str = player_data["Title"]
         self.avatar_id: int = player_data["AvatarId"]

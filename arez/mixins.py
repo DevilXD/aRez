@@ -235,8 +235,8 @@ class MatchMixin:
             )
         self.queue = Queue(queue, return_default=True)
         self.region = Region(match_data["Region"], return_default=True)
-        from .utils import convert_timestamp, Duration  # circular imports
-        self.timestamp: datetime = cast(datetime, convert_timestamp(stamp))
+        from .utils import _convert_timestamp, Duration  # circular imports
+        self.timestamp: datetime = cast(datetime, _convert_timestamp(stamp))
         self.duration = Duration(seconds=match_data["Time_In_Match_Seconds"])
         self.map_name: str = match_data["Map_Game"]
         if self.queue in (469, 470, 454, 468, 471, 472, 479, 480, 484):
