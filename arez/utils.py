@@ -64,6 +64,26 @@ def _convert_timestamp(timestamp: str) -> Optional[datetime]:
     return None
 
 
+def _convert_map_name(map_name: str) -> str:
+    """
+    Converts the map name, removing the unneeded prefixes.
+
+    Parameters
+    ----------
+    map_name : str
+        The string representing the map name.
+
+    Returns
+    -------
+    str
+        The converted map name.
+    """
+    for prefix in ("LIVE ", "Ranked "):
+        if map_name.startswith(prefix):
+            map_name = map_name[len(prefix):]
+    return map_name
+
+
 def get(iterable: Iterable[X], **attrs) -> Optional[X]:
     """
     Returns the first object from the ``iterable`` which attributes match the

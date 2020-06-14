@@ -5,6 +5,7 @@ from itertools import count
 from typing import Any, Optional, Union, List, Dict, Generator, TYPE_CHECKING
 
 from .exceptions import NotFound
+from .utils import _convert_map_name
 from .enumerations import Queue, Language, Region, Rank
 from .mixins import APIClient, CacheObject, MatchMixin, MatchPlayerMixin, Expandable, WinLoseMixin
 
@@ -457,7 +458,7 @@ class LiveMatch(APIClient):
         super().__init__(api)
         first_player = match_data[0]
         self.id: int = first_player["Match"]
-        self.map_name: str = first_player["mapGame"]
+        self.map_name: str = _convert_map_name(first_player["mapGame"])
         self.queue = Queue(int(first_player["Queue"]), return_default=True)
         self.region = Region(first_player["playerRegion"], return_default=True)
         self.team1: List[LivePlayer] = []
