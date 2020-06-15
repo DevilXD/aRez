@@ -436,32 +436,21 @@ class PaladinsAPI(DataCache):
                 if name := player_dict["hz_player_name"]:
                     player_dict["Name"] = name
             list_response = [r for r in response if r["Name"].lower() == player_name]
+        if not return_private:
+            # Exclude private accounts
+            list_response = [p for p in list_response if p["privacy_flag"] != 'y']
         if not list_response:
             raise NotFound("Player")
-        if return_private:
-            # Include private accounts
-            return [
-                PartialPlayer(
-                    self,
-                    id=p["player_id"],
-                    name=p["Name"],
-                    platform=p["portal_id"],
-                    private=p["privacy_flag"] == 'y',
-                )
-                for p in list_response
-            ]
-        else:
-            # Omit private accounts
-            return [
-                PartialPlayer(
-                    self,
-                    id=p["player_id"],
-                    name=p["Name"],
-                    platform=p["portal_id"],
-                )
-                for p in list_response
-                if p["privacy_flag"] != 'y'
-            ]
+        return [
+            PartialPlayer(
+                self,
+                id=p["player_id"],
+                name=p["Name"],
+                platform=p["portal_id"],
+                private=p["privacy_flag"] == 'y',
+            )
+            for p in list_response
+        ]
 
     async def get_from_platform(
         self, platform_id: int, platform: Platform

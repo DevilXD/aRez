@@ -160,12 +160,12 @@ async def test_search_players(api: arez.PaladinsAPI):
         and isinstance(player_list[0], arez.PartialPlayer)
         and player_list[0].private
     )
-    # omit private accounts
-    player_list = await api.search_players(
-        PRIVATE_PLAYER.name, arez.Platform(PRIVATE_PLAYER.platform), return_private=False
-    )
-    assert len(player_list) == 0
-    # not found
+    # omit private accounts - not found
+    with pytest.raises(arez.NotFound):
+        player_list = await api.search_players(
+            PRIVATE_PLAYER.name, arez.Platform(PRIVATE_PLAYER.platform), return_private=False
+        )
+    # invalid player - not found
     with pytest.raises(arez.NotFound):
         player_list = await api.search_players(
             INVALID_PLAYER.name, arez.Platform(INVALID_PLAYER.platform)
