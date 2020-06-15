@@ -29,6 +29,7 @@ pytestmark = [
 ]
 
 
+@pytest.mark.slow()
 @pytest.mark.dependency(depends=["tests/utils/test_lookup.py::test_lookup"], scope="session")
 @pytest.mark.parametrize("lang_num", [
     0,   # Nothing returned
