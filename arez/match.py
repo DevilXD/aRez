@@ -327,6 +327,7 @@ class Match(APIClient, MatchMixin):
                 elif parties[pid] == 0:
                     # we've seen this one, and it doesn't have a number assigned - assign one
                     parties[pid] = next(party_count)
+        for player_data in match_data:
             match_player = MatchPlayer(self._api, language, player_data, parties, players)
             team_number = player_data['TaskForce']
             if team_number == 1:
