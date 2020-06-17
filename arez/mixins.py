@@ -289,6 +289,8 @@ class MatchPlayerMixin(APIClient, KDAMixin):
         The amount of objective time the player got, in seconds.
     multikill_max : int
         The maximum multikill player did during the match.
+    skin : CacheObject
+        The skin the player had equipped for this match.
     team_number : Literal[1, 2]
         The team this player belongs to.
     team_score : int
@@ -333,7 +335,7 @@ class MatchPlayerMixin(APIClient, KDAMixin):
         self.healing_self: int = match_data["Healing_Player_Self"]
         self.objective_time: int = match_data["Objective_Assists"]
         self.multikill_max: int = match_data["Multi_kill_Max"]
-        # self.skin  # TODO: Ask for this to be added/fixed properly
+        self.skin = CacheObject(id=match_data["SkinId"], name=match_data["Skin"])
         self.team_number: Literal[1, 2] = match_data["TaskForce"]
         self.team_score: int = match_data[f"Team{self.team_number}Score"]
         self.winner: bool = self.team_number == match_data["Winning_TaskForce"]

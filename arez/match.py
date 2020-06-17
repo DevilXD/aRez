@@ -92,6 +92,8 @@ class PartialMatch(MatchPlayerMixin, MatchMixin, Expandable):
         The amount of objective time the player got, in seconds.
     multikill_max : int
         The maximum multikill player did during the match.
+    skin : CacheObject
+        The skin the player had equipped for this match.
     team_number : Literal[1, 2]
         The team this player belongs to.
     team_score : int
@@ -185,6 +187,8 @@ class MatchPlayer(MatchPlayerMixin):
         The amount of objective time the player got, in seconds.
     multikill_max : int
         The maximum multikill player did during the match.
+    skin : CacheObject
+        The skin the player had equipped for this match.
     team_number : Literal[1, 2]
         The team this player belongs to.
     team_score : int
@@ -376,6 +380,8 @@ class LivePlayer(APIClient, WinLoseMixin):
     champion : Union[Champion, CacheObject]
         The champion the player is using in this match.\n
         With incomplete cache, this will be a `CacheObject` with the name and ID set.
+    skin : CacheObject
+        The skin the player has equipped for this match.
     rank : Rank
         The player's rank.
     account_level : int
@@ -415,6 +421,7 @@ class LivePlayer(APIClient, WinLoseMixin):
         if champion is None:
             champion = CacheObject(id=champion_id, name=player_data["ChampionName"])
         self.champion: Union[Champion, CacheObject] = champion
+        self.skin = CacheObject(id=player_data["SkinId"], name=player_data["Skin"])
         self.rank = Rank(player_data["Tier"], return_default=True)
         self.account_level: int = player_data["Account_Level"]
         self.mastery_level: int = player_data["Mastery_Level"]
