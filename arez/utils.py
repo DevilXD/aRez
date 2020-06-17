@@ -82,7 +82,7 @@ def _convert_map_name(map_name: str) -> str:
     for prefix in ("LIVE ", "Ranked "):
         if map_name.startswith(prefix):
             map_name = map_name[len(prefix):]
-    for suffix in (" (TDM)", " (KOTH)"):
+    for suffix in (" (TDM)", " (Onslaught)", " (KOTH)"):
         if map_name.endswith(suffix):
             map_name = map_name[:-len(suffix)]
     return map_name
