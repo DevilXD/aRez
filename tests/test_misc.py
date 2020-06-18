@@ -181,14 +181,17 @@ async def test_comparisons(
     assert devices[0] != devices[1]
 
     history = await player.get_match_history()
-    partial_match = history[0]
+    # loop because the last match might have only one item in it
+    for partial_match in history:
+        items = partial_match.items
+        cards = partial_match.loadout.cards
+        if len(items) >= 2 and len(cards) >= 2:
+            break
     # match item
-    items = partial_match.items
     assert items[0] != items[1]
     # NotImplemented
     assert items[0] != None  # noqa
     # loadout card
-    cards = partial_match.loadout.cards
     assert cards[0] != cards[1]
     # NotImplemented
     assert cards[0] != None  # noqa
