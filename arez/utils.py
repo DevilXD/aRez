@@ -79,10 +79,10 @@ def _convert_map_name(map_name: str) -> str:
         The converted map name.
     """
     map_name = map_name.strip()
-    for prefix in ("LIVE ", "Ranked ", "Practice "):
+    for prefix in ("LIVE ", "Ranked ", "Practice ", "WIP "):
         if map_name.startswith(prefix):
             map_name = map_name[len(prefix):]
-    for suffix in (" (TDM)", " (Onslaught)", " (KOTH)"):
+    for suffix in (" (Siege)", " (Onslaught)", " (TDM)", " (KOTH)"):
         if map_name.endswith(suffix):
             map_name = map_name[:-len(suffix)]
     return map_name
