@@ -523,7 +523,8 @@ class PaladinsAPI(DataCache):
         Raises
         ------
         NotFound
-            The match wasn't available on the server.
+            The match wasn't available on the server.\n
+            This can happen if the match is older than 30 days, or is currently in progress.
         """
         assert isinstance(match_id, int)
         assert language is None or isinstance(language, Language)
