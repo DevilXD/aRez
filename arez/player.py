@@ -197,7 +197,7 @@ class PartialPlayer(APIClient, Expandable):
         logger.info(f"Player(id={self._id}).get_friends()")
         response = await self._api.request("getfriends", self._id)
         return [
-            PartialPlayer(self._api, id=p["player_id"], name=p["name"])
+            PartialPlayer(self._api, id=p["player_id"], name=p["name"], platform=p["portal_id"])
             for p in response
             if p["status"] == "Friend" and p["player_id"] != "0"
         ]
