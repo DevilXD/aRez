@@ -4,6 +4,15 @@ import pytest
 from .conftest import MATCH
 
 
+# test type errors
+@pytest.mark.base()
+@pytest.mark.asyncio()
+async def test_type_errors(api: arez.PaladinsAPI):
+    # string as platform
+    with pytest.raises(TypeError):
+        await api.search_players("1234", "pc")  # type: ignore
+
+
 # test enum creation and casting
 @pytest.mark.base()
 @pytest.mark.dependency()

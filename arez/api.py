@@ -411,7 +411,11 @@ class PaladinsAPI(DataCache):
             There was no player for the given name (and optional platform) found.
         """
         assert isinstance(player_name, str)
-        assert platform is None or isinstance(platform, Platform)
+        # fail early for an incorrect platform type
+        if platform is not None and not isinstance(platform, Platform):
+            raise TypeError(
+                f"platform arg has to be of type arez.Platform, not {type(platform)!r}"
+            )
         list_response: List[Dict[str, Any]]
         if platform is not None:
             # Specific platform
