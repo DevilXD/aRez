@@ -430,6 +430,30 @@ class Queue(Enum, default_value=0):
     bot_tdm                  = 470
     Test_Maps                = 445
     test                     = 445
+    # Customs
+    Custom_Bazaar                         = 426
+    Custom_Frog_Isle                      = 433
+    Custom_Ice_Mines                      = 439
+    Custom_Stone_Keep                     = 423
+    Custom_Brightmarsh                    = 458
+    Custom_Fish_Market                    = 431
+    Custom_Frozen_Guard                   = 432
+    Custom_Jaguar_Falls                   = 438
+    Custom_Serpent_Beach                  = 440
+    Custom_Ascension_Peak                 = 473
+    Custom_Splitstone_Quary               = 459
+    Custom_Snowfall_Junction              = 454
+    Custom_Primal_Court_Onslaught         = 455
+    Custom_Foremans_Rise_Onslaught        = 462
+    Custom_Marauders_Port_Onslaught       = 430  # TODO: Verify this one
+    Custom_Magistrates_Archives_Onslaught = 464
+    Custom_Abyss_TDM                      = 479
+    Custom_Throne_TDM                     = 480
+    Custom_Dragon_Arena_TDM               = 484
+    Custom_Foremans_Rise_TDM              = 471
+    Custom_Trade_District_TDM             = 468
+    Custom_Magistrates_Archives_TDM       = 472
+    Custom_Magistrates_Archives_KotH      = 10200
 
 
 class Rank(EnumValue, metaclass=RankMeta):
