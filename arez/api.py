@@ -10,8 +10,8 @@ from typing import (
 )
 
 from .match import Match
-from .utils import chunk
 from .status import ServerStatus
+from .utils import chunk, _date_gen
 from .cache import DataCache, CacheEntry
 from .exceptions import Private, NotFound
 from .player import Player, PartialPlayer
@@ -668,22 +668,6 @@ class PaladinsAPI(DataCache):
             An async generator yielding matches played in the queue specified, between the
             timestamps specified.
         """
-        assert isinstance(queue, Queue)
-        assert language is None or isinstance(language, Language)
-        assert isinstance(start, datetime)
-        assert isinstance(end, datetime)
-        assert isinstance(reverse, bool)
-        assert isinstance(expand_players, bool)
-        # normalize and floor start and end to 10 minutes step resolution
-        start = start.replace(minute=(
-            start.minute // 10 * 10
-        ), second=0, microsecond=0)
-        end = end.replace(minute=(
-            end.minute // 10 * 10
-        ), second=0, microsecond=0)
-        if start >= end:
-            # the time slice is too short - save on processing by quitting early
-            return
         if local_time:
             # assume local timezone, convert objects into UTC ones, matching server time
             start = start.astimezone(timezone.utc)
@@ -697,50 +681,9 @@ class PaladinsAPI(DataCache):
             f"{reverse=}, {local_time=}, {expand_players=})"
         )
 
-        # Generates API-valid series of date and hour parameters
-        def date_gen(start, end, *, reverse=False):
-            one_hour = timedelta(hours=1)
-            ten_minutes = timedelta(minutes=10)
-            if reverse:
-                if end.minute > 0:
-                    # round down to the nearest hour
-                    closest_hour = end.replace(minute=0)
-                    while end > closest_hour and end > start:
-                        end -= ten_minutes
-                        yield (end.strftime("%Y%m%d"), f"{end.hour},{end.minute:02}")
-                # round up to the nearest hour
-                closest_hour = start.replace(minute=0) + timedelta(hours=1)
-                while end > closest_hour and end > start:
-                    end -= one_hour
-                    yield (end.strftime("%Y%m%d"), str(end.hour))
-                if start.minute > 0:
-                    while end > start:
-                        end -= ten_minutes
-                        yield (end.strftime("%Y%m%d"), f"{end.hour},{end.minute:02}")
-            else:
-                if start.minute > 0:
-                    # round up to the nearest hour
-                    closest_hour = start.replace(minute=0) + timedelta(hours=1)
-                    while start < closest_hour and start < end:
-                        yield (
-                            start.strftime("%Y%m%d"), f"{start.hour},{start.minute:02}"
-                        )
-                        start += ten_minutes
-                # round down to the nearest hour
-                closest_hour = end.replace(minute=0)
-                while start < closest_hour and start < end:
-                    yield (start.strftime("%Y%m%d"), str(start.hour))
-                    start += one_hour
-                if end.minute > 0:
-                    while start < end:
-                        yield (
-                            start.strftime("%Y%m%d"), f"{start.hour},{start.minute:02}"
-                        )
-                        start += ten_minutes
-
         # Use the generated date and hour values to iterate over and fetch matches
         players: Dict[int, Player] = {}
-        for date, hour in date_gen(start, end, reverse=reverse):
+        for date, hour in _date_gen(start, end, reverse=reverse):  # pragma: no branch
             response = await self.request("getmatchidsbyqueue", queue.value, date, hour)
             if reverse:
                 match_ids = [
@@ -750,7 +693,7 @@ class PaladinsAPI(DataCache):
                 ]
             else:
                 match_ids = [int(e["Match"]) for e in response if e["Active_Flag"] == 'n']
-            for chunk_ids in chunk(match_ids, 10):  # chunk the IDs into groups of 10
+            for chunk_ids in chunk(match_ids, 10):  # pragma: no branch
                 response = await self.request(
                     "getmatchdetailsbatch", ','.join(map(str, chunk_ids))
                 )

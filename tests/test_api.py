@@ -228,10 +228,10 @@ async def test_get_matches(api: arez.PaladinsAPI):
 
 
 @pytest.mark.slow()
+@pytest.mark.dependency(depends=["tests/utils/test_date_gen.py::test_date_gen"], scope="session")
 async def test_get_matches_for_queue(api: arez.PaladinsAPI):
     queue = arez.Queue("test")  # test maps
     ten_minutes = timedelta(minutes=10)
-    one_hour = timedelta(hours=1)
     # normal players, explicit language, 1.5 match requests
     start = BASE_DATETIME
     end = BASE_DATETIME + ten_minutes
@@ -243,39 +243,19 @@ async def test_get_matches_for_queue(api: arez.PaladinsAPI):
         assert all(isinstance(p.player, arez.PartialPlayer) for p in match.players)
         if match_count >= 15:
             break
-    # expand players
+    # expand players, default language, reverse, 1.5 match requests
     start = BASE_DATETIME
     end = BASE_DATETIME + ten_minutes
-    async for match in api.get_matches_for_queue(queue, start=start, end=end, expand_players=True):
-        assert all(isinstance(p.player, arez.Player) or p.player.private for p in match.players)
-        break
+    match_count = 0
+    async for match in api.get_matches_for_queue(
+        queue, start=start, end=end, reverse=True, expand_players=True
+    ):
+        match_count += 1
+        assert all(isinstance(p.player, arez.PartialPlayer) for p in match.players)
+        if match_count >= 15:
+            break
     # local time - specify utc to reuse interval
     start = BASE_DATETIME.replace(tzinfo=timezone.utc)
     end = (BASE_DATETIME + ten_minutes).replace(tzinfo=timezone.utc)
     async for match in api.get_matches_for_queue(queue, start=start, end=end, local_time=True):
         break
-    # start at round hour, one whole hour, end at not
-    start = BASE_DATETIME
-    end = BASE_DATETIME + one_hour + ten_minutes
-    async for match in api.get_matches_for_queue(queue, start=start, end=end):
-        pass
-    # start at not round hour, end at round
-    start = BASE_DATETIME + one_hour - ten_minutes
-    end = BASE_DATETIME + one_hour
-    async for match in api.get_matches_for_queue(queue, start=start, end=end):
-        pass
-    # start at round hour, end at not, reverse
-    start = BASE_DATETIME
-    end = BASE_DATETIME + one_hour + ten_minutes
-    async for match in api.get_matches_for_queue(queue, start=start, end=end, reverse=True):
-        pass
-    # start at not round hour, one whole hour, end at round, reverse
-    start = BASE_DATETIME + one_hour - ten_minutes
-    end = BASE_DATETIME + one_hour + one_hour
-    async for match in api.get_matches_for_queue(queue, start=start, end=end, reverse=True):
-        pass
-    # 0 width time slice (After normalization to 10-minutes intervals)
-    start = BASE_DATETIME + timedelta(minutes=12)
-    end = BASE_DATETIME + timedelta(minutes=14)
-    async for match in api.get_matches_for_queue(queue, start=start, end=end):
-        assert False, "0 width time slice"

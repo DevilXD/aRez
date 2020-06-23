@@ -88,6 +88,107 @@ def _convert_map_name(map_name: str) -> str:
     return map_name
 
 
+# Generates API-valid series of date and hour parameters for the 'getmatchidsbyqueue' endpoint
+def _date_gen(
+    start: datetime, end: datetime, *, reverse: bool = False
+) -> Generator[Tuple[str, str], None, None]:
+    # normalize and floor start and end to 10 minutes step resolution
+    start = start.replace(minute=(
+        start.minute // 10 * 10
+    ), second=0, microsecond=0)
+    end = end.replace(minute=(
+        end.minute // 10 * 10
+    ), second=0, microsecond=0)
+    # check if the time slice is too short - save on processing by quitting early
+    if start >= end:
+        return
+    # helpful time intervals
+    one_day = timedelta(days=1)
+    one_hour = timedelta(hours=1)
+    ten_minutes = timedelta(minutes=10)
+
+    if reverse:
+        if end.minute > 0:
+            # round down end to the nearest hour
+            closest_hour = end.replace(minute=0)
+            while end > closest_hour:
+                end -= ten_minutes
+                yield (end.strftime("%Y%m%d"), f"{end.hour},{end.minute:02}")
+                if end <= start:
+                    return
+        if end.hour > 0:
+            # round down end to the nearest day midnight
+            closest_day = end.replace(hour=0, minute=0)
+            if closest_day >= start:
+                while end > closest_day:
+                    end -= one_hour
+                    yield (end.strftime("%Y%m%d"), str(end.hour))
+                    if end <= start:
+                        return
+        # round up start to the nearest end day midnight
+        closest_day = start.replace(hour=0, minute=0)
+        if closest_day != start:
+            # only add one day if hours or minutes differ
+            closest_day += one_day
+        while end > closest_day:
+            end -= one_day
+            yield (end.strftime("%Y%m%d"), "-1")
+        if end <= start:
+            return
+        if start.hour > 0:
+            # round up start to the nearest hour
+            closest_hour = start.replace(minute=0)
+            if closest_hour != start:
+                # only add one hour if minutes differ
+                closest_hour += one_hour
+            while end > closest_hour:
+                end -= one_hour
+                yield (end.strftime("%Y%m%d"), str(end.hour))
+            if end <= start:
+                return
+        # finish
+        while end > start:
+            end -= ten_minutes
+            yield (end.strftime("%Y%m%d"), f"{end.hour},{end.minute:02}")
+    else:
+        if start.minute > 0:
+            # round up start to the nearest hour
+            closest_hour = start.replace(minute=0) + one_hour
+            while start < closest_hour:
+                yield (start.strftime("%Y%m%d"), f"{start.hour},{start.minute:02}")
+                start += ten_minutes
+                if start >= end:
+                    return
+        if start.hour > 0:
+            # round up start to the nearest day midnight
+            closest_day = start.replace(hour=0, minute=0) + one_day
+            if closest_day <= end:
+                while start < closest_day:
+                    yield (start.strftime("%Y%m%d"), str(start.hour))
+                    start += one_hour
+                    if start >= end:
+                        return
+        # round down end to the nearest end day midnight
+        closest_day = end.replace(hour=0, minute=0)
+        while start < closest_day:
+            yield (start.strftime("%Y%m%d"), "-1")
+            start += one_day
+        if start >= end:
+            return
+        if end.hour > 0:
+            # round down end to the nearest end hour
+            closest_hour = end.replace(minute=0)
+            while start < closest_hour:
+                yield (start.strftime("%Y%m%d"), str(start.hour))
+                start += one_hour
+            if start >= end:
+                return
+        # finish
+        while start < end:
+            yield (start.strftime("%Y%m%d"), f"{start.hour},{start.minute:02}")
+            start += ten_minutes
+
+
 def get(iterable: Iterable[X], **attrs) -> Optional[X]:
     """
     Returns the first object from the ``iterable`` which attributes match the

@@ -21,8 +21,8 @@ pytest_plugins = ["asyncio", "recording", "dependency"]
 # testing constants #
 #####################
 
-# base datetime - has to be within the last 30 days
-BASE_DATETIME = datetime(2020, 6, 3, 0, 0)
+# base datetime - has to be within the last 30 days, date only
+BASE_DATETIME = datetime(2020, 6, 3)
 
 # match IDs - at least one private player
 MATCH         = 987998836  # Siege or Onslaught
