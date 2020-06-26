@@ -78,6 +78,9 @@ def test_enum():
     # rank special aliases
     r = arez.Rank("bronze5")
     assert r is arez.Rank.Bronze_V
+    # rank alt name
+    assert r.alt_name == "Bronze 5"
+    assert arez.Rank.Master.alt_name == "Master"
     # queue methods
     assert arez.Queue.Casual_Siege.is_casual()
     assert arez.Queue.Competitive_Keyboard.is_ranked()

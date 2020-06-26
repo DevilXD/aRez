@@ -659,6 +659,14 @@ class Rank(RankEnum):
     Master       = 26
     Grandmaster  = 27
 
+    @property
+    def alt_name(self) -> str:
+        for roman in ("I", "II", "III", "IV", "V"):
+            if self.name.endswith(roman):
+                number = {"I": "1", "II": "2", "III": "3", "IV": "4", "V": "5"}[roman]
+                return self.name.replace(roman, number)
+        return self.name
+
 
 class DeviceType(Enum, default_value=0):
     """
