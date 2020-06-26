@@ -34,11 +34,13 @@ async def test_match_expand(player: arez.PartialPlayer):
     assert isinstance(match, arez.Match)
     # verify that the data is consistent between partial and full matches
     match_attrs = [
-        "queue", "region", "timestamp", "duration", "map_name", "score", "winning_team",
+        "queue", "region", "timestamp", "duration", "map_name", "winning_team",
     ]
     for attr in match_attrs:
         assert getattr(partial_match, attr) == getattr(match, attr)
-
+    # verify the score - special case
+    assert set(partial_match.score) == set(match.score)
+    # verify the match player
     mp = arez.utils.get(match.players, player__id=player.id)
     assert isinstance(mp, arez.MatchPlayer)
     player_attrs = [
