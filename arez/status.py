@@ -3,7 +3,7 @@ from typing import Optional, Union, List, Dict, Literal, TYPE_CHECKING
 
 from .match import LiveMatch
 from .mixins import APIClient
-from .enumerations import Activity, Queue, Language
+from .enums import Activity, Queue, Language
 
 if TYPE_CHECKING:
     from .player import PartialPlayer, Player  # noqa

@@ -1,9 +1,9 @@
 from datetime import datetime
 from typing import Any, Optional, Union, Dict, Literal, TYPE_CHECKING, cast
 
+from .enums import Rank, Language, Queue
 from .utils import Duration, _convert_timestamp
 from .mixins import CacheObject, WinLoseMixin, KDAMixin
-from .enumerations import Rank, Language, Queue
 
 if TYPE_CHECKING:
     from .champion import Champion

@@ -26,7 +26,7 @@ Data Classes
     items
     champions
     stats
-    enumerations
+    enums
     status
 
 Miscellaneous

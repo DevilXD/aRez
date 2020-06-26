@@ -3,7 +3,7 @@ from datetime import datetime
 from abc import ABC, abstractmethod
 from typing import Optional, Union, List, Tuple, Literal, TYPE_CHECKING, cast
 
-from .enumerations import Language, Queue, Region
+from .enums import Language, Queue, Region
 
 if TYPE_CHECKING:
     from .items import Device

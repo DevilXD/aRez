@@ -9,7 +9,7 @@ from typing import Any, Optional, Union, List, Dict
 from .items import Device
 from .endpoint import Endpoint
 from .champion import Champion, Ability
-from .enumerations import Language, DeviceType
+from .enums import Language, DeviceType
 from .utils import Lookup, WeakValueDefaultDict
 from .exceptions import Unavailable, HTTPException
 

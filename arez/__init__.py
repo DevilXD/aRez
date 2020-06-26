@@ -1,6 +1,7 @@
 # flake8: noqa
 
 from .cache import *
+from .enums import *
 from .items import *
 from .match import *
 from .stats import *
@@ -9,7 +10,6 @@ from .status import *
 from .mixins import *
 from .champion import *
 from .exceptions import *
-from .enumerations import *
 from .api import PaladinsAPI
 from .endpoint import Endpoint
 from .statuspage import StatusPage

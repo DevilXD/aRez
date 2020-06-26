@@ -5,7 +5,7 @@ from typing import Any, Optional, Union, List, Dict, Literal, TYPE_CHECKING
 
 from .utils import Lookup
 from .mixins import CacheObject
-from .enumerations import DeviceType, AbilityType
+from .enums import DeviceType, AbilityType
 
 if TYPE_CHECKING:
     from .items import Device

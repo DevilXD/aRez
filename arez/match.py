@@ -6,7 +6,7 @@ from typing import Any, Optional, Union, List, Dict, Generator, TYPE_CHECKING
 
 from .exceptions import NotFound
 from .utils import _convert_map_name
-from .enumerations import Queue, Language, Region, Rank
+from .enums import Queue, Language, Region, Rank
 from .mixins import APIClient, CacheObject, MatchMixin, MatchPlayerMixin, Expandable, WinLoseMixin
 
 if TYPE_CHECKING:

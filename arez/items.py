@@ -3,8 +3,8 @@ from __future__ import annotations
 import re
 from typing import Any, Optional, Union, List, Dict, TYPE_CHECKING
 
+from .enums import DeviceType, Language
 from .mixins import APIClient, CacheObject
-from .enumerations import DeviceType, Language
 
 if TYPE_CHECKING:
     from .api import PaladinsAPI

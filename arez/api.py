@@ -15,7 +15,7 @@ from .utils import chunk, _date_gen
 from .cache import DataCache, CacheEntry
 from .exceptions import Private, NotFound
 from .player import Player, PartialPlayer
-from .enumerations import Language, Platform, Queue, PC_PLATFORMS
+from .enums import Language, Platform, Queue, PC_PLATFORMS
 
 
 __all__ = ["PaladinsAPI"]

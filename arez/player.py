@@ -11,8 +11,8 @@ from .status import PlayerStatus
 from .exceptions import Private, NotFound
 from .mixins import APIClient, Expandable
 from .utils import _convert_timestamp, Duration
+from .enums import Language, Platform, Region, Queue
 from .stats import Stats, RankedStats, ChampionStats
-from .enumerations import Language, Platform, Region, Queue
 
 if TYPE_CHECKING:
     from .api import PaladinsAPI

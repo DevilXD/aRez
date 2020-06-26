@@ -25,7 +25,7 @@ def test_enum_meta():
         class Enum(IntEnum):
             pass
     else:
-        Enum = arez.enumerations.Enum
+        Enum = arez.enums.Enum
 
     class WithDefault(Enum, default_value=0):
         Unknown = 0
