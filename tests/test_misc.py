@@ -81,7 +81,7 @@ def test_enum():
     # queue methods
     assert arez.Queue.Casual_Siege.is_casual()
     assert arez.Queue.Competitive_Keyboard.is_ranked()
-    assert arez.Queue.Training_Siege.is_bot()
+    assert arez.Queue.Training_Siege.is_training()
     assert arez.Queue.Custom_Ascension_Peak.is_custom()
     assert arez.Queue.Casual_Siege.is_siege()
     assert arez.Queue.Onslaught.is_onslaught()
