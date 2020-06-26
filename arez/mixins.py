@@ -5,7 +5,7 @@ from typing import Optional, Union, List, Tuple, Literal, TYPE_CHECKING, cast
 
 from .enumerations import Language, Queue, Region
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from .items import Device
     from .api import PaladinsAPI
     from .champion import Champion

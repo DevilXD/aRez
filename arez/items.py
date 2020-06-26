@@ -6,7 +6,7 @@ from typing import Any, Optional, Union, List, Dict, TYPE_CHECKING
 from .mixins import APIClient, CacheObject
 from .enumerations import DeviceType, Language
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from .api import PaladinsAPI
     from .champion import Champion, Ability
     from .player import PartialPlayer, Player

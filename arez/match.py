@@ -9,7 +9,7 @@ from .utils import _convert_map_name
 from .enumerations import Queue, Language, Region, Rank
 from .mixins import APIClient, CacheObject, MatchMixin, MatchPlayerMixin, Expandable, WinLoseMixin
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from .api import PaladinsAPI
     from .champion import Champion
     from .player import PartialPlayer, Player  # noqa

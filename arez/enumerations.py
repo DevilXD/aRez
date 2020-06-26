@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from enum import IntEnum
 from typing import Any, Optional, Union, Dict, Tuple, TYPE_CHECKING
@@ -170,7 +170,7 @@ class EnumBase(int):
         return self._value
 
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     class Enum(IntEnum):
         pass
 else:

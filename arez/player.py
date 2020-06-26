@@ -14,7 +14,7 @@ from .utils import _convert_timestamp, Duration
 from .stats import Stats, RankedStats, ChampionStats
 from .enumerations import Language, Platform, Region, Queue
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from .api import PaladinsAPI
 
 

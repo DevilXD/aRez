@@ -5,7 +5,7 @@ from .utils import Duration, _convert_timestamp
 from .mixins import CacheObject, WinLoseMixin, KDAMixin
 from .enumerations import Rank, Language, Queue
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from .champion import Champion
     from .player import PartialPlayer, Player
 

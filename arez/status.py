@@ -5,7 +5,7 @@ from .match import LiveMatch
 from .mixins import APIClient
 from .enumerations import Activity, Queue, Language
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from .player import PartialPlayer, Player  # noqa
 
 
