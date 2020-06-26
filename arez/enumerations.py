@@ -1,9 +1,7 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
-import operator
 from enum import IntEnum
-from functools import partialmethod
-from typing import Any, Optional, Union, List, Dict, Tuple, Callable, cast, TYPE_CHECKING
+from typing import Any, Optional, Union, Dict, Tuple, TYPE_CHECKING
 
 
 __all__ = [
@@ -19,84 +17,17 @@ __all__ = [
 ]
 
 
-class EnumValue:
-    # These get added by the metaclass later
-    _default_value: Optional[int]
-    _name_mapping: Dict[str, EnumValue]
-    _value_mapping: Dict[int, EnumValue]
-
-    # Exists only to stop MyPy from complaining about wrong instance init arguments
-    def __init__(
-        self, key_or_value: Optional[Union[str, int]], /, *, return_default: bool = False
-    ):  # pragma: no cover
-        # This never runs cos of metaclass
-        self._class: type
-        self._name: str
-        self._value: int
-
-    # The actual factory method
-    @classmethod
-    def new(cls, name: str, value: int):
-        self = super().__new__(cls)
-        self._name = name
-        self._value = value
-        return self
-
-    # Used to support isinstance checks
-    def _set_class(self, cls: type):
-        self._class = cls
-
-    # Enum names are immutable
-    @property
-    def name(self) -> str:
-        return self._name
-
-    # Enum values are immutable
-    @property
-    def value(self) -> int:
-        return self._value
-
-    def __repr__(self) -> str:
-        return f"<{self.name}: {self.value}>"
-
-    # Show only the most relevant bits in VSCode
-    def __dir__(self) -> List[str]:
-        return ["_class", "name", "value"]  # pragma: no cover
-
-    def __str__(self) -> str:
-        return self.name
-
-    def __int__(self) -> int:
-        return self.value
-
-    # Matches standard enum hashing method
-    def __hash__(self) -> int:
-        return hash(self._name)
-
-    # Compare using values and optionally the class
-    def _cmp(self, opr, other: Union[EnumValue, int]) -> bool:
-        try:
-            if isinstance(other, int):
-                return opr(self._value, other)
-            else:
-                return self._class is other._class and opr(self._value, other._value)
-        except AttributeError:
-            return opr is operator.ne  # NE returns True, everything else returns False
-
-    __eq__ = cast(Callable[[object, object], bool], partialmethod(_cmp, operator.eq))
-    __ne__ = cast(Callable[[object, object], bool], partialmethod(_cmp, operator.ne))
-    __lt__ = partialmethod(_cmp, operator.lt)
-    __gt__ = partialmethod(_cmp, operator.gt)
-    __le__ = partialmethod(_cmp, operator.le)
-    __ge__ = partialmethod(_cmp, operator.ge)
-
-
 # For special methods defined on enums
-# def is_descriptor(obj):
-#     return hasattr(obj, "__get__")
+def is_descriptor(obj):
+    return hasattr(obj, "__get__")
 
 
 class EnumMeta(type):
+    _name_mapping: Dict[str, EnumMeta]
+    _value_mapping: Dict[int, EnumMeta]
+    _member_mapping: Dict[str, EnumMeta]
+    _default_value: int
+
     def __new__(
         meta_cls,
         name: str,
@@ -105,16 +36,17 @@ class EnumMeta(type):
         *,
         default_value: Optional[int] = None,
     ):
-        new_attrs: Dict[str, Any] = {}
+        new_attrs = {k: attrs.pop(k) for k in attrs.copy() if k.startswith("__")}
+        cls = super().__new__(meta_cls, name, bases, new_attrs)
 
         # Create enum members
-        name_mapping: Dict[str, EnumValue] = {}
-        value_mapping: Dict[int, EnumValue] = {}
+        name_mapping: Dict[str, EnumMeta] = {}
+        value_mapping: Dict[int, EnumMeta] = {}
+        member_mapping: Dict[str, EnumMeta] = {}
         for k, v in attrs.items():
-            # if (k[0] == '_' and k[1] == '_') or is_descriptor(v):
-            if k[0] == '_' and k[1] == '_':
+            if k.startswith("__") or is_descriptor(v):
                 # special attribute or descriptor, pass unchanged
-                new_attrs[k] = v
+                setattr(cls, k, v)
                 continue
             if v in value_mapping:
                 # existing value, just read it back
@@ -122,51 +54,60 @@ class EnumMeta(type):
             else:
                 # create a new value
                 # ensure we won't end up with underscores in the name
-                member = EnumValue.new(k.replace('_', ' '), v)
+                member = cls(k.replace('_', ' '), v)
                 value_mapping[v] = member
-                new_attrs[k] = member
+                member_mapping[k] = member
+                setattr(cls, k, member)
             k_lower = k.lower()
             name_mapping[k_lower] = member
             if '_' in k:
                 # generate a second alias with spaces instead of underscores
                 name_mapping[k_lower.replace('_', ' ')] = member
-        new_attrs["_name_mapping"] = name_mapping
-        new_attrs["_value_mapping"] = value_mapping
-        new_attrs["_default_value"] = default_value
-
-        # Make the new class
-        cls = super().__new__(meta_cls, name, bases, new_attrs)
-        # Assign to members for future 'isinstance' checks
-        for m in value_mapping.values():
-            m._set_class(cls)
+        setattr(cls, "_name_mapping", name_mapping)
+        setattr(cls, "_value_mapping", value_mapping)
+        setattr(cls, "_member_mapping", member_mapping)
+        setattr(cls, "_default_value", default_value)
         return cls
 
     # Add our special enum member constructor
     def __call__(  # type: ignore
-        cls: EnumValue, key_or_value: Optional[Union[str, int]], /, *, return_default: bool = False
-    ) -> Optional[Union[int, str, EnumValue]]:
-        if isinstance(key_or_value, str):
-            member = cls._name_mapping.get(key_or_value.lower())
-        elif isinstance(key_or_value, int):
-            member = cls._value_mapping.get(key_or_value)
+        cls: EnumMeta,
+        key_or_value: Union[str, int],
+        value: Optional[int] = None,
+        /, *,
+        return_default: bool = False,
+    ) -> Optional[Union[EnumMeta, int, str]]:
+        if value is not None:
+            # new member creation
+            return cls.__new__(cls, key_or_value, value)  # type: ignore
         else:
-            member = None
-        if member is not None:
-            return member
-        if return_default:
-            default = cls._default_value
-            if default is not None and default in cls._value_mapping:
-                # return the default enum value, if defined
-                return cls._value_mapping[default]
-            return key_or_value  # return the input unchanged
-        return None
+            # our special lookup
+            if isinstance(key_or_value, str):
+                member = cls._name_mapping.get(key_or_value.lower())
+            elif isinstance(key_or_value, int):
+                member = cls._value_mapping.get(key_or_value)
+            else:
+                member = None
+            if member is not None:
+                return member
+            if return_default:
+                default = cls._default_value
+                if default is not None and default in cls._value_mapping:
+                    # return the default enum value, if defined
+                    return cls._value_mapping[default]
+                return key_or_value  # return the input unchanged
+            return None
 
-    # Make 'isinstance' work
-    def __instancecheck__(cls, inst):
-        try:
-            return cls is inst._class
-        except AttributeError:
-            return False
+    def __iter__(cls):
+        return iter(cls._member_mapping.values())
+
+    def __delattr__(cls, name: str):
+        raise AttributeError(f"Cannot delete Enum member: {name}")
+
+    def __setattr__(cls, name: str, value: Any):
+        if hasattr(cls, "_member_mapping") and name in cls._member_mapping:
+            raise AttributeError(f"Cannot reassign Enum member: {name}")
+        super().__setattr__(name, value)
 
 
 # Generate additional aliases for ranks
@@ -179,8 +120,8 @@ class RankMeta(EnumMeta):
             "iv": 4,
             "v": 5,
         }
-        new_cls: EnumValue = super().__new__(cls, *args, **kwargs)
-        more_aliases: Dict[str, EnumValue] = {}
+        new_cls: EnumMeta = super().__new__(cls, *args, **kwargs)
+        more_aliases: Dict[str, EnumMeta] = {}
         # generate additional aliases
         for k, v in new_cls._name_mapping.items():
             if ' ' in k or '_' not in k:
@@ -197,12 +138,48 @@ class RankMeta(EnumMeta):
         return new_cls
 
 
+class EnumBase(int):
+    _name: str
+    _value: int
+
+    def __new__(cls, name: str, value: int) -> EnumBase:
+        self = super().__new__(cls, value)  # type: ignore
+        self._name = name
+        self._value = value
+        return self
+
+    # For typing purposes only
+    def __init__(self, key_or_value: Union[str, int], *, return_default: bool = False):
+        ...
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__}.{self._name}: {self._value}>"
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def value(self):
+        return self._value
+
+    def __str__(self) -> str:
+        return self._name
+
+    def __int__(self) -> int:
+        return self._value
+
+
 if TYPE_CHECKING:  # pragma: no cover
-    class Enum(EnumValue, IntEnum):  # type: ignore
+    class Enum(IntEnum):
         pass
 else:
-    class Enum(EnumValue, metaclass=EnumMeta):
+    class Enum(EnumBase, metaclass=EnumMeta):
         pass
+
+
+class RankEnum(EnumBase, metaclass=RankMeta):
+    pass
 
 
 class Platform(Enum, default_value=0):
@@ -461,7 +438,7 @@ class Queue(Enum, default_value=0):
     Custom_Trade_District_KotH            = 10202
 
 
-class Rank(EnumValue, metaclass=RankMeta):
+class Rank(RankEnum):
     """
     Rank enumeration. Represents player's rank.
 

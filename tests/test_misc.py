@@ -1,3 +1,6 @@
+from enum import IntEnum
+from typing import TYPE_CHECKING
+
 import arez
 import pytest
 
@@ -17,26 +20,64 @@ async def test_type_errors(api: arez.PaladinsAPI):
 @pytest.mark.base()
 @pytest.mark.dependency()
 @pytest.mark.dependency(scope="session")
-def test_enum():
-    p = arez.Platform("steam")  # fuzzy string member getting
-    assert p is arez.Platform.Steam  # identity and attribute access
-    assert str(p) == "Steam"  # str cast
-    assert int(p) == 5  # int cast
-    assert repr(p) == "<Steam: 5>"  # repr
+def test_enum_meta():
+    if TYPE_CHECKING:
+        class Enum(IntEnum):
+            pass
+    else:
+        Enum = arez.enumerations.Enum
+
+    class WithDefault(Enum, default_value=0):
+        Unknown = 0
+        One = 1
+        Two = 2
+        Three = 3
+
+    class NoDefault(Enum):
+        Unknown = 0
+        One = 1
+        Two = 2
+        Three = 3
+
+    e = WithDefault("one")  # fuzzy string member getting
+    assert e is WithDefault.One  # identity and attribute access
+    assert isinstance(e, WithDefault)  # isinstance
+    assert str(e) == "One"  # str cast
+    assert int(e) == 1  # int cast
+    assert e == 1  # int comparison
+    assert repr(e) == "<WithDefault.One: 1>"  # repr
     # member acquisition by value
-    l = arez.Language(2)
-    assert l is arez.Language.German
+    e = WithDefault(2)
+    assert e is WithDefault.Two
+    # Iteration
+    for i, e in enumerate(WithDefault):
+        assert i == e.value
     # None for unknown input
-    r = arez.Region("1234")
-    assert r is None
+    e = WithDefault("1234")
+    assert e is None
     # Default for unknown input
-    r = arez.Region("1234", return_default=True)
-    assert r is arez.Region.Unknown
-    # Default, if no default value is set - return unchanged
-    l = arez.Language("1234", return_default=True)
-    assert l == "1234"
-    # simple comparison
-    assert r != None  # noqa
+    e = WithDefault("1234", return_default=True)
+    assert e is WithDefault.Unknown
+    # If no default value is set - return unchanged
+    e = NoDefault("1234", return_default=True)
+    assert e == "1234"
+    # Can't delete attributes
+    with pytest.raises(AttributeError):
+        del WithDefault.One
+    assert hasattr(WithDefault, "One")
+    # Can't reassign attributes
+    with pytest.raises(AttributeError):
+        WithDefault.One = "test"
+    assert isinstance(WithDefault.One, WithDefault)
+
+
+@pytest.mark.base()
+@pytest.mark.dependency(depends=["test_enum_meta"])
+@pytest.mark.dependency(scope="session")
+def test_enum():
+    # rank special aliases
+    r = arez.Rank("bronze5")
+    assert r is arez.Rank.Bronze_V
 
 
 @pytest.mark.api()
