@@ -78,6 +78,15 @@ def test_enum():
     # rank special aliases
     r = arez.Rank("bronze5")
     assert r is arez.Rank.Bronze_V
+    # queue methods
+    assert arez.Queue.Casual_Siege.is_casual()
+    assert arez.Queue.Competitive_Keyboard.is_ranked()
+    assert arez.Queue.Training_Siege.is_bot()
+    assert arez.Queue.Custom_Ascension_Peak.is_custom()
+    assert arez.Queue.Casual_Siege.is_siege()
+    assert arez.Queue.Onslaught.is_onslaught()
+    assert arez.Queue.Team_Deathmatch.is_tdm()
+    assert arez.Queue.Custom_Magistrates_Archives_KotH.is_koth()
 
 
 @pytest.mark.api()

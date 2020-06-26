@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from enum import IntEnum
 from typing import Any, Optional, Union, Dict, Tuple, TYPE_CHECKING
@@ -436,6 +436,115 @@ class Queue(Enum, default_value=0):
     Custom_Magistrates_Archives_KotH      = 10200
     Custom_Snowfall_Junction_KotH         = 10201
     Custom_Trade_District_KotH            = 10202
+
+    def is_casual(self):
+        return self.value in (
+            424,  # Casual Siege
+            452,  # Onslaught
+            469,  # TDM
+            445,  # Test maps
+        )
+
+    def is_ranked(self):
+        return self.value in (
+            486,  # Competitive Keyboard
+            428,  # Competitive Controller
+        )
+
+    def is_bot(self):
+        return self.value in (
+            425,  # Bot Siege
+            453,  # Bot Onslaught
+            470,  # Bot TDM
+        )
+
+    def is_custom(self):
+        return self.value in (
+            # All customs
+            473,
+            426,
+            458,
+            431,
+            433,
+            432,
+            439,
+            438,
+            440,
+            487,
+            459,
+            423,
+            430,
+            485,
+            462,
+            464,
+            483,
+            455,
+            479,
+            484,
+            471,
+            472,
+            454,
+            480,
+            468,
+            10200,
+            10201,
+            10202,
+        )
+
+    def is_siege(self):
+        return self.is_ranked() or self.value in (
+            424,  # Casual
+            425,  # Bot
+            # Custom Siege
+            473,
+            426,
+            458,
+            431,
+            433,
+            432,
+            439,
+            438,
+            440,
+            487,
+            459,
+            423,
+            430,
+            485,
+        )
+
+    def is_onslaught(self):
+        return self.value in (
+            452,  # Casual
+            453,  # Bot
+            # Custom Onslaught
+            462,
+            464,
+            483,
+            455,
+        )
+
+    def is_tdm(self):
+        return self.value in (
+            469,  # Casual
+            470,  # Bot
+            # Custom TDM
+            479,
+            484,
+            471,
+            472,
+            454,
+            480,
+            468,
+        )
+
+    def is_koth(self):
+        return self.value in (
+            452,  # Onslaught
+            # Custom KotH
+            10200,
+            10201,
+            10202,
+        )
 
 
 class Rank(RankEnum):
