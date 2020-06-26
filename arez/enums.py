@@ -72,20 +72,20 @@ class EnumMeta(type):
     # Add our special enum member constructor
     def __call__(  # type: ignore
         cls: EnumMeta,
-        key_or_value: Union[str, int],
+        name_or_value: Union[str, int],
         value: Optional[int] = None,
         /, *,
         return_default: bool = False,
     ) -> Optional[Union[EnumMeta, int, str]]:
         if value is not None:
             # new member creation
-            return cls.__new__(cls, key_or_value, value)  # type: ignore
+            return cls.__new__(cls, name_or_value, value)  # type: ignore
         else:
             # our special lookup
-            if isinstance(key_or_value, str):
-                member = cls._name_mapping.get(key_or_value.lower())
-            elif isinstance(key_or_value, int):
-                member = cls._value_mapping.get(key_or_value)
+            if isinstance(name_or_value, str):
+                member = cls._name_mapping.get(name_or_value.lower())
+            elif isinstance(name_or_value, int):
+                member = cls._value_mapping.get(name_or_value)
             else:
                 member = None
             if member is not None:
@@ -95,7 +95,7 @@ class EnumMeta(type):
                 if default is not None and default in cls._value_mapping:
                     # return the default enum value, if defined
                     return cls._value_mapping[default]
-                return key_or_value  # return the input unchanged
+                return name_or_value  # return the input unchanged
             return None
 
     def __iter__(cls):
@@ -111,7 +111,7 @@ class EnumMeta(type):
 
 
 # Generate additional aliases for ranks
-class RankMeta(EnumMeta):
+class _RankMeta(EnumMeta):
     def __new__(cls, *args, **kwargs):
         roman_numerals = {
             "i": 1,
@@ -138,58 +138,96 @@ class RankMeta(EnumMeta):
         return new_cls
 
 
-class EnumBase(int):
+class _EnumBase(int):
     _name: str
     _value: int
 
-    def __new__(cls, name: str, value: int) -> EnumBase:
+    def __new__(cls, name: str, value: int) -> _EnumBase:
         self = super().__new__(cls, value)  # type: ignore
         self._name = name
         self._value = value
         return self
 
     # For typing purposes only
-    def __init__(self, key_or_value: Union[str, int]):
+    def __init__(self, name_or_value: Union[str, int]):
         ...
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}.{self._name}: {self._value}>"
 
     @property
-    def name(self):
+    def name(self) -> str:
+        """
+        The name of the enum member.
+
+        :type: str
+        """
         return self._name
 
     @property
-    def value(self):
+    def value(self) -> int:
+        """
+        The value of the enum member.
+
+        :type: int
+        """
         return self._value
 
     def __str__(self) -> str:
+        """
+        Same as accessing the `name` attribute.
+
+        :type: str
+        """
         return self._name
 
     def __int__(self) -> int:
+        """
+        Same as accessing the `value` attribute.
+
+        :type: int
+        """
         return self._value
 
 
 if TYPE_CHECKING:
     # For typing purposes only
     class Enum(IntEnum):
-        def __init__(self, key_or_value: Union[str, int], *, return_default: bool = False):
+        def __init__(self, name_or_value: Union[str, int], *, return_default: bool = False):
             ...
 
-    class RankEnum(IntEnum):
-        def __init__(self, key_or_value: Union[str, int], *, return_default: bool = False):
+    class _RankEnum(IntEnum):
+        def __init__(self, name_or_value: Union[str, int], *, return_default: bool = False):
             ...
 else:
-    class Enum(EnumBase, metaclass=EnumMeta):
-        pass
+    class Enum(_EnumBase, metaclass=EnumMeta):
+        """
+        Represents a basic enum.
 
-    class RankEnum(EnumBase, metaclass=RankMeta):
+        .. note::
+
+            This is here solely for documentation purposes, and shouldn't be used otherwise.
+
+        Parameters
+        ----------
+        name_or_value : Union[str, int]
+            The name or value of the enum member you want to get.
+
+        Returns
+        -------
+        Optional[Enum]
+            The matched enum member. `None` is returned if no member could be matched.
+        """
+
+    class _RankEnum(_EnumBase, metaclass=_RankMeta):
         pass
 
 
 class Platform(Enum, default_value=0):
     """
     Platform enumeration. Represents player's platform.
+
+    Inherits from `Enum`.
 
     Attributes
     ----------
@@ -246,6 +284,8 @@ class Region(Enum, default_value=0):
     """
     Region enumeration. Represents player's region.
 
+    Inherits from `Enum`.
+
     Attributes
     ----------
     Unknown
@@ -292,6 +332,8 @@ class Region(Enum, default_value=0):
 class Language(Enum):
     """
     Language enumeration. Represents the response language.
+
+    Inherits from `Enum`.
 
     Attributes
     ----------
@@ -351,6 +393,8 @@ class Language(Enum):
 class Queue(Enum, default_value=0):
     """
     Queue enumeration. Represents a match queue.
+
+    Inherits from `Enum`.
 
     List of custom queue attributes: ``Custom_Ascension_Peak``, ``Custom_Bazaar``,
     ``Custom_Brightmarsh``, ``Custom_Fish_Market``, ``Custom_Frog_Isle``, ``Custom_Frozen_Guard``,
@@ -614,9 +658,11 @@ class Queue(Enum, default_value=0):
         )
 
 
-class Rank(RankEnum):
+class Rank(_RankEnum):
     """
     Rank enumeration. Represents player's rank.
+
+    Inherits from `Enum`.
 
     All attributes include an alias consisting of their name and a single digit
     representing the rank's level, alternatively with and without the dividing space existing
@@ -661,6 +707,13 @@ class Rank(RankEnum):
 
     @property
     def alt_name(self) -> str:
+        """
+        Returns an alternative name of a rank, with the roman numeral replaced with an integer.
+
+        Example: "Silver IV" -> "Silver 4".
+
+        :type: str
+        """
         for roman in ("I", "II", "III", "IV", "V"):
             if self.name.endswith(roman):
                 number = {"I": "1", "II": "2", "III": "3", "IV": "4", "V": "5"}[roman]
@@ -671,6 +724,8 @@ class Rank(RankEnum):
 class DeviceType(Enum, default_value=0):
     """
     DeviceType enumeration. Represents a type of device: talent, card, shop item, etc.
+
+    Inherits from `Enum`.
 
     Attributes
     ----------
@@ -697,6 +752,8 @@ class AbilityType(Enum, default_value=0):
 
     Currently only damage types are supported.
 
+    Inherits from `Enum`.
+
     Attributes
     ----------
     Undefined
@@ -720,6 +777,8 @@ class AbilityType(Enum, default_value=0):
 class Activity(Enum, default_value=5):
     """
     Activity enumeration. Represents player's in-game status.
+
+    Inherits from `Enum`.
 
     Attributes
     ----------
