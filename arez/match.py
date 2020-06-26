@@ -283,7 +283,8 @@ class Match(APIClient, MatchMixin):
         `True` if this match has a replay that you can watch, `False` otherwise.
     bans : List[Union[Champion, CacheObject]]
         A list of champions banned in this match.\n
-        With incomplete cache, the list will contain `CacheObject`s with the name and ID set.\n
+        With incomplete cache, the list will contain `CacheObject` objects
+        with the name and ID set.\n
         This will be an empty list for non-ranked matches.
     team1 : List[MatchPlayer]
         A list of players in the first team.

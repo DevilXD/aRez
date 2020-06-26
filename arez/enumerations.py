@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from enum import IntEnum
 from typing import Any, Optional, Union, Dict, Tuple, TYPE_CHECKING
@@ -149,7 +149,7 @@ class EnumBase(int):
         return self
 
     # For typing purposes only
-    def __init__(self, key_or_value: Union[str, int], *, return_default: bool = False):
+    def __init__(self, key_or_value: Union[str, int]):
         ...
 
     def __repr__(self) -> str:
@@ -171,15 +171,20 @@ class EnumBase(int):
 
 
 if TYPE_CHECKING:
+    # For typing purposes only
     class Enum(IntEnum):
-        pass
+        def __init__(self, key_or_value: Union[str, int], *, return_default: bool = False):
+            ...
+
+    class RankEnum(IntEnum):
+        def __init__(self, key_or_value: Union[str, int], *, return_default: bool = False):
+            ...
 else:
     class Enum(EnumBase, metaclass=EnumMeta):
         pass
 
-
-class RankEnum(EnumBase, metaclass=RankMeta):
-    pass
+    class RankEnum(EnumBase, metaclass=RankMeta):
+        pass
 
 
 class Platform(Enum, default_value=0):
@@ -347,6 +352,18 @@ class Queue(Enum, default_value=0):
     """
     Queue enumeration. Represents a match queue.
 
+    List of custom queue attributes: ``Custom_Ascension_Peak``, ``Custom_Bazaar``,
+    ``Custom_Brightmarsh``, ``Custom_Fish_Market``, ``Custom_Frog_Isle``, ``Custom_Frozen_Guard``,
+    ``Custom_Ice_Mines``, ``Custom_Jaguar_Falls``, ``Custom_Serpent_Beach``,
+    ``Custom_Shattered_Desert``, ``Custom_Splitstone_Quary``, ``Custom_Stone_Keep``,
+    ``Custom_Timber_Mill``, ``Custom_Warders_Gate``, ``Custom_Foremans_Rise_Onslaught``,
+    ``Custom_Magistrates_Archives_Onslaught``, ``Custom_Marauders_Port_Onslaught``,
+    ``Custom_Primal_Court_Onslaught``, ``Custom_Abyss_TDM``, ``Custom_Dragon_Arena_TDM``,
+    ``Custom_Foremans_Rise_TDM``, ``Custom_Magistrates_Archives_TDM``,
+    ``Custom_Snowfall_Junction_TDM``, ``Custom_Throne_TDM``, ``Custom_Trade_District_TDM``,
+    ``Custom_Magistrates_Archives_KotH``, ``Custom_Snowfall_Junction_KotH``,
+    ``Custom_Trade_District_KotH``.
+
     Attributes
     ----------
     Unknown
@@ -358,9 +375,10 @@ class Queue(Enum, default_value=0):
         Aliases: ``deathmatch``, ``tdm``.
     Onslaught
     Competitive_Keyboard
-        Aliases: ``keyboard_comp``, ``keyboard_ranked``, ``kb_comp``, ``kb_ranked``.
+        Aliases: ``keyboard_comp``, ``keyboard_ranked``, ``kb_comp``, ``kb_rank``, ``kb_ranked``.
     Competitive_Controller
-        Aliases: ``controller_comp``, ``controller_ranked``, ``cn_comp``, ``cn_ranked``.
+        Aliases: ``controller_comp``, ``controller_ranked``, ``cn_comp``, ``cn_rank``,
+        ``cn_ranked``.
     Shooting_Range
         Aliases: ``range``.
     Training_Siege
@@ -437,7 +455,16 @@ class Queue(Enum, default_value=0):
     Custom_Snowfall_Junction_KotH         = 10201
     Custom_Trade_District_KotH            = 10202
 
-    def is_casual(self):
+    def is_casual(self) -> bool:
+        """
+        Checks if this queue is considered "casual".
+
+        .. note::
+
+            This does not include customs.
+
+        :type: bool
+        """
         return self.value in (
             424,  # Casual Siege
             452,  # Onslaught
@@ -445,20 +472,35 @@ class Queue(Enum, default_value=0):
             445,  # Test maps
         )
 
-    def is_ranked(self):
+    def is_ranked(self) -> bool:
+        """
+        Checks if this queue is considered "ranked".
+
+        :type: bool
+        """
         return self.value in (
             486,  # Competitive Keyboard
             428,  # Competitive Controller
         )
 
-    def is_bot(self):
+    def is_training(self) -> bool:
+        """
+        Checks if this queue is considered "training".
+
+        :type: bool
+        """
         return self.value in (
-            425,  # Bot Siege
-            453,  # Bot Onslaught
-            470,  # Bot TDM
+            425,  # Training Siege
+            453,  # Training Onslaught
+            470,  # Training TDM
         )
 
-    def is_custom(self):
+    def is_custom(self) -> bool:
+        """
+        Checks if this queue is considered "custom".
+
+        :type: bool
+        """
         return self.value in (
             # All customs
             473,
@@ -491,10 +533,15 @@ class Queue(Enum, default_value=0):
             10202,
         )
 
-    def is_siege(self):
+    def is_siege(self) -> bool:
+        """
+        Checks if this queue contains "siege" game mode.
+
+        :type: bool
+        """
         return self.is_ranked() or self.value in (
             424,  # Casual
-            425,  # Bot
+            425,  # Training
             # Custom Siege
             473,
             426,
@@ -512,10 +559,15 @@ class Queue(Enum, default_value=0):
             485,
         )
 
-    def is_onslaught(self):
+    def is_onslaught(self) -> bool:
+        """
+        Checks if this queue contains "onslaught" game mode.
+
+        :type: bool
+        """
         return self.value in (
             452,  # Casual
-            453,  # Bot
+            453,  # Training
             # Custom Onslaught
             462,
             464,
@@ -524,9 +576,14 @@ class Queue(Enum, default_value=0):
         )
 
     def is_tdm(self):
+        """
+        Checks if this queue contains "team deathmatch" game mode.
+
+        :type: bool
+        """
         return self.value in (
             469,  # Casual
-            470,  # Bot
+            470,  # Training
             # Custom TDM
             479,
             484,
@@ -538,6 +595,16 @@ class Queue(Enum, default_value=0):
         )
 
     def is_koth(self):
+        """
+        Checks if this queue contains "king of the hill" game mode.
+
+        .. note::
+
+            This does include the `Onslaught` queue, regardless if the match played was normal
+            onslaught or not.
+
+        :type: bool
+        """
         return self.value in (
             452,  # Onslaught
             # Custom KotH
@@ -556,36 +623,11 @@ class Rank(RankEnum):
     or being replaced with an underscore. For example, all of these will result in the
     ``Gold IV`` rank: ``gold_iv``, ``gold iv``, ``gold_4``, ``gold4``.
 
-    Attributes
-    ----------
-    Qualifying
-    Bronze_V
-    Bronze_IV
-    Bronze_III
-    Bronze_II
-    Bronze_I
-    Silver_V
-    Silver_IV
-    Silver_III
-    Silver_II
-    Silver_I
-    Gold_V
-    Gold_IV
-    Gold_III
-    Gold_II
-    Gold_I
-    Platinum_V
-    Platinum_IV
-    Platinum_III
-    Platinum_II
-    Platinum_I
-    Diamond_V
-    Diamond_IV
-    Diamond_III
-    Diamond_II
-    Diamond_I
-    Master
-    Grandmaster
+    List of all attributes: ``Qualifying``, ``Bronze_V``, ``Bronze_IV``, ``Bronze_III``,
+    ``Bronze_II``, ``Bronze_I``, ``Silver_V``, ``Silver_IV``, ``Silver_III``, ``Silver_II``,
+    ``Silver_I``, ``Gold_V``, ``Gold_IV``, ``Gold_III``, ``Gold_II``, ``Gold_I``, ``Platinum_V``,
+    ``Platinum_IV``, ``Platinum_III``, ``Platinum_II``, ``Platinum_I``, ``Diamond_V``,
+    ``Diamond_IV``, ``Diamond_III``, ``Diamond_II``, ``Diamond_I``, ``Master``, ``Grandmaster``.
     """
 
     Qualifying   =  0
