@@ -239,7 +239,7 @@ class MatchMixin:
         self.timestamp: datetime = cast(datetime, _convert_timestamp(stamp))
         self.duration = Duration(seconds=match_data["Time_In_Match_Seconds"])
         self.map_name: str = _convert_map_name(match_data["Map_Game"])
-        if self.queue in (469, 470, 454, 468, 471, 472, 479, 480, 484):
+        if self.queue.is_tdm():
             # Score correction for TDM matches
             score = (score[0] + 36, score[1] + 36)
         self.score: Tuple[int, int] = score
