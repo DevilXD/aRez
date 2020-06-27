@@ -29,26 +29,31 @@ def test_enum_meta():
 
     class WithDefault(Enum, default_value=0):
         Unknown = 0
-        One = 1
-        Two = 2
-        Three = 3
+        NoSpace = 1
+        With_Space = 2
 
     class NoDefault(Enum):
-        Unknown = 0
         One = 1
         Two = 2
         Three = 3
 
-    e = WithDefault("one")  # fuzzy string member getting
-    assert e is WithDefault.One  # identity and attribute access
+    e = WithDefault("nospace")  # fuzzy string member getting
+    assert e is WithDefault.NoSpace  # identity and attribute access
     assert isinstance(e, WithDefault)  # isinstance
-    assert str(e) == "One"  # str cast
+    assert str(e) == "NoSpace"  # str cast
     assert int(e) == 1  # int cast
     assert e == 1  # int comparison
-    assert repr(e) == "<WithDefault.One: 1>"  # repr
+    assert repr(e) == "<WithDefault.NoSpace: 1>"  # repr
+    # same but with a space in the name
+    e = WithDefault("with space")
+    assert e is WithDefault.With_Space
+    assert isinstance(e, WithDefault)
+    assert str(e) == e.name == "With Space"
+    assert int(e) == e.value == e == 2
+    assert repr(e) == "<WithDefault.With_Space: 2>"
     # member acquisition by value
-    e = WithDefault(2)
-    assert e is WithDefault.Two
+    e = WithDefault(1)
+    assert e is WithDefault.NoSpace
     # Iteration
     for i, e in enumerate(WithDefault):
         assert i == e.value
@@ -63,12 +68,12 @@ def test_enum_meta():
     assert e == "1234"
     # Can't delete attributes
     with pytest.raises(AttributeError):
-        del WithDefault.One
-    assert hasattr(WithDefault, "One")
+        del NoDefault.One
+    assert hasattr(NoDefault, "One")
     # Can't reassign attributes
     with pytest.raises(AttributeError):
-        WithDefault.One = "test"
-    assert isinstance(WithDefault.One, WithDefault)
+        NoDefault.Two = "test"
+    assert isinstance(NoDefault.Two, NoDefault)
 
 
 @pytest.mark.base()

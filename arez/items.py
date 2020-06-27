@@ -166,12 +166,12 @@ class Loadout(APIClient, CacheObject):
     player : Union[PartialPlayer, Player]
         The player this loadout belongs to.
     champion : Union[Champion, CacheObject]
-        The champion this loadout belongs to.
+        The champion this loadout belongs to.\n
         With incomplete cache, this will be a `CacheObject` with the name and ID set.
     language : Language
         The language of all the cards this loadout has.
     cards : List[LoadoutCard]
-        A list of loadout cards this lodaout consists of.
+        A list of loadout cards this loadout consists of.
     """
     def __init__(
         self,

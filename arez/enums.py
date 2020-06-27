@@ -153,7 +153,7 @@ class _EnumBase(int):
         ...
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}.{self._name}: {self._value}>"
+        return f"<{self.__class__.__name__}.{self._name.replace(' ', '_')}: {self._value}>"
 
     @property
     def name(self) -> str:
@@ -667,7 +667,7 @@ class Rank(_RankEnum):
     All attributes include an alias consisting of their name and a single digit
     representing the rank's level, alternatively with and without the dividing space existing
     or being replaced with an underscore. For example, all of these will result in the
-    ``Gold IV`` rank: ``gold_iv``, ``gold iv``, ``gold_4``, ``gold4``.
+    ``Gold IV`` rank: ``gold_iv``, ``gold iv``, ``gold_4``, ``gold 4``, ``gold4``.
 
     List of all attributes: ``Qualifying``, ``Bronze_V``, ``Bronze_IV``, ``Bronze_III``,
     ``Bronze_II``, ``Bronze_I``, ``Silver_V``, ``Silver_IV``, ``Silver_III``, ``Silver_II``,

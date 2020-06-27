@@ -3,9 +3,24 @@ Enums
 
 Enums represent "named values" one can encounter when working with the API.
 
-All enum members have a lowercase alias equivalent, with the underscores (if present)
-replaced with spaces. The only members available via attribute access are the main ones listed
+All enum members have an alias with the underscores (if present) replaced with spaces.
+The only members available via attribute access are the main ones listed
 - aliases work only when passing a string into the constructor.
+Additionally, it's ensured that all enum members end up without underscores in their names, even
+if the attribute they're accessed from has them:
+
+.. code:: py
+
+    class TestEnum(arez.enums.Enum):
+        NoSpaces = 0
+        Has_Spaces = 1
+
+    >>> TestEnum.NoSpaces
+    <TestEnum.NoSpaces: 0>
+    >>> TestEnum.Has_Spaces
+    <TestEnum.Has_Spaces: 1>
+    >>> TestEnum.Has_Spaces.name
+    "Has Spaces"
 
 .. warning::
 
