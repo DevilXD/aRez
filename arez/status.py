@@ -79,7 +79,7 @@ class ServerStatus:
     statuses : Dict[str, Status]
         A dictionary of all available statuses.\n
         The usual keys you should be able to find here are:
-        ``pc``, ``ps4``, ``xbox``, ``switch` and ``pts``.
+        ``pc``, ``ps4``, ``xbox``, ``switch`` and ``pts``.
     """
     def __init__(self, status_data: list):
         self.timestamp = datetime.utcnow()
