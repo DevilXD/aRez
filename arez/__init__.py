@@ -17,4 +17,4 @@ from .utils import Lookup, Duration
 
 
 __author__ = "DevilXD"
-__version__ = "0.1.6"
+__version__ = "0.1.7"
