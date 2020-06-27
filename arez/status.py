@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, Union, List, Dict, Literal, TYPE_CHECKING
+from typing import Optional, Union, Dict, Literal, cast, TYPE_CHECKING
 
 from .match import LiveMatch
 from .mixins import APIClient
@@ -16,6 +16,12 @@ __all__ = [
 ]
 
 
+def _convert_platform(platform: str) -> str:
+    if platform.startswith('p'):
+        return platform.upper()
+    return platform.capitalize()
+
+
 class Status:
     """
     Represets a single server status.
@@ -24,7 +30,7 @@ class Status:
 
     Attributes
     ----------
-    platform : Literal["pc", "ps4", "xbox", "switch", "pts"]
+    platform : Literal["PC", "PS4", "Xbox", "Switch", "PTS"]
         A string denoting which platform this status is for.
     up : bool
         `True` if the server is UP, `False` otherwise.
@@ -35,10 +41,13 @@ class Status:
         This will be an empty string if the information wasn't available.
     """
     def __init__(self, status_data: dict):
-        self.platform: Literal["pc", "ps4", "xbox", "switch", "pts"] = status_data["platform"]
+        platform: str = status_data["platform"]
         env = status_data["environment"]
         if env == "pts":
-            self.platform = env
+            platform = env
+        self.platform: Literal["PC", "PS4", "Xbox", "Switch", "PTS"] = cast(
+            Literal["PC", "PS4", "Xbox", "Switch", "PTS"], _convert_platform(platform)
+        )
         self.up: bool = status_data["status"] == "UP"
         self.limited_access: bool = status_data["limited_access"]
         self.version: str = status_data["version"] or ''
@@ -67,34 +76,20 @@ class ServerStatus:
     limited_access : bool
         `True` if at least one live server has limited access, `False` otherwise.\n
         Note that this doesn't include PTS.
-    statuses : List[Status]
-        A list of all available statuses.
-    pc : Status
-        Status for the PC platform.
-    ps4 : Status
-        Status for the PS4 platform.
-    xbox : Status
-        Status for the XBOX platform.
-    switch : Status
-        Status for the Nintendo Switch platform.
-    pts : Status
-        Status for the PTS server.
+    statuses : Dict[str, Status]
+        A dictionary of all available statuses.\n
+        The usual keys you should be able to find here are:
+        ``pc``, ``ps4``, ``xbox``, ``switch` and ``pts``.
     """
     def __init__(self, status_data: list):
         self.timestamp = datetime.utcnow()
         self.all_up = True
         self.limited_access = False
-        self.pc: Status
-        self.ps4: Status
-        self.xbox: Status
-        self.switch: Status
-        self.pts: Status
-        self.statuses: List[Status] = []
+        self.statuses: Dict[str, Status] = {}
         for s in status_data:
             status = Status(s)
-            self.statuses.append(status)
-            platform = status.platform
-            setattr(self, platform, status)
+            platform = status.platform.lower()
+            self.statuses[platform] = status
             if platform != "pts":
                 if not status.up:
                     self.all_up = False
@@ -126,7 +121,7 @@ class PlayerStatus(APIClient):
         The queue the player is currently playing in.\n
         `None` if the player isn't in a match.
     status : Activity
-        An enumeration representing the current player status.
+        An enum representing the current player status.
     """
     def __init__(self, player: Union["PartialPlayer", "Player"], status_data: dict):
         super().__init__(player._api)

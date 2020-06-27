@@ -111,9 +111,9 @@ async def test_get_server_status(api: arez.PaladinsAPI):
     assert not current_status.all_up
     assert current_status.limited_access
     # repr with limited access
-    assert len(current_status.statuses) > 0
+    assert "pc" in current_status.statuses
     repr(current_status)
-    repr(current_status.statuses[0])
+    repr(current_status.statuses["pc"])
     # test returning cached
     current_status2 = await api.get_server_status()
     assert current_status2 is current_status
@@ -122,14 +122,14 @@ async def test_get_server_status(api: arez.PaladinsAPI):
     assert current_status2 is not current_status
     # test attributes
     assert len(current_status.statuses) == 5
-    assert hasattr(current_status, "pc")
-    assert hasattr(current_status, "ps4")
-    assert hasattr(current_status, "pts")
-    assert hasattr(current_status, "xbox")
-    assert hasattr(current_status, "switch")
+    assert "pc" in current_status.statuses
+    assert "ps4" in current_status.statuses
+    assert "pts" in current_status.statuses
+    assert "xbox" in current_status.statuses
+    assert "switch" in current_status.statuses
     # repr
     repr(current_status)
-    repr(current_status.statuses[0])
+    repr(current_status.statuses["pc"])
 
 
 @pytest.mark.api()

@@ -225,7 +225,7 @@ else:
 
 class Platform(Enum, default_value=0):
     """
-    Platform enumeration. Represents player's platform.
+    Platform enum. Represents player's platform.
 
     Inherits from `Enum`.
 
@@ -282,7 +282,7 @@ class Platform(Enum, default_value=0):
 
 class Region(Enum, default_value=0):
     """
-    Region enumeration. Represents player's region.
+    Region enum. Represents player's region.
 
     Inherits from `Enum`.
 
@@ -331,7 +331,7 @@ class Region(Enum, default_value=0):
 
 class Language(Enum):
     """
-    Language enumeration. Represents the response language.
+    Language enum. Represents the response language.
 
     Inherits from `Enum`.
 
@@ -392,7 +392,7 @@ class Language(Enum):
 
 class Queue(Enum, default_value=0):
     """
-    Queue enumeration. Represents a match queue.
+    Queue enum. Represents a match queue.
 
     Inherits from `Enum`.
 
@@ -660,7 +660,7 @@ class Queue(Enum, default_value=0):
 
 class Rank(_RankEnum):
     """
-    Rank enumeration. Represents player's rank.
+    Rank enum. Represents player's rank.
 
     Inherits from `Enum`.
 
@@ -723,7 +723,7 @@ class Rank(_RankEnum):
 
 class DeviceType(Enum, default_value=0):
     """
-    DeviceType enumeration. Represents a type of device: talent, card, shop item, etc.
+    DeviceType enum. Represents a type of device: talent, card, shop item, etc.
 
     Inherits from `Enum`.
 
@@ -748,7 +748,7 @@ class DeviceType(Enum, default_value=0):
 
 class AbilityType(Enum, default_value=0):
     """
-    AbilityType enumeration. Represents a type of an ability.
+    AbilityType enum. Represents a type of an ability.
 
     Currently only damage types are supported.
 
@@ -776,7 +776,7 @@ class AbilityType(Enum, default_value=0):
 
 class Activity(Enum, default_value=5):
     """
-    Activity enumeration. Represents player's in-game status.
+    Activity enum. Represents player's in-game status.
 
     Inherits from `Enum`.
 

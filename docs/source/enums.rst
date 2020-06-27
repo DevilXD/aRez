@@ -30,8 +30,8 @@ if the attribute they're accessed from has them:
     what you can expect. Each member has ``name`` and ``value`` attributes, also accessible
     via ``str()`` and ``int()`` usage.
 
-    Trying to construct an enumeration member from incorrect input will result in `None`
-    being returned instead of the enumeration member. This allows you to easily handle
+    Trying to construct an enum member from incorrect input will result in `None`
+    being returned instead of the enum member. This allows you to easily handle
     user input validation and conversion, assuming you will expect to get `None` there.
     You can easily test for the matched member with a simple if statement:
 
