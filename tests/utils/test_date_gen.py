@@ -15,9 +15,9 @@ def test_date_gen():
     one_day = timedelta(days=1)
     one_hour = timedelta(hours=1)
 
-    # 0 width time slice (After internal normalization to 10m intervals)
-    start = BASE_DATETIME + timedelta(minutes=12)
-    end = BASE_DATETIME + timedelta(minutes=18)
+    # 0 width time slice
+    start = BASE_DATETIME
+    end = BASE_DATETIME
     for date, hour in _date_gen(start=start, end=end):
         assert False, "0 width time slice wasn't supposed to run"
 

@@ -240,6 +240,7 @@ async def test_get_matches_for_queue(api: arez.PaladinsAPI):
         queue, language=arez.Language.English, start=start, end=end
     ):
         match_count += 1
+        assert start <= match.timestamp <= end
         assert all(isinstance(p.player, arez.PartialPlayer) for p in match.players)
         if match_count >= 15:
             break
@@ -251,11 +252,13 @@ async def test_get_matches_for_queue(api: arez.PaladinsAPI):
         queue, start=start, end=end, reverse=True, expand_players=True
     ):
         match_count += 1
+        assert start <= match.timestamp <= end
         assert all(isinstance(p.player, arez.PartialPlayer) for p in match.players)
         if match_count >= 15:
             break
     # local time - specify utc to reuse interval
-    start = BASE_DATETIME.replace(tzinfo=timezone.utc)
+    # move start so that we skip couple of first matches
+    start = (BASE_DATETIME + timedelta(minutes=2)).replace(tzinfo=timezone.utc)
     end = (BASE_DATETIME + ten_minutes).replace(tzinfo=timezone.utc)
     async for match in api.get_matches_for_queue(queue, start=start, end=end, local_time=True):
         break

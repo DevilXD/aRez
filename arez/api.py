@@ -628,11 +628,26 @@ class PaladinsAPI(DataCache):
         in a particular queue, between the timestamps provided.
 
         Uses up a single request for every:\n
-        • multiple of 10 matches returned\n
-        • 10 minutes worth of matches fetched
+        • multiple of 10 matches fetched, according to the following points\n
+        • 1 day worth of matches fetched, between midnights\n
+        • 1 hour worth of matches fetched, between round hours\n
+        • 10 minutes worth of matches fetched, between round 10 minute intervals
 
-        Whole hour time slices are optimized to use a single request instead of
-        6 individual, 10 minute ones.
+        Depending on the timestamps provided, the longest possible fetching interval is used.
+
+        .. note::
+
+            To avoid wasting requests, it's recommended to invoke this generator with timestamps
+            representing at least 10 minutes long interval, rounded to the nearest multiple of
+            10 minutes. Being more granular will still work and only return matches that
+            fit within the interval specified, but still fetch at least 10 minutes worth of them.
+
+        .. note::
+
+            Both naive and aware objects are supported for the timestamps.
+            Aware objects will be internally converted to UTC according to their timezone.
+            Naive objects are assumed to represent UTC time already, unless the ``local_time``
+            argument is used.
 
         Parameters
         ----------
@@ -642,10 +657,10 @@ class PaladinsAPI(DataCache):
             The `Language` you want to fetch the information in.\n
             Default language is used if not provided.
         start : datetime.datetime
-            A UTC timestamp indicating the starting point of a time slice you want to
+            A timestamp indicating the starting point of a time slice you want to
             fetch the matches in.
         end : datetime.datetime
-            A UTC timestamp indicating the ending point of a time slice you want to
+            A timestamp indicating the ending point of a time slice you want to
             fetch the matches in.
         reverse : bool
             Reverses the order of the matches being returned.\n
@@ -668,10 +683,13 @@ class PaladinsAPI(DataCache):
             An async generator yielding matches played in the queue specified, between the
             timestamps specified.
         """
-        if local_time:
-            # assume local timezone, convert objects into UTC ones, matching server time
-            start = start.astimezone(timezone.utc)
-            end = end.astimezone(timezone.utc)
+        # process start timestamp
+        if start.tzinfo is not None or local_time:
+            # assume local timezone, convert into UTC
+            start = start.astimezone(timezone.utc).replace(tzinfo=None)
+        # process end timestamp
+        if end.tzinfo is not None or local_time:
+            end = end.astimezone(timezone.utc).replace(tzinfo=None)
         if language is None:
             language = self._default_language
         # ensure we have champion information first
@@ -714,4 +732,5 @@ class PaladinsAPI(DataCache):
                 ]
                 chunked_matches.sort(key=lambda m: chunk_ids.index(m.id))
                 for match in chunked_matches:
-                    yield match
+                    if start <= match.timestamp <= end:
+                        yield match

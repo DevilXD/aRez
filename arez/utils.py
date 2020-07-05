@@ -92,20 +92,21 @@ def _convert_map_name(map_name: str) -> str:
 def _date_gen(
     start: datetime, end: datetime, *, reverse: bool = False
 ) -> Generator[Tuple[str, str], None, None]:
-    # normalize and floor start and end to 10 minutes step resolution
+    # helpful time intervals
+    one_day = timedelta(days=1)
+    one_hour = timedelta(hours=1)
+    ten_minutes = timedelta(minutes=10)
+    # normalize start and end to 10 minutes step resolution
+    # apply floor to start, and ceil to end
     start = start.replace(minute=(
         start.minute // 10 * 10
     ), second=0, microsecond=0)
-    end = end.replace(minute=(
+    end = (end + ten_minutes).replace(minute=(
         end.minute // 10 * 10
     ), second=0, microsecond=0)
     # check if the time slice is too short - save on processing by quitting early
     if start >= end:
         return
-    # helpful time intervals
-    one_day = timedelta(days=1)
-    one_hour = timedelta(hours=1)
-    ten_minutes = timedelta(minutes=10)
 
     if reverse:
         if end.minute > 0:
