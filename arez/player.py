@@ -156,9 +156,8 @@ class PartialPlayer(APIClient, Expandable):
 
         Returns
         -------
-        Optional[PlayerStatus]
-            The player's status.\n
-            `None` is returned if this player could not be found.
+        PlayerStatus
+            The player's status.
 
         Raises
         ------
@@ -211,7 +210,7 @@ class PartialPlayer(APIClient, Expandable):
         Parameters
         ----------
         language : Optional[Language]
-            The `Language` you want to fetch the information in.
+            The `Language` you want to fetch the information in.\n
             Default language is used if not provided.
 
         Returns
@@ -257,7 +256,8 @@ class PartialPlayer(APIClient, Expandable):
         Returns
         -------
         List[ChampionStats]
-            A list of champion statistics objects, one for each played champion.
+            A list of champion statistics objects, one for each played champion.\n
+            The list can be missing statistics for champions the player haven't played yet.
 
         Raises
         ------
@@ -293,7 +293,10 @@ class PartialPlayer(APIClient, Expandable):
         Returns
         -------
         List[PartialMatch]
-            A list of partial matches, containing statistics for the current player only.
+            A list of up to 50 partial matches, containing statistics for
+            the current player only.\n
+            The list can be empty or contain less elements if the player haven't played
+            any matches yet, or their last played match is over 30 days old.
 
         Raises
         ------
