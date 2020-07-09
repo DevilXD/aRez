@@ -123,7 +123,7 @@ class PaladinsAPI(DataCache):
             ):
                 logger.info(f"api.get_server_status({force_refresh=}) -> fetching new")
                 response = await self.request("gethirezserverstatus")
-                if response:
+                if response and not response[0]["ret_msg"]:
                     self._server_status = ServerStatus(response)
             else:
                 logger.info(f"api.get_server_status({force_refresh=}) -> using cached")
