@@ -161,29 +161,28 @@ class Endpoint:
                     if response.status == 503:
                         # '503: Service Unavailable'
                         raise Unavailable
-                    else:
-                        # Raise for any other error code
-                        response.raise_for_status()
+                    # Raise for any other error code
+                    response.raise_for_status()
 
                     res_data: Union[list, dict] = await response.json()
 
-                    if res_data:
-                        if isinstance(res_data, list) and isinstance(res_data[0], dict):
-                            error = res_data[0].get("ret_msg")
-                        elif isinstance(res_data, dict):
-                            error = res_data.get("ret_msg")
-                        else:
-                            error = None
-                        if error:
-                            # we've got some Hi-Rez API error, handle some of them here
+                if res_data:
+                    if isinstance(res_data, list) and isinstance(res_data[0], dict):
+                        error = res_data[0].get("ret_msg")
+                    elif isinstance(res_data, dict):
+                        error = res_data.get("ret_msg")
+                    else:
+                        error = None
+                    if error:
+                        # we've got some Hi-Rez API error, handle some of them here
 
-                            # Invalid session
-                            if error == "Invalid session id.":
-                                # Invalidate the current session by expiring it, then retry
-                                self._session_expires = datetime.utcnow()
-                                continue
+                        # Invalid session
+                        if error == "Invalid session id.":
+                            # Invalidate the current session by expiring it, then retry
+                            self._session_expires = datetime.utcnow()
+                            continue
 
-                    return res_data
+                return res_data
 
             # When connection problems happen, just give the api a short break and try again.
             except (
