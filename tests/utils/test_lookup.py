@@ -42,3 +42,5 @@ def test_lookup():
     for i, it1, it2 in zip(range(len(lcp)), lcp, original):
         assert it1 == it2
         assert lcp[i] == original[i]
+    with pytest.raises(IndexError):
+        lcp[len(original)]
