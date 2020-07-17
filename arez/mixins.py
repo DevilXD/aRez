@@ -50,11 +50,33 @@ class CacheObject:
         Defaults to ``Unknown`` if not set.
     """
     def __init__(self, *, id: int = 0, name: str = "Unknown"):
-        self.id: int = id
-        self.name: str = name
+        self._id: int = id
+        self._name: str = name
+        self._hash: Optional[int] = None
+
+    @property
+    def id(self) -> int:
+        return self._id
+
+    @property
+    def name(self) -> str:
+        return self._name
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}: {self.name}({self.id})"
+        return f"{self.__class__.__name__}: {self._name}({self._id})"
+
+    def __eq__(self, other) -> bool:
+        if type(other) is CacheObject or isinstance(other, self.__class__):
+            if self._id != 0 and other._id != 0:
+                return self._id == other._id
+            elif self._name != "Unknown" and other._name != "Unknown":
+                return self._name == other._name
+        return NotImplemented
+
+    def __hash__(self) -> int:
+        if self._hash is None:
+            self._hash = hash((self.__class__.__name__, self._name, self._id))
+        return self._hash
 
 
 class Expandable(ABC):

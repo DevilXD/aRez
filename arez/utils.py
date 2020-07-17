@@ -494,18 +494,14 @@ class Duration:
 
     # Comparisons
 
-    def _cmp(
-        self, opr: Callable[[object, object], bool], other: object, *, base: bool = False
-    ) -> bool:
+    def _cmp(self, opr: Callable[[object, object], bool], other: object) -> bool:
         delta = self._get_delta(other)
         if delta is NotImplemented:
-            if base:
-                return opr is ne
             return NotImplemented
         return opr(self._delta, delta)
 
-    __eq__ = cast(Callable[[object, object], bool], partialmethod(_cmp, eq, base=True))
-    __ne__ = cast(Callable[[object, object], bool], partialmethod(_cmp, ne, base=True))
+    __eq__ = cast(Callable[[object, object], bool], partialmethod(_cmp, eq))
+    __ne__ = cast(Callable[[object, object], bool], partialmethod(_cmp, ne))
     __lt__ = partialmethod(_cmp, lt)
     __le__ = partialmethod(_cmp, le)
     __gt__ = partialmethod(_cmp, gt)

@@ -56,8 +56,9 @@ class PartialPlayer(APIClient, Expandable):
         private: bool = False,
     ):
         super().__init__(api)
-        self._id = int(id)
-        self._name = str(name)
+        self._id: int = int(id)
+        self._name: str = str(name)
+        self._hash: Optional[int] = None
         if isinstance(platform, str) and platform.isdecimal():
             platform = int(platform)
         self._platform = Platform(platform, return_default=True)
@@ -97,20 +98,28 @@ class PartialPlayer(APIClient, Expandable):
         return Player(self._api, player_data)
 
     def __eq__(self, other) -> bool:
-        return (
-            isinstance(other, (PartialPlayer, Player))  # player classes
-            and self._id != 0 and other.id != 0  # not private IDs
-            and self._id == other.id  # IDs match
-        )
+        if isinstance(other, self.__class__):
+            return self._id != 0 and other._id != 0 and self._id == other._id
+        return NotImplemented
+
+    def __hash__(self) -> int:
+        if self._hash is None:
+            if self._id != 0:
+                # if it's not zero, just hash it
+                self._hash = hash(("Player", self._id))
+            else:
+                # with an ID of zero, fall back to identity object hash
+                self._hash = object.__hash__(self)
+        return self._hash
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}: {self.name}({self.id} / {self.platform.name})"
+        return f"{self.__class__.__name__}: {self._name}({self._id} / {self.platform.name})"
 
     @property
     def id(self) -> int:
         """
-        ID of the player. A value of ``0`` indicates a private player account, and shouldn't be
-        used to distinguish between different players.
+        Unique ID of the player. A value of ``0`` indicates a private player account,
+        and shouldn't be used to distinguish between different players.
 
         :type: int
         """

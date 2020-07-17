@@ -13,6 +13,8 @@ class Element(CacheObject):
     def __eq__(self, other):
         return self.id == other  # compare with integers
 
+    __hash__ = CacheObject.__hash__
+
 
 lcp = Lookup([
     Element(1, "One"),

@@ -111,15 +111,14 @@ class Device(CacheObject):
         self.price: int = device_data["Price"]
         self.unlocked_at: int = device_data["talent_reward_level"]
 
-    def __eq__(self, other) -> bool:
-        return isinstance(other, self.__class__) and self.id == other.id
+    __hash__ = CacheObject.__hash__
 
     def __repr__(self) -> str:
         return f"{self.type.name}: {self.name}"
 
     def _attach_champion(self, champion: Champion):
         self.champion = champion
-        if type(self.ability) == CacheObject and self.ability.name != "Unknown":
+        if type(self.ability) is CacheObject and self.ability.name != "Unknown":
             # upgrade the ability to a full object if possible
             ability = champion.get_ability(self.ability.name)
             if ability:
@@ -199,6 +198,8 @@ class Loadout(APIClient, CacheObject):
                 card = CacheObject(id=card_id, name=card_data["ItemName"])
             self.cards.append(LoadoutCard(card, card_data["Points"]))
         self.cards.sort(key=lambda lc: lc.points, reverse=True)
+
+    __hash__ = CacheObject.__hash__
 
     def __repr__(self) -> str:
         return f"{self.champion.name}: {self.name}"

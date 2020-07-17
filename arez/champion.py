@@ -60,8 +60,7 @@ class Ability(CacheObject):
         self.cooldown: int = ability_data["rechargeSeconds"]
         self.icon_url: str = ability_data["URL"]
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}: {self.name}({self.id})"
+    __hash__ = CacheObject.__hash__
 
 
 class Champion(CacheObject):
@@ -176,25 +175,21 @@ class Champion(CacheObject):
         self.abilities: Lookup[Ability] = Lookup(abilities)
 
         # Talents and Cards
-        talents: List[Device] = []
         cards: List[Device] = []
+        talents: List[Device] = []
         for d in devices:
             if d.type == DeviceType.Card:
                 cards.append(d)
             elif d.type == DeviceType.Talent:  # pragma: no branch
                 talents.append(d)
-            d._attach_champion(self)
+            d._attach_champion(self)  # requires the abilities to exist already
         talents.sort(key=lambda d: d.unlocked_at)
         cards.sort(key=lambda d: d.name)
         cards.sort(key=_card_ability_sort)
-        self.talents: Lookup[Device] = Lookup(talents)
         self.cards: Lookup[Device] = Lookup(cards)
+        self.talents: Lookup[Device] = Lookup(talents)
 
-    def __eq__(self, other) -> bool:
-        return isinstance(other, self.__class__) and self.id == other.id
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}: {self.name}({self.id})"
+    __hash__ = CacheObject.__hash__
 
     def __bool__(self) -> bool:
         return len(self.cards) == 16 and len(self.talents) == 3
