@@ -30,6 +30,7 @@ __all__ = [
     # functions
     "get",
     "chunk",
+    "group_by",
     "expand_partial",
     # classes
     "Lookup",
@@ -225,6 +226,16 @@ def get(iterable: Iterable[X], **attrs) -> Optional[X]:
         else:
             return element
     return None
+
+
+def group_by(iterable: Iterable[X], key: Callable[[X], Y]) -> Dict[Y, List[X]]:
+    item_map: Dict[Y, List[X]] = {}
+    for item in iterable:
+        group = key(item)
+        if group not in item_map:
+            item_map[group] = []
+        item_map[group].append(item)
+    return item_map
 
 
 class Lookup(Iterable[LookupType]):
