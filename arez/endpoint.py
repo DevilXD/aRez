@@ -64,17 +64,17 @@ class Endpoint:
         self.__dev_id = str(dev_id)
         self.__auth_key = auth_key.upper()
 
-    def __del__(self):
+    def __del__(self):  # pragma: no cover
         self._http_session.detach()
 
-    async def close(self):
+    async def close(self):  # pragma: no cover
         """
         Closes the underlying API connection.
 
         Attempting to make a request after the connection is closed
         will result in a `RuntimeError`.
         """
-        await self._http_session.close()  # pragma: no cover
+        await self._http_session.close()
 
     async def __aenter__(self) -> Endpoint:  # pragma: no cover
         return self

@@ -236,19 +236,30 @@ async def test_cache_disabled(api: arez.PaladinsAPI, player: arez.Player):
 async def test_comparisons(
     api: arez.PaladinsAPI, player: arez.PartialPlayer, private_player: arez.PartialPlayer
 ):
+    o1 = arez.CacheObject()
+    o2 = arez.CacheObject(id=1)
+    o3 = arez.CacheObject(name="Test")
+    assert o1 == o1
+    assert o2 == o2
+    assert o3 == o3
+    assert o1 != o2
+    assert o2 != o3
     # players
     assert player != private_player
+    assert player != None  # noqa
     # champions
     entry = api.get_entry()
     assert entry is not None
     champions = list(entry.champions)
     assert champions[0] != champions[1]
+    assert champions[0] != None  # noqa
     # devices
     devices = list(entry.devices)
     assert devices[0] != devices[1]
+    assert devices[0] != None  # noqa
 
     history = await player.get_match_history()
-    # loop because the last match might have only one item in it
+    # loop because the last match might have only one item/card in it
     for partial_match in history:
         items = partial_match.items
         cards = partial_match.loadout.cards
@@ -262,6 +273,30 @@ async def test_comparisons(
     assert cards[0] != cards[1]
     # NotImplemented
     assert cards[0] != None  # noqa
+
+
+@pytest.mark.api()
+@pytest.mark.vcr()
+@pytest.mark.base()
+@pytest.mark.player()
+@pytest.mark.asyncio()
+async def test_hashable(
+    api: arez.PaladinsAPI, player: arez.PartialPlayer, private_player: arez.PartialPlayer
+):
+    # Champion, Device, Ability
+    entry = api.get_entry()
+    assert entry is not None
+    hash(entry.champions[0])
+    hash(entry.champions[0])  # hash again for a cache hit
+    hash(entry.abilities[0])
+    hash(entry.devices[0])
+    # Loadout
+    loadouts = await player.get_loadouts()
+    hash(loadouts[0])
+    # Player and PartialPlayer
+    hash(player)
+    hash(player)  # hash again for a cache hit
+    hash(private_player)
 
 
 @pytest.mark.vcr()
