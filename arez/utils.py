@@ -89,6 +89,14 @@ def _convert_map_name(map_name: str) -> str:
     return map_name
 
 
+def _floor_dt(dt: datetime, td: timedelta) -> datetime:
+    return dt - (dt - datetime.min) % td
+
+
+def _ceil_dt(dt: datetime, td: timedelta) -> datetime:
+    return dt + (datetime.min - dt) % td
+
+
 # Generates API-valid series of date and hour parameters for the 'getmatchidsbyqueue' endpoint
 def _date_gen(
     start: datetime, end: datetime, *, reverse: bool = False
@@ -97,14 +105,10 @@ def _date_gen(
     one_day = timedelta(days=1)
     one_hour = timedelta(hours=1)
     ten_minutes = timedelta(minutes=10)
-    # normalize start and end to 10 minutes step resolution
-    # apply floor to start, and ceil to end
-    start = start.replace(minute=(
-        start.minute // 10 * 10
-    ), second=0, microsecond=0)
-    end = (end + ten_minutes).replace(minute=(
-        end.minute // 10 * 10
-    ), second=0, microsecond=0)
+    # round start and end to the nearest multiply of 10m
+    # floor start and ceil end
+    start = _floor_dt(start, ten_minutes)
+    end = _ceil_dt(end, ten_minutes)
     # check if the time slice is too short - save on processing by quitting early
     if start >= end:
         return
@@ -112,7 +116,7 @@ def _date_gen(
     if reverse:
         if end.minute > 0:
             # round down end to the nearest hour
-            closest_hour = end.replace(minute=0)
+            closest_hour = _floor_dt(end, one_hour)
             while end > closest_hour:
                 end -= ten_minutes
                 yield (end.strftime("%Y%m%d"), f"{end.hour},{end.minute:02}")
@@ -120,7 +124,7 @@ def _date_gen(
                     return
         if end.hour > 0:
             # round down end to the nearest day midnight
-            closest_day = end.replace(hour=0, minute=0)
+            closest_day = _floor_dt(end, one_day)
             if closest_day >= start:
                 while end > closest_day:
                     end -= one_hour
@@ -128,10 +132,7 @@ def _date_gen(
                     if end <= start:
                         return
         # round up start to the nearest end day midnight
-        closest_day = start.replace(hour=0, minute=0)
-        if closest_day != start:
-            # only add one day if hours or minutes differ
-            closest_day += one_day
+        closest_day = _ceil_dt(start, one_day)
         while end > closest_day:
             end -= one_day
             yield (end.strftime("%Y%m%d"), "-1")
@@ -139,10 +140,7 @@ def _date_gen(
             return
         if start.hour > 0:
             # round up start to the nearest hour
-            closest_hour = start.replace(minute=0)
-            if closest_hour != start:
-                # only add one hour if minutes differ
-                closest_hour += one_hour
+            closest_hour = _ceil_dt(start, one_hour)
             while end > closest_hour:
                 end -= one_hour
                 yield (end.strftime("%Y%m%d"), str(end.hour))
@@ -155,7 +153,7 @@ def _date_gen(
     else:
         if start.minute > 0:
             # round up start to the nearest hour
-            closest_hour = start.replace(minute=0) + one_hour
+            closest_hour = _ceil_dt(start, one_hour)
             while start < closest_hour:
                 yield (start.strftime("%Y%m%d"), f"{start.hour},{start.minute:02}")
                 start += ten_minutes
@@ -163,7 +161,7 @@ def _date_gen(
                     return
         if start.hour > 0:
             # round up start to the nearest day midnight
-            closest_day = start.replace(hour=0, minute=0) + one_day
+            closest_day = _ceil_dt(start, one_day)
             if closest_day <= end:
                 while start < closest_day:
                     yield (start.strftime("%Y%m%d"), str(start.hour))
@@ -171,7 +169,7 @@ def _date_gen(
                     if start >= end:
                         return
         # round down end to the nearest end day midnight
-        closest_day = end.replace(hour=0, minute=0)
+        closest_day = _floor_dt(end, one_day)
         while start < closest_day:
             yield (start.strftime("%Y%m%d"), "-1")
             start += one_day
@@ -179,7 +177,7 @@ def _date_gen(
             return
         if end.hour > 0:
             # round down end to the nearest end hour
-            closest_hour = end.replace(minute=0)
+            closest_hour = _floor_dt(end, one_hour)
             while start < closest_hour:
                 yield (start.strftime("%Y%m%d"), str(start.hour))
                 start += one_hour
