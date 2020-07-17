@@ -16,13 +16,15 @@ class Element(CacheObject):
     __hash__ = CacheObject.__hash__
 
 
-lcp = Lookup([
+original = [
     Element(1, "One"),
     Element(3, "Three"),
     Element(2, "Two"),
     Element(4, "Four"),
     Element(5, "Five"),
-])
+]
+
+lcp = Lookup(original)
 
 
 @pytest.mark.dependency(scope="session")
@@ -36,3 +38,7 @@ def test_lookup():
     assert lcp._lookup("Two") == 2
     assert lcp._lookup("two", fuzzy=True) == 2
     assert lcp._lookup("six", fuzzy=True) is None
+    assert len(lcp) == len(original)
+    for i, it1, it2 in zip(range(len(lcp)), lcp, original):
+        assert it1 == it2
+        assert lcp[i] == original[i]

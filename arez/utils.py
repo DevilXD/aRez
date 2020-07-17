@@ -243,8 +243,8 @@ class Lookup(Iterable[LookupType]):
     A helper class utilizing an internal list and three dictionaries, allowing for easy indexing
     and lookup based on Name and ID attributes. Supports fuzzy Name searches too.
 
-    This object resembles an immutable list, but exposes `__len__` and `__iter__` special
-    methods for ease of use.
+    This object resembles an immutable list, but exposes `__len__`, `__iter__` and `__getitem__`
+    special methods for ease of use.
     """
     def __init__(self, iterable: Iterable[LookupType]):
         self._list_lookup: List[LookupType] = []
@@ -277,6 +277,19 @@ class Lookup(Iterable[LookupType]):
         :type: Iterator[LookupType]
         """
         return iter(self._list_lookup)
+
+    def __getitem__(self, index: int):
+        """
+        Returns an item from the internal list, from under the specified index.
+
+        Parameters
+        ----------
+        index : int
+            The index unded which you want to get the item from.
+
+        :type: LookupType
+        """
+        return self._list_lookup[index]
 
     def _lookup(self, name_or_id: Union[int, str], *, fuzzy: bool = False) -> Optional[LookupType]:
         """
