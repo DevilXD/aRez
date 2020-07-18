@@ -21,13 +21,13 @@ pytest_plugins = ["asyncio", "recording", "dependency"]
 # testing constants #
 #####################
 
-# base datetime - has to be within the last 30 days, date only
-BASE_DATETIME = datetime(2020, 6, 3)
+# base datetime - has to be within the last 3-30 days, date only
+BASE_DATETIME = datetime(2020, 7, 15)
 
 # match IDs - at least one private player
-MATCH         = 987998836  # Siege or Onslaught
-MATCH_TDM     = 987401201  # TDM
-INVALID_MATCH = 1234       # invalid
+MATCH         = 1004044193  # Siege or Onslaught
+MATCH_TDM     = 1001566003  # TDM
+INVALID_MATCH = 1234        # invalid
 
 # named tuple for player data storage
 test_player = namedtuple("test_player", ("id", "name", "platform"))
