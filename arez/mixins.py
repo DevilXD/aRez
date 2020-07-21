@@ -1,7 +1,7 @@
 from math import nan
 from datetime import datetime
 from abc import ABC, abstractmethod
-from typing import Optional, Union, List, Tuple, Literal, TYPE_CHECKING, cast
+from typing import Optional, Union, List, Tuple, Literal, TYPE_CHECKING
 
 from .enums import Language, Queue, Region
 
@@ -258,7 +258,7 @@ class MatchMixin:
         self.queue = Queue(queue, return_default=True)
         self.region = Region(match_data["Region"], return_default=True)
         from .utils import _convert_timestamp, _convert_map_name, Duration  # circular imports
-        self.timestamp: datetime = cast(datetime, _convert_timestamp(stamp))
+        self.timestamp: datetime = _convert_timestamp(stamp)
         self.duration = Duration(seconds=match_data["Time_In_Match_Seconds"])
         self.map_name: str = _convert_map_name(match_data["Map_Game"])
         if self.queue.is_tdm():

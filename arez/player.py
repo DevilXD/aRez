@@ -406,10 +406,12 @@ class Player(PartialPlayer):
                 self.merged_players.append(
                     PartialPlayer(api, id=p["playerId"], platform=p["portalId"])
                 )
-        self.created_at: Optional[datetime] = _convert_timestamp(player_data["Created_Datetime"])
-        self.last_login: Optional[datetime] = _convert_timestamp(
-            player_data["Last_Login_Datetime"]
-        )
+        self.created_at: Optional[datetime] = None
+        self.last_login: Optional[datetime] = None
+        if created_stamp := player_data["Created_Datetime"]:
+            self.created_at = _convert_timestamp(created_stamp)
+        if login_stamp := player_data["Last_Login_Datetime"]:
+            self.last_login = _convert_timestamp(login_stamp)
         self.level: int = player_data["Level"]
         self.title: str = player_data["Title"]
         self.avatar_id: int = player_data["AvatarId"]
