@@ -1,4 +1,4 @@
-from datetime import timedelta, timezone
+from datetime import datetime, timedelta, timezone
 
 import arez
 import pytest
@@ -230,35 +230,37 @@ async def test_get_matches(api: arez.PaladinsAPI):
 @pytest.mark.slow()
 @pytest.mark.dependency(depends=["tests/utils/test_date_gen.py::test_date_gen"], scope="session")
 async def test_get_matches_for_queue(api: arez.PaladinsAPI):
-    queue = arez.Queue("test")  # test maps
-    ten_minutes = timedelta(minutes=10)
-    # normal players, explicit language, 1.5 match requests
-    start = BASE_DATETIME
-    end = BASE_DATETIME + ten_minutes
-    match_count = 0
+    queue = arez.Queue.Test_Maps
+    start = BASE_DATETIME + timedelta(minutes=2)
+    end = BASE_DATETIME + timedelta(minutes=6)
+    prev = datetime.min
+    num = 0
+    # normal players, explicit language
     async for match in api.get_matches_for_queue(
         queue, language=arez.Language.English, start=start, end=end
     ):
-        match_count += 1
-        assert start <= match.timestamp <= end
-        assert all(isinstance(p.player, arez.PartialPlayer) for p in match.players)
-        if match_count >= 15:
-            break
-    # expand players, default language, reverse, 1.5 match requests
-    start = BASE_DATETIME
-    end = BASE_DATETIME + ten_minutes
-    match_count = 0
+        stamp = match.timestamp
+        assert start <= stamp <= end
+        assert stamp >= prev
+        prev = stamp
+        num += 1
+    assert num >= 2, "Generator needs to yield at least 2 matches!"
+    # expand players, default language, reverse
+    start = BASE_DATETIME + timedelta(minutes=4)
+    end = BASE_DATETIME + timedelta(minutes=8)
+    prev = datetime.max
+    num = 0
     async for match in api.get_matches_for_queue(
         queue, start=start, end=end, reverse=True, expand_players=True
     ):
-        match_count += 1
-        assert start <= match.timestamp <= end
-        assert all(isinstance(p.player, arez.PartialPlayer) for p in match.players)
-        if match_count >= 15:
-            break
-    # local time - specify utc to reuse interval
-    # move start so that we skip couple of first matches
-    start = (BASE_DATETIME + timedelta(minutes=2)).replace(tzinfo=timezone.utc)
-    end = (BASE_DATETIME + ten_minutes).replace(tzinfo=timezone.utc)
+        stamp = match.timestamp
+        assert start <= stamp <= end
+        assert stamp <= prev
+        prev = stamp
+        num += 1
+    assert num >= 2, "Generator needs to yield at least 2 matches!"
+    # local time and early exit
+    start = BASE_DATETIME.replace(tzinfo=timezone.utc)
+    end = (BASE_DATETIME - timedelta(seconds=1)).replace(tzinfo=timezone.utc)
     async for match in api.get_matches_for_queue(queue, start=start, end=end, local_time=True):
-        break
+        assert False, "Generator didn't exit early!"

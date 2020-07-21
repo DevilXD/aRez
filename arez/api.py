@@ -3,19 +3,20 @@ from __future__ import annotations
 import re
 import asyncio
 import logging
-from collections import defaultdict, OrderedDict
+from operator import itemgetter
+from collections import OrderedDict
 from datetime import datetime, timedelta, timezone
 from typing import (
-    Any, Optional, Union, List, Dict, Iterable, Sequence, AsyncGenerator, Literal, overload
+    Any, Optional, Union, List, Dict, Tuple, Iterable, Sequence, AsyncGenerator, Literal, overload
 )
 
 from .match import Match
 from .status import ServerStatus
-from .utils import chunk, _date_gen
 from .cache import DataCache, CacheEntry
 from .exceptions import Private, NotFound
 from .player import Player, PartialPlayer
 from .enums import Language, Platform, Queue, PC_PLATFORMS
+from .utils import chunk, group_by, _date_gen, _convert_timestamp
 
 
 __all__ = ["PaladinsAPI"]
@@ -631,7 +632,7 @@ class PaladinsAPI(DataCache):
         • multiple of 10 matches fetched, according to the following points\n
         • 1 day worth of matches fetched, between midnights\n
         • 1 hour worth of matches fetched, between round hours\n
-        • 10 minutes worth of matches fetched, between round 10 minute intervals
+        • 10 minutes worth of matches fetched, between round 10 minutes intervals
 
         Depending on the timestamps provided, the longest possible fetching interval is used.
 
@@ -639,8 +640,8 @@ class PaladinsAPI(DataCache):
 
             To avoid wasting requests, it's recommended to invoke this generator with timestamps
             representing at least 10 minutes long interval, rounded to the nearest multiple of
-            10 minutes. Being more granular will still work and only return matches that
-            fit within the interval specified, but still fetch at least 10 minutes worth of them.
+            10 minutes. Being more granular will still work, and only return matches that
+            fit within the interval specified though.
 
         .. note::
 
@@ -690,6 +691,9 @@ class PaladinsAPI(DataCache):
         # process end timestamp
         if end.tzinfo is not None or local_time:
             end = end.astimezone(timezone.utc).replace(tzinfo=None)
+        # exit early for a negative interval
+        if end < start:
+            return
         if language is None:
             language = self._default_language
         # ensure we have champion information first
@@ -703,14 +707,28 @@ class PaladinsAPI(DataCache):
         players: Dict[int, Player] = {}
         for date, hour in _date_gen(start, end, reverse=reverse):  # pragma: no branch
             response = await self.request("getmatchidsbyqueue", queue.value, date, hour)
-            if reverse:
-                match_ids = [
-                    int(e["Match"])
-                    for e in reversed(response)
+            processed: List[Tuple[int, datetime]] = sorted(
+                (
+                    (int(e["Match"]), _convert_timestamp(e["Entry_Datetime"]))
+                    for e in response
                     if e["Active_Flag"] == 'n'
-                ]
+                ),
+                key=itemgetter(1),
+                reverse=reverse,
+            )
+            match_ids: List[int] = []
+            if reverse:
+                for mid, stamp in processed:  # pragma: no branch
+                    if stamp < start:
+                        break
+                    if stamp <= end:
+                        match_ids.append(mid)
             else:
-                match_ids = [int(e["Match"]) for e in response if e["Active_Flag"] == 'n']
+                for mid, stamp in processed:  # pragma: no branch
+                    if stamp > end:
+                        break
+                    if stamp >= start:
+                        match_ids.append(mid)
             for chunk_ids in chunk(match_ids, 10):  # pragma: no branch
                 response = await self.request(
                     "getmatchdetailsbatch", ','.join(map(str, chunk_ids))
@@ -732,5 +750,4 @@ class PaladinsAPI(DataCache):
                 ]
                 chunked_matches.sort(key=lambda m: chunk_ids.index(m.id))
                 for match in chunked_matches:
-                    if start <= match.timestamp <= end:
-                        yield match
+                    yield match
