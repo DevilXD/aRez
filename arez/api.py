@@ -594,9 +594,9 @@ class PaladinsAPI(DataCache):
         players: Dict[int, Player] = {}
         for chunk_ids in chunk(ids_list, 10):  # chunk the IDs into groups of 10
             response = await self.request("getmatchdetailsbatch", ','.join(map(str, chunk_ids)))
-            bunched_matches: Dict[int, list] = defaultdict(list)
-            for p in response:
-                bunched_matches[p["Match"]].append(p)
+            bunched_matches: Dict[int, List[Dict[str, Any]]] = group_by(
+                response, lambda mpd: mpd["Match"]
+            )
             if expand_players:
                 player_ids = []
                 for p in response:
@@ -715,9 +715,9 @@ class PaladinsAPI(DataCache):
                 response = await self.request(
                     "getmatchdetailsbatch", ','.join(map(str, chunk_ids))
                 )
-                bunched_matches: Dict[int, list] = defaultdict(list)
-                for p in response:
-                    bunched_matches[p["Match"]].append(p)
+                bunched_matches: Dict[int, List[Dict[str, Any]]] = group_by(
+                    response, lambda mpd: mpd["Match"]
+                )
                 if expand_players:
                     player_ids = []
                     for p in response:
