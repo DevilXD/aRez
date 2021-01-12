@@ -102,7 +102,7 @@ class PartialMatch(MatchPlayerMixin, MatchMixin, Expandable):
         `True` if the player won this match, `False` otherwise.
     """
     def __init__(
-        self, player: Union["PartialPlayer", "Player"], language: Language, match_data: dict
+        self, player: Union[PartialPlayer, Player], language: Language, match_data: dict
     ):
         MatchPlayerMixin.__init__(self, player, language, match_data)
         MatchMixin.__init__(self, match_data)
@@ -150,10 +150,19 @@ class MatchPlayer(MatchPlayerMixin):
 
     Attributes
     ----------
+    match : Match
+        The match this player belongs to.
     player : Union[PartialPlayer, Player]
-        The player who participated in this match.\n
+        The player itself who participated in this match.\n
         This is usually a new partial player object.\n
         All attributes, Name, ID and Platform, should be present.
+    rank : Optional[Rank]
+        The player's rank.
+
+        .. warning::
+
+            Due to API limitations, this is only available for matches played in ranked queues.\n
+            For other queues, this attribute will be `None`.
     champion : Union[Champion, CacheObject]
         The champion used by the player in this match.\n
         With incomplete cache, this will be a `CacheObject` with the name and ID set.
@@ -213,7 +222,7 @@ class MatchPlayer(MatchPlayerMixin):
     """
     def __init__(
         self,
-        api: "PaladinsAPI",
+        match: Match,
         language: Language,
         player_data: Dict[str, Any],
         parties: Dict[int, int],
@@ -224,12 +233,17 @@ class MatchPlayer(MatchPlayerMixin):
             # if no full player was found
             from .player import PartialPlayer  # noqa, cyclic imports
             player = PartialPlayer(
-                api,
+                match._api,
                 id=player_data["playerId"],
                 name=player_data["playerName"],
                 platform=player_data["playerPortalId"],
             )
         super().__init__(player, language, player_data)
+        self.rank: Optional[Rank]
+        if match.queue.is_ranked():
+            self.rank = Rank(player_data["League_Tier"], return_default=True)
+        else:
+            self.rank = None
         self.points_captured: int = player_data["Kills_Gold_Fury"]
         self.push_successes: int = player_data["Kills_Fire_Giant"]
         self.kills_bot: int  = player_data["Kills_Bot"]
@@ -295,7 +309,7 @@ class Match(APIClient, MatchMixin):
     """
     def __init__(
         self,
-        api: "PaladinsAPI",
+        api: PaladinsAPI,
         language: Language,
         match_data: List[Dict[str, Any]],
         players: Dict[int, Player],
@@ -319,21 +333,23 @@ class Match(APIClient, MatchMixin):
             self.bans.append(ban_champ)
         self.team1: List[MatchPlayer] = []
         self.team2: List[MatchPlayer] = []
+        # Determine party numbers
         # We need to do this here because apparently one-man parties are a thing
         party_count = count(1)
         parties: Dict[int, int] = {}
         for player_data in match_data:
             pid = player_data["PartyId"]
+            # process only non-0 parties
             if pid:
-                # process only non-0 parties
                 if pid not in parties:
                     # haven't seen this one yet, assign zero
                     parties[pid] = 0
                 elif parties[pid] == 0:
                     # we've seen this one, and it doesn't have a number assigned - assign one
                     parties[pid] = next(party_count)
+        # iterate over a second time, now that we have the party numbers sorted out
         for player_data in match_data:
-            match_player = MatchPlayer(self._api, language, player_data, parties, players)
+            match_player = MatchPlayer(self, language, player_data, parties, players)
             team_number = player_data["TaskForce"]
             if team_number == 1:
                 self.team1.append(match_player)
@@ -376,6 +392,8 @@ class LivePlayer(APIClient, WinLoseMixin):
 
     Attributes
     ----------
+    match: LiveMatch
+        The match this player belongs to.
     player : Union[PartialPlayer, Player]
         The actual player playing in this match.
     champion : Union[Champion, CacheObject]
@@ -383,8 +401,13 @@ class LivePlayer(APIClient, WinLoseMixin):
         With incomplete cache, this will be a `CacheObject` with the name and ID set.
     skin : CacheObject
         The skin the player has equipped for this match.
-    rank : Rank
+    rank : Optional[Rank]
         The player's rank.
+
+        .. warning::
+
+            Due to API limitations, this is only available for matches played in ranked queues.\n
+            For other queues, this attribute will be `None`.
     account_level : int
         The player's account level.
     mastery_level : int
@@ -396,23 +419,24 @@ class LivePlayer(APIClient, WinLoseMixin):
     """
     def __init__(
         self,
-        api: "PaladinsAPI",
+        match: LiveMatch,
         language: Language,
         player_data: Dict[str, Any],
         players: Dict[int, Player],
     ):
-        APIClient.__init__(self, api)
+        APIClient.__init__(self, match._api)
         WinLoseMixin.__init__(
             self,
             wins=player_data["tierWins"],
             losses=player_data["tierLosses"],
         )
+        self.match: LiveMatch = match
         player: Optional[Union[PartialPlayer, Player]] = players.get(int(player_data["playerId"]))
         if player is None:
             # if no full player was found
             from .player import PartialPlayer  # noqa, cyclic imports
             player = PartialPlayer(
-                api, id=player_data["playerId"], name=player_data["playerName"]
+                self._api, id=player_data["playerId"], name=player_data["playerName"]
             )
         self.player: Union[PartialPlayer, Player] = player
         champion_id: int = player_data["ChampionId"]
@@ -423,7 +447,11 @@ class LivePlayer(APIClient, WinLoseMixin):
             champion = CacheObject(id=champion_id, name=player_data["ChampionName"])
         self.champion: Union[Champion, CacheObject] = champion
         self.skin = CacheObject(id=player_data["SkinId"], name=player_data["Skin"])
-        self.rank = Rank(player_data["Tier"], return_default=True)
+        self.rank: Optional[Rank]
+        if match.queue.is_ranked():
+            self.rank = Rank(player_data["Tier"], return_default=True)
+        else:
+            self.rank = None
         self.account_level: int = player_data["Account_Level"]
         self.mastery_level: int = player_data["Mastery_Level"]
 
@@ -459,7 +487,7 @@ class LiveMatch(APIClient):
     """
     def __init__(
         self,
-        api: "PaladinsAPI",
+        api: PaladinsAPI,
         language: Language,
         match_data: List[Dict[str, Any]],
         players: Dict[int, Player],
@@ -473,7 +501,7 @@ class LiveMatch(APIClient):
         self.team1: List[LivePlayer] = []
         self.team2: List[LivePlayer] = []
         for player_data in match_data:
-            live_player = LivePlayer(self._api, language, player_data, players)
+            live_player = LivePlayer(self, language, player_data, players)
             if player_data["taskForce"] == 1:
                 self.team1.append(live_player)
             elif player_data["taskForce"] == 2:  # pragma: no branch
