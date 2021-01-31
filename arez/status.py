@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from datetime import datetime
 from typing import Optional, Union, Dict, Literal, cast, TYPE_CHECKING
 
@@ -123,7 +125,7 @@ class PlayerStatus(APIClient):
     status : Activity
         An enum representing the current player status.
     """
-    def __init__(self, player: Union["PartialPlayer", "Player"], status_data: dict):
+    def __init__(self, player: Union[PartialPlayer, Player], status_data: dict):
         super().__init__(player._api)
         self.player = player
         self.live_match_id: Optional[int] = status_data["Match"] or None

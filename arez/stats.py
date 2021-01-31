@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from datetime import datetime
 from typing import Any, Optional, Union, Dict, Literal, TYPE_CHECKING
 
@@ -119,7 +121,7 @@ class ChampionStats(WinLoseMixin, KDAMixin):
     """
     def __init__(
         self,
-        player: Union["PartialPlayer", "Player"],
+        player: Union[PartialPlayer, Player],
         language: Language,
         stats_data: Dict[str, Any],
         queue: Optional[Queue] = None,

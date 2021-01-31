@@ -7,8 +7,8 @@ from typing import Optional, List, Dict, Literal, cast
 
 def _convert_timestamp(stamp: str) -> datetime:
     return datetime.strptime(
-        stamp[:-3] + stamp[-2:], "%Y-%m-%dT%H:%M:%S.%f%z"
-    ).astimezone(timezone.utc).replace(tzinfo=None).replace(microsecond=0)
+        stamp, "%Y-%m-%dT%H:%M:%S.%f%z"
+    ).astimezone(timezone.utc).replace(microsecond=0, tzinfo=None)
 
 
 def _convert_title(text: str) -> str:
@@ -81,8 +81,8 @@ class _BaseComponent(_NameBase):
             _convert_title(comp_data["status"]),
         )
         self.color = _colors[comp_data["status"]]
-        self.incidents: List["Incident"] = []
-        self.scheduled_maintenances: List["ScheduledMaintenance"] = []
+        self.incidents: List[Incident] = []
+        self.scheduled_maintenances: List[ScheduledMaintenance] = []
 
 
 class _BaseEvent(_NameBase):
@@ -94,7 +94,7 @@ class _BaseEvent(_NameBase):
         self.status = _convert_title(event_data["status"])
         self.impact = _convert_title(event_data["impact"])
         self.color = _colors[event_data["impact"]]
-        self.components: List["Component"] = []
+        self.components: List[Component] = []
 
 
 class Update(_Base):
@@ -114,10 +114,10 @@ class Update(_Base):
     status : str
         The status of this update.
     """
-    def __init__(self, upd_data: dict):
-        super().__init__(upd_data)
-        self.description: str = upd_data["body"]
-        self.status: str = _convert_title(upd_data["status"])
+    def __init__(self, update_data: dict):
+        super().__init__(update_data)
+        self.description: str = update_data["body"]
+        self.status: str = _convert_title(update_data["status"])
 
     def __repr__(self) -> str:
         return f"{self.status}: {self.description}"

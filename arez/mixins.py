@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from math import nan
 from datetime import datetime
 from abc import ABC, abstractmethod
@@ -321,7 +323,7 @@ class MatchPlayerMixin(APIClient, KDAMixin):
         `True` if the player won this match, `False` otherwise.
     """
     def __init__(
-        self, player: Union["Player", "PartialPlayer"], language: Language, match_data: dict
+        self, player: Union[Player, PartialPlayer], language: Language, match_data: dict
     ):
         APIClient.__init__(self, player._api)
         if "hasReplay" in match_data:
