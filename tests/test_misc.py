@@ -195,30 +195,32 @@ async def test_cache(api: arez.PaladinsAPI):
 )
 async def test_cache_disabled(api: arez.PaladinsAPI, player: arez.Player):
     # temporarly disable the cache, and make sure no cached entry exists
+    api.cache_enabled = False  # disable cache
     if arez.Language.English in api._cache:
         del api._cache[arez.Language.English]  # delete cache
-    api.cache_enabled = False  # disable cache
 
     try:
         # test get_match
         match = await api.get_match(MATCH)
-        assert isinstance(match, arez.Match)
+        assert isinstance(next(match.players).champion, arez.CacheObject)
         # test live players
         status = await player.get_status()
         live_match = await status.get_live_match()
-        assert isinstance(live_match, arez.LiveMatch)
+        assert live_match is not None
+        assert isinstance(next(live_match.players).champion, arez.CacheObject)
         # test player history
         history = await player.get_match_history()
-        assert all(isinstance(match, arez.PartialMatch) for match in history)
-        # repr CacheObject
         if len(history) > 0:
-            repr(history[0].champion)
+            partial_match_champ = history[0].champion
+            assert isinstance(partial_match_champ, arez.CacheObject)
+            # repr CacheObject
+            repr(partial_match_champ)
         # test player loadouts
         loadouts = await player.get_loadouts()
-        assert all(isinstance(l, arez.Loadout) for l in loadouts)
+        assert isinstance(loadouts[0].champion, arez.CacheObject)
         # test player champion stats
         stats_list = await player.get_champion_stats()
-        assert all(isinstance(l, arez.ChampionStats) for l in stats_list)
+        assert isinstance(stats_list[0].champion, arez.CacheObject)
     finally:
         # finalize
         player._api.cache_enabled = True  # enable cache back
