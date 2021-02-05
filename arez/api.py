@@ -11,6 +11,8 @@ from typing import (
 )
 
 from .match import Match
+from .mixins import APIClient
+from .bounty import BountyItem
 from .status import ServerStatus
 from .cache import DataCache, CacheEntry
 from .exceptions import Private, NotFound
@@ -23,7 +25,7 @@ __all__ = ["PaladinsAPI"]
 logger = logging.getLogger(__package__)
 
 
-class PaladinsAPI(DataCache):
+class PaladinsAPI(DataCache, APIClient):
     """
     The main Paladins API.
 
@@ -77,7 +79,8 @@ class PaladinsAPI(DataCache):
         if loop is None:  # pragma: no branch
             loop = asyncio.get_event_loop()
         self._server_status: Optional[ServerStatus] = None
-        super().__init__(
+        DataCache.__init__(
+            self,
             "http://api.paladins.com/paladinsapi.svc",
             dev_id,
             auth_key,
@@ -85,6 +88,7 @@ class PaladinsAPI(DataCache):
             enabled=cache,
             initialize=initialize,
         )
+        APIClient.__init__(self, self)  # assign APIClient recursively here
 
     # solely for typing, __aexit__ exists in the DataCache
     async def __aenter__(self) -> PaladinsAPI:
@@ -751,3 +755,31 @@ class PaladinsAPI(DataCache):
                 chunked_matches.sort(key=lambda m: chunk_ids.index(m.id))
                 for match in chunked_matches:
                     yield match
+
+    async def get_bounty(
+        self, *, language: Optional[Language] = None
+    ) -> Tuple[BountyItem, List[BountyItem], List[BountyItem]]:
+        """
+        Returns a 3-item tuple denoting the (current, upcoming, past) bounty store skins.
+
+        Parameters
+        ----------
+        language : Optional[Language]
+            The `Language` you want to fetch the information in.\n
+            Default language is used if not provided.
+        """
+        if language is None:
+            language = self._default_language
+        response = await self.request("getBountyItems")
+        items = [BountyItem(self, language, d) for d in response]
+        idx: int = 0
+        # find the most recent inactive deal, then go back one index to get the current one
+        for i, item in enumerate(items):  # pragma: no cover
+            if item.active:
+                continue
+            # check if Hi-Rez hasn't fucked up and there's at least one active skin,
+            # otherwise fall back idx to 0
+            if i > 0:  # pragma: no cover
+                idx = i-1
+            break
+        return (items[idx], items[:idx], items[idx+1:])

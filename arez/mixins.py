@@ -32,7 +32,7 @@ class APIClient:
     Provides access to the core of this wrapper, that is the `.request` method and `.get_*`
     methods from the cache system.
     """
-    def __init__(self, api: "PaladinsAPI"):
+    def __init__(self, api: PaladinsAPI):
         self._api = api
 
 

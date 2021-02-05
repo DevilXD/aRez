@@ -48,7 +48,7 @@ class PartialPlayer(APIClient, Expandable):
     """
     def __init__(
         self,
-        api: "PaladinsAPI",
+        api: PaladinsAPI,
         *,
         id: SupportsInt,
         name: str = '',
@@ -381,7 +381,8 @@ class Player(PartialPlayer):
     ranked_controller : RankedStats
         Player's ranked controller statistics.
     """
-    def __init__(self, api: "PaladinsAPI", player_data):
+    def __init__(self, api: PaladinsAPI, player_data):
+        # delay super() to pre-process player names
         player_name: str = player_data["hz_player_name"]
         gamer_tag: str = player_data["hz_gamer_tag"]
         name: str = player_data["Name"]

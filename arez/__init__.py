@@ -5,9 +5,10 @@ from .enums import *
 from .items import *
 from .match import *
 from .stats import *
+from .bounty import *
+from .mixins import *
 from .player import *
 from .status import *
-from .mixins import *
 from .champion import *
 from .exceptions import *
 from .api import PaladinsAPI

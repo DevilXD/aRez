@@ -185,6 +185,7 @@ async def test_cache(api: arez.PaladinsAPI):
 @pytest.mark.dependency(depends=["test_cache"])
 @pytest.mark.dependency(
     depends=[
+        "tests/test_api.py::test_bounty",
         "tests/test_api.py::test_get_match",
         "tests/test_match.py::test_live_match",
         "tests/test_player.py::test_player_history",
@@ -221,6 +222,9 @@ async def test_cache_disabled(api: arez.PaladinsAPI, player: arez.Player):
         # test player champion stats
         stats_list = await player.get_champion_stats()
         assert isinstance(stats_list[0].champion, arez.CacheObject)
+        # test bounty store
+        bounty_items = await api.get_bounty()
+        assert isinstance(bounty_items[0].champion, arez.CacheObject)
     finally:
         # finalize
         player._api.cache_enabled = True  # enable cache back

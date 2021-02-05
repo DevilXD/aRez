@@ -264,3 +264,12 @@ async def test_get_matches_for_queue(api: arez.PaladinsAPI):
     end = (BASE_DATETIME - timedelta(seconds=1)).replace(tzinfo=timezone.utc)
     async for match in api.get_matches_for_queue(queue, start=start, end=end, local_time=True):
         assert False, "Generator didn't exit early!"
+
+async def test_bounty(api: arez.PaladinsAPI):
+    # normal
+    current_item, upcoming_items, past_items = await api.get_bounty()
+    assert isinstance(current_item, arez.BountyItem)
+    assert all(isinstance(item, arez.BountyItem) for item in upcoming_items)
+    assert all(isinstance(item, arez.BountyItem) for item in past_items)
+    # explicit language
+    current_item, upcoming_items, past_items = await api.get_bounty(language=arez.Language.English)
