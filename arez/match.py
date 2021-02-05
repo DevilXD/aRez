@@ -448,7 +448,7 @@ class LivePlayer(APIClient, WinLoseMixin):
         self.champion: Union[Champion, CacheObject] = champion
         self.skin = CacheObject(id=player_data["SkinId"], name=player_data["Skin"])
         self.rank: Optional[Rank]
-        if match.queue.is_ranked():
+        if match.queue.is_ranked():  # pragma: no cover
             self.rank = Rank(player_data["Tier"], return_default=True)
         else:
             self.rank = None
