@@ -264,6 +264,7 @@ async def test_comparisons(
     assert devices[0] != devices[1]
     assert devices[0] != None  # noqa
 
+    items = cards = []  # solely to silence the linter about those being possibly unbound
     history = await player.get_match_history()
     # loop because the last match might have only one item/card in it
     for partial_match in history:
