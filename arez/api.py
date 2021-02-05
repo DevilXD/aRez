@@ -743,6 +743,7 @@ class PaladinsAPI(DataCache, APIClient):
                 if expand_players:
                     player_ids = []
                     for p in response:
+                        # TODO: Handle this being None when Hi-Rez API is acting up
                         pid = int(p["playerId"])
                         if pid not in players:  # pragma: no branch
                             player_ids.append(pid)
@@ -767,6 +768,12 @@ class PaladinsAPI(DataCache, APIClient):
         language : Optional[Language]
             The `Language` you want to fetch the information in.\n
             Default language is used if not provided.
+
+        Returns
+        -------
+        Tuple[BountyItem, List[BountyItem], List[BountyItem]]
+            An tuple containing the current bounty store item, followed by a list of upcoming
+            items, followed by a list of items that have already expired.
         """
         if language is None:
             language = self._default_language
