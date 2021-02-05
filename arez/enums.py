@@ -505,7 +505,7 @@ class Queue(Enum, default_value=0):
 
         .. note::
 
-            This does not include customs.
+            This does not include custom or training matches.
 
         :type: bool
         """
