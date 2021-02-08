@@ -777,11 +777,13 @@ class PaladinsAPI(DataCache, APIClient):
         """
         if language is None:
             language = self._default_language
+        # ensure we have champion information first
+        await self._ensure_entry(language)
         response = await self.request("getBountyItems")
         items = [BountyItem(self, language, d) for d in response]
         idx: int = 0
         # find the most recent inactive deal, then go back one index to get the current one
-        for i, item in enumerate(items):  # pragma: no cover
+        for i, item in enumerate(items):  # pragma: no branch
             if item.active:
                 continue
             # check if Hi-Rez hasn't fucked up and there's at least one active skin,
