@@ -4,6 +4,7 @@ import re
 from typing import Any, Optional, Union, List, Dict, Literal, TYPE_CHECKING
 
 from .utils import Lookup
+from .enums import AbilityType, DeviceType
 from .mixins import CacheClient, CacheObject
 
 if TYPE_CHECKING:
