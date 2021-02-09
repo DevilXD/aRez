@@ -6,16 +6,16 @@ from typing import Union, Dict, Any, Literal, cast, TYPE_CHECKING
 from .enums import Language
 from .champion import Champion
 from .utils import _convert_timestamp
-from .mixins import APIClient, CacheObject
+from .mixins import CacheClient, CacheObject
 
 if TYPE_CHECKING:
-    from .api import PaladinsAPI
+    from .cache import DataCache
 
 
 __all__ = ["BountyItem"]
 
 
-class BountyItem(APIClient):
+class BountyItem(CacheClient):
     """
     Represents a bounty store item deal.
 
@@ -44,7 +44,7 @@ class BountyItem(APIClient):
         All active deals have their prices hidden, and remaining quantity is missing altogether.
         This is a limitation of the Hi-Rez API, not the library.
     """
-    def __init__(self, api: PaladinsAPI, language: Language, data: Dict[str, Any]):
+    def __init__(self, api: DataCache, language: Language, data: Dict[str, Any]):
         super().__init__(api)
         self.active: bool = data["active"] == 'y'
         self.item = CacheObject(id=data["bounty_item_id2"], name=data["bounty_item_name"])

@@ -4,11 +4,11 @@ import re
 from typing import Any, Optional, Union, List, Dict, Literal, TYPE_CHECKING
 
 from .utils import Lookup
-from .mixins import CacheObject
-from .enums import DeviceType, AbilityType
+from .mixins import CacheClient, CacheObject
 
 if TYPE_CHECKING:
     from .items import Device
+    from .cache import DataCache
 
 
 __all__ = [
@@ -63,7 +63,7 @@ class Ability(CacheObject):
     __hash__ = CacheObject.__hash__
 
 
-class Champion(CacheObject):
+class Champion(CacheObject, CacheClient):
     """
     Represents a Champion and it's information.
 
@@ -130,8 +130,9 @@ class Champion(CacheObject):
     _desc_pattern = re.compile(r'([A-Z][a-zA-Z ]+): ([\w\s\-\'%,.]+)(?:<br><br>|(?:\r|\n)\n|$)')
     _url_pattern = re.compile(r'([a-z\-]+)(?=\.(?:jpg|png))')
 
-    def __init__(self, devices: List[Device], champion_data: Dict[str, Any]):
-        super().__init__(id=champion_data["id"], name=champion_data["Name"])
+    def __init__(self, cache: DataCache, devices: List[Device], champion_data: Dict[str, Any]):
+        CacheClient.__init__(self, cache)
+        CacheObject.__init__(self, id=champion_data["id"], name=champion_data["Name"])
         self.title: str = champion_data["Title"]
         self.role: Literal[
             "Front Line", "Support", "Damage", "Flank"

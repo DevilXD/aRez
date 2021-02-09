@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from math import floor
+from collections import OrderedDict
 from functools import partialmethod
 from weakref import WeakValueDictionary
 from datetime import datetime, timedelta
@@ -44,6 +45,29 @@ Y = TypeVar("Y")
 
 LookupType = TypeVar("LookupType", bound=CacheObject)
 
+
+def _deduplicate(iterable: Iterable[X], *to_remove: X) -> List[X]:
+    """
+    Removes duplicates from an iterable and returns a list. Optimised for speed.
+    Optionally, also removes the value(s) specified entirely.
+
+    Parameters
+    ----------
+    iterable : Iterable[X]
+        The iterable of values to deduplicate.
+    *to_remove: X
+        Optional value(s) to remove.
+
+    Returns
+    -------
+    List[X]
+        The deduplicated list of values.
+    """
+    no_dups: List[X] = list(OrderedDict.fromkeys(iterable))
+    for value in to_remove:
+        if value in no_dups:
+            no_dups.remove(value)
+    return no_dups
 
 def _convert_timestamp(timestamp: str) -> datetime:
     """

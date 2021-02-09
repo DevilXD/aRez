@@ -4,10 +4,10 @@ import re
 from typing import Any, Optional, Union, List, Dict, TYPE_CHECKING
 
 from .enums import DeviceType, Language
-from .mixins import APIClient, CacheObject
+from .mixins import CacheClient, CacheObject
 
 if TYPE_CHECKING:
-    from .api import PaladinsAPI
+    from .cache import DataCache
     from .champion import Champion, Ability
     from .player import PartialPlayer, Player
 
@@ -150,7 +150,7 @@ class LoadoutCard:
         return NotImplemented
 
 
-class Loadout(APIClient, CacheObject):
+class Loadout(CacheObject, CacheClient):
     """
     Represents a Champion's Loadout.
 
@@ -179,7 +179,7 @@ class Loadout(APIClient, CacheObject):
         loadout_data: Dict[str, Any],
     ):
         assert player.id == loadout_data["playerId"]
-        APIClient.__init__(self, player._api)
+        CacheClient.__init__(self, player._api)
         CacheObject.__init__(self, id=loadout_data["DeckId"], name=loadout_data["DeckName"])
         self.player: Union[PartialPlayer, Player] = player
         self.language: Language = language
@@ -244,7 +244,7 @@ class MatchLoadout:
         With incomplete cache, this will be a `CacheObject` with the name and ID set.\n
         `None` when the player hasn't picked a talent during the match.
     """
-    def __init__(self, api: PaladinsAPI, language: Language, match_data: Dict[str, Any]):
+    def __init__(self, api: DataCache, language: Language, match_data: Dict[str, Any]):
         self.cards: List[LoadoutCard] = []
         for i in range(1, 6):
             card_id: int = match_data[f"ItemId{i}"]

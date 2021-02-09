@@ -8,6 +8,7 @@ from typing import Any, Optional, Union, List, Dict
 
 from .items import Device
 from .endpoint import Endpoint
+from .mixins import CacheClient
 from .champion import Champion, Ability
 from .enums import Language, DeviceType
 from .utils import Lookup, WeakValueDefaultDict
@@ -21,7 +22,7 @@ __all__ = [
 logger = logging.getLogger(__package__)
 
 
-class DataCache(Endpoint):
+class DataCache(Endpoint, CacheClient):
     """
     A data cache, cappable of storing multiple cached entires of different languages,
     managing their fetching, refreshing and expiration times.
@@ -72,6 +73,7 @@ class DataCache(Endpoint):
         loop: Optional[asyncio.AbstractEventLoop] = None,
     ):
         super().__init__(url, dev_id, auth_key, loop=loop)
+        CacheClient.__init__(self, self)  # assign CacheClient recursively here
         self._default_language: Language
         if isinstance(initialize, Language):  # pragma: no cover
             self._default_language = initialize
@@ -145,7 +147,7 @@ class DataCache(Endpoint):
                 if champions_data and items_data:
                     expires_at = now + self.refresh_every
                     entry = CacheEntry(
-                        language, expires_at, champions_data, items_data
+                        self, language, expires_at, champions_data, items_data
                     )
                     if cache is None:
                         cache = self.cache_enabled
@@ -419,8 +421,14 @@ class CacheEntry:
         Use ``list(...)`` to get a list instead.
     """
     def __init__(
-        self, language: Language, expires_at: datetime, champions_data: dict, items_data: dict
+        self,
+        cache: DataCache,
+        language: Language,
+        expires_at: datetime,
+        champions_data: dict,
+        items_data: dict,
     ):
+        self._cache = cache
         self.language = language
         self._expires_at = expires_at
         sorted_devices: Dict[int, List[Device]] = {}
@@ -445,7 +453,7 @@ class CacheEntry:
         self.talents: Lookup[Device] = Lookup(talents)
         self.devices: Lookup[Device] = Lookup(chain(items, talents, cards))
         self.champions: Lookup[Champion] = Lookup(
-            Champion(sorted_devices.get(c["id"], []), c) for c in champions_data
+            Champion(self._cache, sorted_devices.get(c["id"], []), c) for c in champions_data
         )
         self.abilities: Lookup[Ability] = Lookup(
             a for c in self.champions for a in c.abilities

@@ -4,28 +4,27 @@ import re
 import asyncio
 import logging
 from operator import itemgetter
-from collections import OrderedDict
 from datetime import datetime, timedelta, timezone
 from typing import (
     Any, Optional, Union, List, Dict, Tuple, Iterable, Sequence, AsyncGenerator, Literal, overload
 )
 
-from .match import Match
-from .mixins import APIClient
+from .mixins import CacheClient
 from .bounty import BountyItem
 from .status import ServerStatus
+from .match import Match, _get_players
 from .cache import DataCache, CacheEntry
 from .exceptions import Private, NotFound
 from .player import Player, PartialPlayer
 from .enums import Language, Platform, Queue, PC_PLATFORMS
-from .utils import chunk, group_by, _date_gen, _convert_timestamp
+from .utils import chunk, group_by, _date_gen, _convert_timestamp, _deduplicate
 
 
 __all__ = ["PaladinsAPI"]
 logger = logging.getLogger(__package__)
 
 
-class PaladinsAPI(DataCache, APIClient):
+class PaladinsAPI(DataCache):
     """
     The main Paladins API.
 
@@ -79,8 +78,7 @@ class PaladinsAPI(DataCache, APIClient):
         if loop is None:  # pragma: no branch
             loop = asyncio.get_event_loop()
         self._server_status: Optional[ServerStatus] = None
-        DataCache.__init__(
-            self,
+        super().__init__(
             "http://api.paladins.com/paladinsapi.svc",
             dev_id,
             auth_key,
@@ -88,7 +86,6 @@ class PaladinsAPI(DataCache, APIClient):
             enabled=cache,
             initialize=initialize,
         )
-        APIClient.__init__(self, self)  # assign APIClient recursively here
 
     # solely for typing, __aexit__ exists in the DataCache
     async def __aenter__(self) -> PaladinsAPI:
@@ -345,13 +342,10 @@ class PaladinsAPI(DataCache, APIClient):
             Some players might not be included in the output if they weren't found,
             or their profile was private.
         """
-        ids_list: List[int] = list(OrderedDict.fromkeys(player_ids))  # remove duplicates
-        assert all(isinstance(player_id, int) for player_id in ids_list)
-        if 0 in ids_list:
-            # remove private accounts
-            ids_list.remove(0)
+        ids_list: List[int] = _deduplicate(player_ids, 0)  # also remove private accounts
         if not ids_list:
             return []
+        assert all(isinstance(player_id, int) for player_id in ids_list)
         logger.info(
             f"api.get_players(player_ids=[{', '.join(map(str, ids_list))}], {return_private=})"
         )
@@ -582,8 +576,7 @@ class PaladinsAPI(DataCache, APIClient):
             A list of the available matches requested.\n
             Some of the matches can be not present if they weren't available on the server.
         """
-        assert language is None or isinstance(language, Language)
-        ids_list: List[int] = list(OrderedDict.fromkeys(match_ids))  # remove duplicates
+        ids_list: List[int] = _deduplicate(match_ids)
         if not ids_list:
             return []
         assert all(isinstance(match_id, int) for match_id in ids_list)
@@ -747,8 +740,8 @@ class PaladinsAPI(DataCache, APIClient):
                         pid = int(p["playerId"])
                         if pid not in players:  # pragma: no branch
                             player_ids.append(pid)
-                    players_list = await self.get_players(player_ids)
-                    players.update({p.id: p for p in players_list})
+                    players_dict = await _get_players(self, player_ids)
+                    players.update(players_dict)
                 chunked_matches = [
                     Match(self, language, match_list, players)
                     for match_list in bunched_matches.values()

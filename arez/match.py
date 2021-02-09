@@ -2,15 +2,17 @@ from __future__ import annotations
 
 import logging
 from itertools import count
-from typing import Any, Optional, Union, List, Dict, Generator, TYPE_CHECKING
+from typing import Any, Optional, Union, List, Dict, Iterable, Generator, TYPE_CHECKING
 
 from .exceptions import NotFound
-from .utils import _convert_map_name
 from .enums import Queue, Language, Region, Rank
-from .mixins import APIClient, CacheObject, MatchMixin, MatchPlayerMixin, Expandable, WinLoseMixin
+from .utils import chunk, _convert_map_name, _deduplicate
+from .mixins import (
+    CacheClient, CacheObject, MatchMixin, MatchPlayerMixin, Expandable, WinLoseMixin
+)
 
 if TYPE_CHECKING:
-    from .api import PaladinsAPI
+    from .cache import DataCache
     from .champion import Champion
     from .player import PartialPlayer, Player  # noqa
 
@@ -23,6 +25,23 @@ __all__ = [
     "LiveMatch",
 ]
 logger = logging.getLogger(__package__)
+
+
+# this is a close duplicate of `PaladinsAPI.get_players`, modified for speed and its usage
+async def _get_players(cache: DataCache, player_ids: Iterable[int]) -> Dict[int, Player]:
+    ids_list: List[int] = _deduplicate(player_ids, 0)  # also remove private accounts
+    if not ids_list:  # pragma: no cover
+        return {}
+    from .player import Player  # cyclic import
+    players_dict: Dict[int, Player] = {}
+    for chunk_ids in chunk(ids_list, 20):
+        chunk_response = await cache.request("getplayerbatch", ','.join(map(str, chunk_ids)))
+        for player_data in chunk_response:
+            if player_data["ret_msg"]:  # pragma: no cover, skip private accounts
+                continue
+            player = Player(cache, player_data)
+            players_dict[player.id] = player
+    return players_dict
 
 
 class PartialMatch(MatchPlayerMixin, MatchMixin, Expandable):
@@ -268,7 +287,7 @@ class MatchPlayer(MatchPlayerMixin):
         )
 
 
-class Match(APIClient, MatchMixin):
+class Match(CacheClient, MatchMixin):
     """
     Represents already-played full match information.
     You can get this from the `PaladinsAPI.get_match` and `PaladinsAPI.get_matches` methods,
@@ -309,12 +328,12 @@ class Match(APIClient, MatchMixin):
     """
     def __init__(
         self,
-        api: PaladinsAPI,
+        api: DataCache,
         language: Language,
         match_data: List[Dict[str, Any]],
         players: Dict[int, Player],
     ):
-        APIClient.__init__(self, api)
+        CacheClient.__init__(self, api)
         first_player = match_data[0]
         MatchMixin.__init__(self, first_player)
         logger.debug(f"Match(id={self.id}) -> creating...")
@@ -374,18 +393,17 @@ class Match(APIClient, MatchMixin):
 
         Uses up a single request to do the expansion.
         """
-        players = await self._api.get_players((p.player.id for p in self.players))
-        players_dict = {p.id: p for p in players}
+        players_dict = await _get_players(self._api, (p.player.id for p in self.players))
         for mp in self.players:
             pid = mp.player.id
-            if not pid:
+            if pid == 0:
                 # skip 0s
                 continue
             if (p := players_dict.get(pid)) is not None:  # pragma: no branch
                 mp.player = p
 
 
-class LivePlayer(APIClient, WinLoseMixin):
+class LivePlayer(WinLoseMixin, CacheClient):
     """
     Represents a live match player.
     You can find these on the `LiveMatch.team1` and `LiveMatch.team2` attributes.
@@ -424,7 +442,7 @@ class LivePlayer(APIClient, WinLoseMixin):
         player_data: Dict[str, Any],
         players: Dict[int, Player],
     ):
-        APIClient.__init__(self, match._api)
+        CacheClient.__init__(self, match._api)
         WinLoseMixin.__init__(
             self,
             wins=player_data["tierWins"],
@@ -463,7 +481,7 @@ class LivePlayer(APIClient, WinLoseMixin):
         )
 
 
-class LiveMatch(APIClient):
+class LiveMatch(CacheClient):
     """
     Represents an on-going live match.
     You can get this from the `PlayerStatus.get_live_match` method.
@@ -487,7 +505,7 @@ class LiveMatch(APIClient):
     """
     def __init__(
         self,
-        api: PaladinsAPI,
+        api: DataCache,
         language: Language,
         match_data: List[Dict[str, Any]],
         players: Dict[int, Player],
@@ -524,11 +542,10 @@ class LiveMatch(APIClient):
 
         Uses up a single request to do the expansion.
         """
-        players = await self._api.get_players((p.player.id for p in self.players))
-        players_dict = {p.id: p for p in players}
+        players_dict = await _get_players(self._api, (p.player.id for p in self.players))
         for mp in self.players:
             pid = mp.player.id
-            if not pid:
+            if pid == 0:
                 # skip 0s
                 continue
             if (p := players_dict.get(pid)) is not None:  # pragma: no branch

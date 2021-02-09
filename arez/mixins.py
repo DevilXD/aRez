@@ -9,13 +9,13 @@ from .enums import Language, Queue, Region
 
 if TYPE_CHECKING:
     from .items import Device
-    from .api import PaladinsAPI
+    from .cache import DataCache
     from .champion import Champion
     from .player import PartialPlayer, Player
 
 
 __all__ = [
-    "APIClient",
+    "CacheClient",
     "CacheObject",
     "Expandable",
     "WinLoseMixin",
@@ -25,14 +25,14 @@ __all__ = [
 ]
 
 
-class APIClient:
+class CacheClient:
     """
     Abstract base class that has to be met by most (if not all) objects that interact with the API.
 
     Provides access to the core of this wrapper, that is the `.request` method and `.get_*`
     methods from the cache system.
     """
-    def __init__(self, api: PaladinsAPI):
+    def __init__(self, api: DataCache):
         self._api = api
 
 
@@ -270,7 +270,7 @@ class MatchMixin:
         self.winning_team: Literal[1, 2] = match_data["Winning_TaskForce"]
 
 
-class MatchPlayerMixin(APIClient, KDAMixin):
+class MatchPlayerMixin(KDAMixin, CacheClient):
     """
     Represents basic information about a player in a match.
 
@@ -325,7 +325,7 @@ class MatchPlayerMixin(APIClient, KDAMixin):
     def __init__(
         self, player: Union[Player, PartialPlayer], language: Language, match_data: dict
     ):
-        APIClient.__init__(self, player._api)
+        CacheClient.__init__(self, player._api)
         if "hasReplay" in match_data:
             # we're in a full match data
             creds = match_data["Gold_Earned"]

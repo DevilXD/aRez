@@ -9,20 +9,20 @@ from .items import Loadout
 from .match import PartialMatch
 from .status import PlayerStatus
 from .exceptions import Private, NotFound
-from .mixins import APIClient, Expandable
+from .mixins import CacheClient, Expandable
 from .utils import _convert_timestamp, Duration
 from .enums import Language, Platform, Region, Queue
 from .stats import Stats, RankedStats, ChampionStats
 
 if TYPE_CHECKING:
-    from .api import PaladinsAPI
+    from .cache import DataCache
 
 
 __all__ = ["PartialPlayer", "Player"]
 logger = logging.getLogger(__package__)
 
 
-class PartialPlayer(APIClient, Expandable):
+class PartialPlayer(Expandable, CacheClient):
     """
     This object stores basic information about a player, such as their Player ID, Player Name
     and their Platform. Depending on the way it was created, only the Player ID is guaranteed
@@ -48,7 +48,7 @@ class PartialPlayer(APIClient, Expandable):
     """
     def __init__(
         self,
-        api: PaladinsAPI,
+        api: DataCache,
         *,
         id: SupportsInt,
         name: str = '',
@@ -381,7 +381,7 @@ class Player(PartialPlayer):
     ranked_controller : RankedStats
         Player's ranked controller statistics.
     """
-    def __init__(self, api: PaladinsAPI, player_data):
+    def __init__(self, api: DataCache, player_data):
         # delay super() to pre-process player names
         player_name: str = player_data["hz_player_name"]
         gamer_tag: str = player_data["hz_gamer_tag"]

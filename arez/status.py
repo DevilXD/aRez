@@ -3,8 +3,8 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Optional, Union, Dict, Literal, cast, TYPE_CHECKING
 
-from .match import LiveMatch
-from .mixins import APIClient
+from .mixins import CacheClient
+from .match import LiveMatch, _get_players
 from .enums import Activity, Queue, Language
 
 if TYPE_CHECKING:
@@ -106,7 +106,7 @@ class ServerStatus:
         return f"{self.__class__.__name__}({status}{la_text})"
 
 
-class PlayerStatus(APIClient):
+class PlayerStatus(CacheClient):
     """
     Represents a Player's in-game status.
 
@@ -177,8 +177,7 @@ class PlayerStatus(APIClient):
         if response[0]["ret_msg"]:
             # unsupported queue
             return None
-        players: Dict[int, Player] = {}
+        players_dict: Dict[int, Player] = {}
         if expand_players:
-            players_list = await self._api.get_players((int(p["playerId"]) for p in response))
-            players = {p.id: p for p in players_list}
-        return LiveMatch(self._api, language, response, players)
+            players_dict = await _get_players(self._api, (int(p["playerId"]) for p in response))
+        return LiveMatch(self._api, language, response, players_dict)
