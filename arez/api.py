@@ -754,7 +754,22 @@ class PaladinsAPI(DataCache):
         self, *, language: Optional[Language] = None
     ) -> Tuple[BountyItem, List[BountyItem], List[BountyItem]]:
         """
-        Returns a 3-item tuple denoting the (current, upcoming, past) bounty store skins.
+        Returns a 3-item tuple denoting the (current, upcoming, past) bounty store items, sorted
+        by their expiration time.
+
+        .. note:
+
+            The "upcoming" items list is sorted so that the first item is the one
+            that is going to appear next, with future items following. The "past" items list
+            is sorted so that the first item is the one that has most recently expired,
+            with older items following.
+
+        .. note:
+
+            Depending on the bounty store availability, the "current" item may have
+            already expired. If this happens, the `BountyItem.active` attribute of
+            the "current" item will be `False`, the "upcoming" items list will be empty,
+            and the "past" items list will contain the rest, as expected.
 
         Parameters
         ----------
@@ -784,4 +799,4 @@ class PaladinsAPI(DataCache):
             if i > 0:  # pragma: no cover
                 idx = i-1
             break
-        return (items[idx], items[:idx], items[idx+1:])
+        return (items[idx], items[idx-len(items)-1::-1], items[idx+1:])
