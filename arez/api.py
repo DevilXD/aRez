@@ -798,12 +798,20 @@ class PaladinsAPI(DataCache):
         Tuple[BountyItem, List[BountyItem], List[BountyItem]]
             An tuple containing the current bounty store item, followed by a list of upcoming
             items, followed by a list of items that have already expired.
+
+        Raises
+        ------
+        NotFound
+            No bounty items were returned.\n
+            This can happen if the bounty store is unavailable for a long time.
         """
         if language is None:
             language = self._default_language
         # ensure we have champion information first
         await self._ensure_entry(language)
         response = await self.request("getBountyItems")
+        if not response:
+            raise NotFound("Bounty items")
         items = [BountyItem(self, language, d) for d in response]
         idx: int = 0
         # find the most recent inactive deal, then go back one index to get the current one

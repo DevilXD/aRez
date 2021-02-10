@@ -271,5 +271,8 @@ async def test_bounty(api: arez.PaladinsAPI):
     assert isinstance(current_item, arez.BountyItem)
     assert all(isinstance(item, arez.BountyItem) for item in upcoming_items)
     assert all(isinstance(item, arez.BountyItem) for item in past_items)
-    # explicit language
-    current_item, upcoming_items, past_items = await api.get_bounty(language=arez.Language.English)
+    # explicit language and empty response
+    with pytest.raises(arez.NotFound):
+        current_item, upcoming_items, past_items = await api.get_bounty(
+            language=arez.Language.English
+        )
