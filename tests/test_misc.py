@@ -164,6 +164,7 @@ async def test_cache(api: arez.PaladinsAPI):
     skins = await champion.get_skins()
     # explicit language
     skins = await champion.get_skins(language=arez.Language.English)
+    assert len(skins) > 0, f"No skins returned for {champion.name}!"
     assert all(isinstance(s, arez.Skin) for s in skins)
     # Skin repr
     repr(skins[0])
