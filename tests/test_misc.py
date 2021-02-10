@@ -162,8 +162,6 @@ async def test_cache(api: arez.PaladinsAPI):
     assert champion.get_talent(0) is None
     # test Skins
     skins = await champion.get_skins()
-    # explicit language
-    skins = await champion.get_skins(language=arez.Language.English)
     assert len(skins) > 0, f"No skins returned for {champion.name}!"
     assert all(isinstance(s, arez.Skin) for s in skins)
     # Skin repr

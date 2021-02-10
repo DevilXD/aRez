@@ -93,7 +93,12 @@ class Skin(CacheObject):
         if skin_name.endswith(self.champion.name):
             skin_name = skin_name[:-len(self.champion.name)].strip()
         super().__init__(id=skin_data["skin_id2"], name=skin_name)
-        self.rarity = Rarity(skin_data["rarity"], return_default=True)
+        rarity: str = skin_data["rarity"]
+        self.rarity: Rarity
+        if rarity:  # not an empty string
+            self.rarity = Rarity(rarity, return_default=True)
+        else:
+            self.rarity = Rarity.Common
 
     def __repr__(self) -> str:
         return (
@@ -168,9 +173,16 @@ class Champion(CacheObject, CacheClient):
     _desc_pattern = re.compile(r'([A-Z][a-zA-Z ]+): ([\w\s\-\'%,.]+)(?:<br><br>|(?:\r|\n)\n|$)')
     _url_pattern = re.compile(r'([a-z\-]+)(?=\.(?:jpg|png))')
 
-    def __init__(self, cache: DataCache, devices: List[Device], champion_data: Dict[str, Any]):
+    def __init__(
+        self,
+        cache: DataCache,
+        language: Language,
+        devices: List[Device],
+        champion_data: Dict[str, Any],
+    ):
         CacheClient.__init__(self, cache)
         CacheObject.__init__(self, id=champion_data["id"], name=champion_data["Name"])
+        self._language = language
         self.title: str = champion_data["Title"]
         self.role: Literal[
             "Front Line", "Support", "Damage", "Flank"
@@ -295,8 +307,14 @@ class Champion(CacheObject, CacheClient):
         """
         return self.talents._lookup(talent, fuzzy=fuzzy)
 
-    async def get_skins(self, language: Optional[Language] = None) -> List[Skin]:
-        if language is None:
-            language = self._api._default_language
-        response = await self._api.request("getChampionSkins", self.id, language.value)
-        return [Skin(self, d) for d in response]
+    async def get_skins(self) -> List[Skin]:
+        """
+        Returns a list of skins this champion has.
+
+        Returns
+        -------
+        List[Skin]
+            The list of skins available.
+        """
+        response = await self._api.request("getChampionSkins", self.id, self._language.value)
+        return sorted((Skin(self, d) for d in response), key=lambda s: s.rarity.value)

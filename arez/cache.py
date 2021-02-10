@@ -453,10 +453,13 @@ class CacheEntry:
         self.talents: Lookup[Device] = Lookup(talents)
         self.devices: Lookup[Device] = Lookup(chain(items, talents, cards))
         self.champions: Lookup[Champion] = Lookup(
-            Champion(self._cache, sorted_devices.get(c["id"], []), c) for c in champions_data
+            Champion(
+                self._cache, language, sorted_devices.get(champ_data["id"], []), champ_data
+            )
+            for champ_data in champions_data
         )
         self.abilities: Lookup[Ability] = Lookup(
-            a for c in self.champions for a in c.abilities
+            ability for champion in self.champions for ability in champion.abilities
         )
         logger.debug(
             f"CacheEntry({language=}, expires_at={self._expires_at}, "
