@@ -12,6 +12,7 @@ from typing import (
 from .mixins import CacheClient
 from .bounty import BountyItem
 from .status import ServerStatus
+from .exceptions import HTTPException
 from .match import Match, _get_players
 from .cache import DataCache, CacheEntry
 from .exceptions import Private, NotFound
@@ -736,8 +737,11 @@ class PaladinsAPI(DataCache):
                 if expand_players:
                     player_ids = []
                     for p in response:
-                        # TODO: Handle this being None when Hi-Rez API is acting up
-                        pid = int(p["playerId"])
+                        try:
+                            pid = int(p["playerId"])
+                        except TypeError as exc:
+                            # this usually happens when the API returns an error in ret_msg
+                            raise HTTPException(exc, p["ret_msg"])
                         if pid not in players:  # pragma: no branch
                             player_ids.append(pid)
                     players_dict = await _get_players(self, player_ids)

@@ -31,15 +31,23 @@ class HTTPException(ArezException):
         The original exception cause. This is usually:\n
         • `aiohttp.ClientResponseError` when the request results in an unhandled HTTP error.\n
         • `aiohttp.ClientConnectionError` when the request couldn't complete \
-        due to connection problems.
+        due to connection problems.\n
         • `asyncio.TimeoutError` when the request times out.\n
+        • `TypeError` or `ValueError`, in rare cases when the API is having some internal error.\n
         • `None` if the cause was unknown.
+    description : str
+        A more detailed description of the error. This is usually an empty string,
+        set only when the API is having some internal error.
     """
-    def __init__(self, original_exc: Optional[Exception] = None):
-        super().__init__(
-            f"There was an error while processing the request: {original_exc!r}"
-        )
+    def __init__(self, original_exc: Optional[Exception] = None, description: str = ''):
+        if description:
+            text = f"There was an error while processing the request: {description}"
+        else:
+            text = f"There was an error while processing the request!"
+        text += f"\nCause: {original_exc!r}"
+        super().__init__(text)
         self.cause = original_exc
+        self.description = description
 
 
 class Private(ArezException):
