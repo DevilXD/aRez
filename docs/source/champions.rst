@@ -1,5 +1,5 @@
-Champions and Abilities
-=======================
+Champions, Abilities and Skins
+==============================
 
 .. currentmodule:: arez
 
@@ -7,4 +7,7 @@ Champions and Abilities
     :members:
 
 .. autoclass:: Ability()
+    :members:
+
+.. autoclass:: Skin()
     :members:

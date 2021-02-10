@@ -70,7 +70,7 @@ class Skin(CacheObject):
     """
     Represents a Champion's Skin and it's information.
 
-    You can get these from the `Champion.get_skins()` method,
+    You can get these from the `Champion.get_skins` method,
     as well as find on various other objects returned from the API.
 
     Inherits from `CacheObject`.
