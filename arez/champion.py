@@ -91,7 +91,7 @@ class Skin(CacheObject):
         self.champion: Champion = champion
         skin_name = skin_data["skin_name"]
         if skin_name.endswith(self.champion.name):
-            skin_name = skin_name[:-len(self.champion.name)]
+            skin_name = skin_name[:-len(self.champion.name)].strip()
         super().__init__(id=skin_data["skin_id2"], name=skin_name)
         self.rarity = Rarity(skin_data["rarity"], return_default=True)
 
