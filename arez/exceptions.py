@@ -40,7 +40,7 @@ class HTTPException(ArezException):
         set only when the API is having some internal error.
     """
     def __init__(self, original_exc: Optional[Exception] = None, description: str = ''):
-        if description:
+        if description:  # pragma: no cover
             text = f"There was an error while processing the request: {description}"
         else:
             text = f"There was an error while processing the request!"
