@@ -592,14 +592,22 @@ class PaladinsAPI(DataCache):
         matches: List[Match] = []
         players: Dict[int, Player] = {}
         for chunk_ids in chunk(ids_list, 10):  # chunk the IDs into groups of 10
-            response = await self.request("getmatchdetailsbatch", ','.join(map(str, chunk_ids)))
+            response = await self.request("getMatchDetailsBatch", ','.join(map(str, chunk_ids)))
             bunched_matches: Dict[int, List[Dict[str, Any]]] = group_by(
                 response, lambda mpd: mpd["Match"]
             )
             if expand_players:
                 player_ids = []
                 for p in response:
-                    pid = int(p["playerId"])
+                    try:
+                        pid = int(p["playerId"])
+                    except TypeError as exc:  # pragma: no cover
+                        # this usually happens when the API returns an error in ret_msg
+                        raise HTTPException(exc, (
+                            "Error in the `getMatchDetailsBatch` endpoint!\n"
+                            f"Match IDs: {','.join(map(str, chunk_ids))}\n"
+                            f"Details: {p['ret_msg']}"
+                        ))
                     if pid not in players:  # pragma: no branch
                         player_ids.append(pid)
                 players_list = await self.get_players(player_ids)
@@ -729,7 +737,7 @@ class PaladinsAPI(DataCache):
                         match_ids.append(mid)
             for chunk_ids in chunk(match_ids, 10):  # pragma: no branch
                 response = await self.request(
-                    "getmatchdetailsbatch", ','.join(map(str, chunk_ids))
+                    "getMatchDetailsBatch", ','.join(map(str, chunk_ids))
                 )
                 bunched_matches: Dict[int, List[Dict[str, Any]]] = group_by(
                     response, lambda mpd: mpd["Match"]
@@ -739,9 +747,13 @@ class PaladinsAPI(DataCache):
                     for p in response:
                         try:
                             pid = int(p["playerId"])
-                        except TypeError as exc:
+                        except TypeError as exc:  # pragma: no cover
                             # this usually happens when the API returns an error in ret_msg
-                            raise HTTPException(exc, p["ret_msg"])
+                            raise HTTPException(exc, (
+                                "Error in the `getMatchDetailsBatch` endpoint!\n"
+                                f"Match IDs: {','.join(map(str, chunk_ids))}\n"
+                                f"Details: {p['ret_msg']}"
+                            ))
                         if pid not in players:  # pragma: no branch
                             player_ids.append(pid)
                     players_dict = await _get_players(self, player_ids)
