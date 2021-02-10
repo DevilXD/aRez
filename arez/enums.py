@@ -746,6 +746,31 @@ class DeviceType(Enum, default_value=0):
     Talent    = 3
 
 
+class Rarity(Enum):
+    """
+    Rarity enum. Represents a skin or card rarity.
+
+    Inherits from `Enum`.
+
+    Attributes
+    ----------
+    Common
+    Uncommon
+    Rare
+    Epic
+    Legendary
+    Unlimited
+    Limited
+    """
+    Common    = 0
+    Uncommon  = 1
+    Rare      = 2
+    Epic      = 3
+    Legendary = 4
+    Unlimited = 5
+    Limited   = 6
+
+
 class AbilityType(Enum, default_value=0):
     """
     AbilityType enum. Represents a type of an ability.

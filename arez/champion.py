@@ -6,6 +6,7 @@ from typing import Any, Optional, Union, List, Dict, Literal, TYPE_CHECKING
 from .utils import Lookup
 from .enums import AbilityType, DeviceType
 from .mixins import CacheClient, CacheObject
+from .enums import Language, DeviceType, AbilityType, Rarity
 
 if TYPE_CHECKING:
     from .items import Device
@@ -13,6 +14,7 @@ if TYPE_CHECKING:
 
 
 __all__ = [
+    "Skin",
     "Ability",
     "Champion",
 ]
@@ -64,12 +66,47 @@ class Ability(CacheObject):
     __hash__ = CacheObject.__hash__
 
 
+class Skin(CacheObject):
+    """
+    Represents a Champion's Skin and it's information.
+
+    You can get these from the `Champion.get_skins()` method,
+    as well as find on various other objects returned from the API.
+
+    Inherits from `CacheObject`.
+
+    Attributes
+    ----------
+    name : str
+        The name of the skin.
+    id : int
+        The ID of the skin.
+    champion : Champion
+        The champion this skin belongs to.
+    rarity : Rarity
+        The skin's rarity.
+    """
+    def __init__(self, champion: Champion, skin_data: Dict[str, Any]):
+        # pre-process champion and skin name
+        self.champion: Champion = champion
+        skin_name = skin_data["skin_name"]
+        if skin_name.endswith(self.champion.name):
+            skin_name = skin_name[:-len(self.champion.name)]
+        super().__init__(id=skin_data["skin_id2"], name=skin_name)
+        self.rarity = Rarity(skin_data["rarity"], return_default=True)
+
+    def __repr__(self) -> str:
+        return (
+            f"{self.__class__.__name__}: {self._name} {self.champion.name}"
+            f"({self.rarity.name}, {self._id})"
+        )
+
 class Champion(CacheObject, CacheClient):
     """
     Represents a Champion and it's information.
 
-    You can find these on the `CacheEntry.champions` attribute, as well as various other objects
-    returned from the API.
+    You can find these on the `CacheEntry.champions` attribute,
+    as well as various other objects returned from the API.
 
     Inherits from `CacheObject`.
 
@@ -257,3 +294,9 @@ class Champion(CacheObject, CacheClient):
             `None` is returned if the talent couldn't be found.
         """
         return self.talents._lookup(talent, fuzzy=fuzzy)
+
+    async def get_skins(self, language: Optional[Language] = None) -> List[Skin]:
+        if language is None:
+            language = self._api._default_language
+        response = await self._api.request("getChampionSkins", self.id, language.value)
+        return [Skin(self, d) for d in response]

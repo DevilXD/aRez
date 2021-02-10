@@ -160,6 +160,13 @@ async def test_cache(api: arez.PaladinsAPI):
     repr(list(champion.abilities)[0])
     assert champion.get_card(0) is None
     assert champion.get_talent(0) is None
+    # test Skins
+    skins = await champion.get_skins()
+    # explicit language
+    skins = await champion.get_skins(language=arez.Language.English)
+    assert all(isinstance(s, arez.Skin) for s in skins)
+    # Skin repr
+    repr(skins[0])
     # fail getting a champion, talent, card, shop item and device, due to invalid ID
     assert api.get_champion(0) is None
     assert api.get_talent(0) is None
