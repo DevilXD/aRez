@@ -7,6 +7,7 @@ from typing import Any, Optional, Union, Dict, Tuple, TYPE_CHECKING
 __all__ = [
     "Rank",
     "Queue",
+    "Rarity",
     "Region",
     "Activity",
     "Language",

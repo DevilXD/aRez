@@ -60,6 +60,9 @@ if the attribute they're accessed from has them:
 .. autoclass:: Queue
     :members:
 
+.. autoclass:: Rarity
+    :members:
+
 .. autoclass:: Region
     :members:
 
