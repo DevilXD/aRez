@@ -454,7 +454,10 @@ class LivePlayer(WinLoseMixin, CacheClient):
             # if no full player was found
             from .player import PartialPlayer  # noqa, cyclic imports
             player = PartialPlayer(
-                self._api, id=player_data["playerId"], name=player_data["playerName"]
+                self._api,
+                id=player_data["playerId"],
+                name=player_data["playerName"],
+                platform=player_data["playerPortalId"],
             )
         self.player: Union[PartialPlayer, Player] = player
         champion_id: int = player_data["ChampionId"]
