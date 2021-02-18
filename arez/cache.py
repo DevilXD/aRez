@@ -88,6 +88,10 @@ class DataCache(Endpoint, CacheClient):
         if initialize:  # pragma: no cover
             self.loop.create_task(self.initialize())
 
+    # solely for typing, __aexit__ exists in the Endpoint
+    async def __aenter__(self) -> DataCache:
+        return self  # pragma: no cover
+
     def set_default_language(self, language: Language):
         """
         Sets the default language used by the cache in places where one is not provided

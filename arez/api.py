@@ -9,7 +9,6 @@ from typing import (
     Any, Optional, Union, List, Dict, Tuple, Iterable, Sequence, AsyncGenerator, Literal, overload
 )
 
-from .mixins import CacheClient
 from .bounty import BountyItem
 from .status import ServerStatus
 from .exceptions import HTTPException

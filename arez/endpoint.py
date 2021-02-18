@@ -83,9 +83,9 @@ class Endpoint:
         await self._http_session.close()
 
     def _get_signature(self, method_name: str, timestamp: str):
-        return md5(''.join((
-            self.__dev_id, method_name, self.__auth_key, timestamp
-        )).encode()).hexdigest()
+        return md5(
+            ''.join((self.__dev_id, method_name, self.__auth_key, timestamp)).encode()
+        ).hexdigest()
 
     async def request(self, method_name: str, *data: Union[int, str]):
         """
