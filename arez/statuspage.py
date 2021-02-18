@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import aiohttp
 from datetime import datetime, timezone
-from typing import Optional, List, Dict, Literal, cast
+from typing import Any, Optional, List, Dict, Literal, cast
 
 
 def _convert_timestamp(stamp: str) -> datetime:
@@ -37,10 +37,10 @@ class _Base:
     """
     Represents basic data class.
     """
-    def __init__(self, base_data: dict):
+    def __init__(self, base_data: Dict[str, Any]):
         self.id: str = base_data["id"]
-        self.created_at = _convert_timestamp(base_data["created_at"])
-        self.updated_at = _convert_timestamp(base_data["updated_at"])
+        self.created_at: datetime = _convert_timestamp(base_data["created_at"])
+        self.updated_at: datetime = _convert_timestamp(base_data["updated_at"])
 
 
 class _NameBase(_Base):
@@ -49,7 +49,7 @@ class _NameBase(_Base):
     """
     color = 0
 
-    def __init__(self, base_data: dict):
+    def __init__(self, base_data: Dict[str, Any]):
         super().__init__(base_data)
         self.name: str = base_data["name"]
 
@@ -68,7 +68,7 @@ class _BaseComponent(_NameBase):
     """
     Represents basic component data class.
     """
-    def __init__(self, comp_data: dict):
+    def __init__(self, comp_data: Dict[str, Any]):
         super().__init__(comp_data)
         self.status = cast(
             Literal[
@@ -80,7 +80,7 @@ class _BaseComponent(_NameBase):
             ],
             _convert_title(comp_data["status"]),
         )
-        self.color = _colors[comp_data["status"]]
+        self.color: int = _colors[comp_data["status"]]
         self.incidents: List[Incident] = []
         self.scheduled_maintenances: List[ScheduledMaintenance] = []
 
@@ -89,11 +89,11 @@ class _BaseEvent(_NameBase):
     """
     Represents basic event data class.
     """
-    def __init__(self, event_data: dict):
+    def __init__(self, event_data: Dict[str, Any]):
         super().__init__(event_data)
-        self.status = _convert_title(event_data["status"])
-        self.impact = _convert_title(event_data["impact"])
-        self.color = _colors[event_data["impact"]]
+        self.status: str = _convert_title(event_data["status"])
+        self.impact: str = _convert_title(event_data["impact"])
+        self.color: int = _colors[event_data["impact"]]
         self.components: List[Component] = []
 
 
@@ -114,7 +114,7 @@ class Update(_Base):
     status : str
         The status of this update.
     """
-    def __init__(self, update_data: dict):
+    def __init__(self, update_data: Dict[str, Any]):
         super().__init__(update_data)
         self.description: str = update_data["body"]
         self.status: str = _convert_title(update_data["status"])
@@ -145,18 +145,18 @@ class Incident(_BaseEvent):
         The color associated with this incident (based on impact).\n
         There is an alias for this under ``colour``.
     components : List[Component]
-        A list of componnets affected by this incident.
+        A list of components affected by this incident.
     updates : List[Update]
         A list of updates this incident has.
     last_update : Update
         The most recent update this incident has.
     """
-    def __init__(self, inc_data: dict, comp_mapping: Dict[str, "Component"]):
+    def __init__(self, inc_data: Dict[str, Any], comp_mapping: Dict[str, Component]):
         super().__init__(inc_data)
         self.status: Literal["Investigating", "Identified", "Monitoring", "Resolved", "Postmortem"]
         self.impact: Literal["None", "Minor", "Major", "Critical"]
         self.updates: List[Update] = [Update(u) for u in inc_data["incident_updates"]]
-        self.last_update = self.updates[0]
+        self.last_update: Update = self.updates[0]
         for comp_data in inc_data["components"]:
             comp = comp_mapping.get(comp_data["id"])
             if comp:  # pragma: no branch
@@ -186,7 +186,7 @@ class ScheduledMaintenance(_BaseEvent):
         The color associated with this scheduled maintenance (based on impact).\n
         There is an alias for this under ``colour``.
     components : List[Component]
-        A list of componnets affected by this scheduled maintenance.
+        A list of components affected by this scheduled maintenance.
     scheduled_for : datetime.datetime
         The planned time this maintenance is scheduled to start.
     scheduled_until : datetime.datetime
@@ -196,14 +196,14 @@ class ScheduledMaintenance(_BaseEvent):
     last_update : Update
         The most recent update this scheduled maintenance has.
     """
-    def __init__(self, main_data: dict, comp_mapping: Dict[str, "Component"]):
+    def __init__(self, main_data: Dict[str, Any], comp_mapping: Dict[str, Component]):
         super().__init__(main_data)
         self.status: Literal["Scheduled", "In Progress", "Verifying", "Completed"]
         self.impact: Literal["Maintenance"]
-        self.scheduled_for = _convert_timestamp(main_data["scheduled_for"])
-        self.scheduled_until = _convert_timestamp(main_data["scheduled_until"])
+        self.scheduled_for: datetime = _convert_timestamp(main_data["scheduled_for"])
+        self.scheduled_until: datetime = _convert_timestamp(main_data["scheduled_until"])
         self.updates: List[Update] = [Update(u) for u in main_data["incident_updates"]]
-        self.last_update = self.updates[0]
+        self.last_update: Update = self.updates[0]
         for comp_data in main_data["components"]:
             comp = comp_mapping.get(comp_data["id"])
             if comp:  # pragma: no branch
@@ -242,9 +242,9 @@ class Component(_BaseComponent):
     scheduled_maintenances : List[ScheduledMaintenance]
         A list of scheduled maintenances referring to this component.
     """
-    def __init__(self, group: Optional[ComponentGroup], comp_data: dict):
+    def __init__(self, group: Optional[ComponentGroup], comp_data: Dict[str, Any]):
         super().__init__(comp_data)
-        self.group = group
+        self.group: Optional[ComponentGroup] = group
         if group:  # pragma: no branch
             group._add_component(self)
 
@@ -291,7 +291,7 @@ class ComponentGroup(_BaseComponent):
     scheduled_maintenances : List[ScheduledMaintenance]
         A list of scheduled maintenances referring to components of this group.
     """
-    def __init__(self, group_data: dict):
+    def __init__(self, group_data: Dict[str, Any]):
         super().__init__(group_data)
         self.components: List[Component] = []
 
@@ -317,8 +317,6 @@ class CurrentStatus:
         The ID of the status page.
     name : str
         The name of the status page.
-    timezone : str
-        The timezone of the status page.
     updated_at : datetime.datetime
         The timestamp of when the current status was last updated.
     status : Literal["All Systems Operational",\
@@ -345,7 +343,7 @@ class CurrentStatus:
     scheduled_maintenances : List[ScheduledMaintenance]
         A list of scheduled maintenances.
     """
-    def __init__(self, page_data):
+    def __init__(self, page_data: Dict[str, Any]):
         status = page_data["status"]
         self.status: Literal[
             "All Systems Operational",
@@ -356,36 +354,38 @@ class CurrentStatus:
             "Partially Degraded Service",
             "Service Under Maintenance",
         ] = status["description"]
-        self.impact = cast(
-            Literal[
-                "None", "Minor", "Major", "Critical"
-            ],
+        self.impact: Literal["None", "Minor", "Major", "Critical"] = cast(
+            Literal["None", "Minor", "Major", "Critical"],
             _convert_title(status["indicator"]),
         )
         self.color = _colors[status["indicator"]]
         self.colour = self.color  # color alias
-        page = page_data["page"]
-        self.name = page["name"]
-        self.id = page["id"]
-        self.timezone = page["time_zone"]
-        self.updated_at = _convert_timestamp(page["updated_at"])
+        page: Dict[str, Any] = page_data["page"]
+        self.id: str = page["id"]
+        self.name: str = page["name"]
+        self.updated_at: datetime = _convert_timestamp(page["updated_at"])
 
-        self.groups = [ComponentGroup(c) for c in page_data["components"] if c["group"]]
-        id_groups = {g.id: g for g in self.groups}
-        self.components = [
+        self.groups: List[ComponentGroup] = [
+            ComponentGroup(c) for c in page_data["components"] if c["group"]
+        ]
+        id_groups: Dict[str, ComponentGroup] = {g.id: g for g in self.groups}
+        self.components: List[Component] = [
             Component(id_groups.get(c["group_id"]), c)  # group can be None
             for c in page_data["components"]
             if not c["group"]
         ]
-        id_components = {c.id: c for c in self.components}
+        id_components: Dict[str, Component] = {c.id: c for c in self.components}
 
-        self._groups = {g.name: g for g in self.groups}  # lookup mapping
+        # lookup mappings
+        self._groups: Dict[str, ComponentGroup] = {g.name: g for g in self.groups}
         self._groups.update(id_groups)
-        self._components = {c.name: c for c in self.components}  # lookup mapping
+        self._components: Dict[str, Component] = {c.name: c for c in self.components}
         self._components.update(id_components)
 
-        self.incidents = [Incident(i, id_components) for i in page_data["incidents"]]
-        self.scheduled_maintenances = [
+        self.incidents: List[Incident] = [
+            Incident(i, id_components) for i in page_data["incidents"]
+        ]
+        self.scheduled_maintenances: List[ScheduledMaintenance] = [
             ScheduledMaintenance(sm, id_components) for sm in page_data["scheduled_maintenances"]
         ]
 
@@ -425,8 +425,16 @@ class CurrentStatus:
 
 
 class StatusPage:
+    """
+    An object representing StatusPage access.
+
+    Parameters
+    ----------
+    url : str
+        The URL of the StatusPage you want to get this object for.
+    """
     def __init__(self, url: str):
-        self.url = f"{url.rstrip('/')}/api/v2"
+        self.url: str = f"{url.rstrip('/')}/api/v2"
         self._session = aiohttp.ClientSession(raise_for_status=True)
 
     def __del__(self):
