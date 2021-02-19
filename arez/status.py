@@ -26,8 +26,6 @@ def _convert_platform(platform: str) -> str:
     return platform.capitalize()
 
 
-
-
 class Status:
     """
     Represets a single server status.
