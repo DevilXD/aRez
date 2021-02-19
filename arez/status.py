@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Any, Optional, Union, List, Dict, Literal, cast, TYPE_CHECKING
 
 from .mixins import CacheClient
-from .statuspage import _colors
+from .statuspage import colors
 from .match import LiveMatch, _get_players
 from .enums import Activity, Queue, Language
 
@@ -69,7 +69,7 @@ class Status:
         self.limited_access: bool = status_data["limited_access"]
         self.version: str = status_data["version"] or ''
         self.status: str = "Operational" if self.up else "Down"
-        self.color: int = _colors["operational"] if self.up else _colors["major_outage"]
+        self.color: int = colors["green"] if self.up else colors["red"]
         self.incidents: List[Incident] = []
         self.scheduled_maintenances: List[ScheduledMaintenance] = []
 

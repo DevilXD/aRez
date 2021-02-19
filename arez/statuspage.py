@@ -16,7 +16,14 @@ def _convert_title(text: str) -> str:
 
 
 # These has been taken from the status page CSS sheet
-_colors: Dict[str, int] = {
+colors: Dict[str, int] = {
+    # Just color names
+    "green": 0x26935C,
+    "blue": 0x3498DB,
+    "yellow": 0xFCCF2C,
+    "orange": 0xE8740F,
+    "red": 0xE74C3C,
+
     # Component statuses:
     "operational": 0x26935C,           # green
     "under_maintenance": 0x3498DB,     # blue
@@ -80,7 +87,7 @@ class _BaseComponent(_NameBase):
             ],
             _convert_title(comp_data["status"]),
         )
-        self.color: int = _colors[comp_data["status"]]
+        self.color: int = colors[comp_data["status"]]
         self.incidents: List[Incident] = []
         self.scheduled_maintenances: List[ScheduledMaintenance] = []
 
@@ -93,7 +100,7 @@ class _BaseEvent(_NameBase):
         super().__init__(event_data)
         self.status: str = _convert_title(event_data["status"])
         self.impact: str = _convert_title(event_data["impact"])
-        self.color: int = _colors[event_data["impact"]]
+        self.color: int = colors[event_data["impact"]]
         self.components: List[Component] = []
 
 
@@ -358,7 +365,7 @@ class CurrentStatus:
             Literal["None", "Minor", "Major", "Critical"],
             _convert_title(status["indicator"]),
         )
-        self.color = _colors[status["indicator"]]
+        self.color = colors[status["indicator"]]
         self.colour = self.color  # color alias
         page: Dict[str, Any] = page_data["page"]
         self.id: str = page["id"]
