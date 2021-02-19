@@ -517,7 +517,7 @@ class Duration:
             ms = ''
         return f"{days}{hours}{self._minutes:02}:{self._seconds:02}{ms}"
 
-    def _get_delta(self, other: object) -> Union[timedelta, NotImplemented]:
+    def _get_delta(self, other: object) -> timedelta:
         if isinstance(other, Duration):
             return other._delta
         elif isinstance(other, timedelta):
@@ -527,8 +527,7 @@ class Duration:
     # Comparisons
 
     def _cmp(self, opr: Callable[[object, object], bool], other: object) -> bool:
-        delta = self._get_delta(other)
-        if delta is NotImplemented:
+        if (delta := self._get_delta(other)) is NotImplemented:
             return NotImplemented
         return opr(self._delta, delta)
 
@@ -542,22 +541,19 @@ class Duration:
     # Math operations
 
     def __add__(self, other: Union[Duration, timedelta]) -> Duration:
-        delta = self._get_delta(other)
-        if delta is NotImplemented:
+        if (delta := self._get_delta(other)) is NotImplemented:
             return NotImplemented
         return Duration(seconds=self._total_seconds + delta.total_seconds())
 
     __radd__ = __add__
 
     def __sub__(self, other: Union[Duration, timedelta]) -> Duration:
-        delta = self._get_delta(other)
-        if delta is NotImplemented:
+        if (delta := self._get_delta(other)) is NotImplemented:
             return NotImplemented
         return Duration(seconds=self._total_seconds - delta.total_seconds())
 
     def __rsub__(self, other: Union[Duration, timedelta]) -> Duration:
-        delta = self._get_delta(other)
-        if delta is NotImplemented:
+        if (delta := self._get_delta(other)) is NotImplemented:
             return NotImplemented
         return Duration(seconds=delta.total_seconds() - self._total_seconds)
 
@@ -579,8 +575,7 @@ class Duration:
     def __truediv__(self, other: Union[Duration, timedelta, int, float]):
         if isinstance(other, (int, float)):
             return Duration(seconds=self._total_seconds / other)
-        delta = self._get_delta(other)
-        if delta is NotImplemented:
+        if (delta := self._get_delta(other)) is NotImplemented:
             return NotImplemented
         return self._total_seconds / delta.total_seconds()
 
@@ -600,8 +595,7 @@ class Duration:
     def __floordiv__(self, other: Union[Duration, timedelta, int]):
         if isinstance(other, int):
             return Duration(microseconds=floor(self._total_seconds * 1e6 // other))
-        delta = self._get_delta(other)
-        if delta is NotImplemented:
+        if (delta := self._get_delta(other)) is NotImplemented:
             return NotImplemented
         return int(self._total_seconds // delta.total_seconds())
 
@@ -611,20 +605,17 @@ class Duration:
         return int(other.total_seconds() // self._total_seconds)
 
     def __mod__(self, other: Union[Duration, timedelta]) -> Duration:
-        delta = self._get_delta(other)
-        if delta is NotImplemented:
+        if (delta := self._get_delta(other)) is NotImplemented:
             return NotImplemented
         return Duration(seconds=(self._total_seconds % delta.total_seconds()))
 
     def __rmod__(self, other: Union[Duration, timedelta]) -> Duration:
-        delta = self._get_delta(other)
-        if delta is NotImplemented:
+        if (delta := self._get_delta(other)) is NotImplemented:
             return NotImplemented
         return Duration(seconds=(delta.total_seconds() % self._total_seconds))
 
     def __divmod__(self, other: Union[Duration, timedelta]) -> Tuple[int, Duration]:
-        delta = self._get_delta(other)
-        if delta is NotImplemented:
+        if (delta := self._get_delta(other)) is NotImplemented:
             return NotImplemented
         q, r = divmod(self._total_seconds, delta.total_seconds())
         return (int(q), Duration(seconds=r))
