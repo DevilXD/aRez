@@ -67,7 +67,7 @@ class Endpoint:
     def __del__(self):  # pragma: no cover
         self._http_session.detach()
 
-    async def close(self):  # pragma: no cover
+    async def close(self):
         """
         Closes the underlying API connection.
 
@@ -80,7 +80,8 @@ class Endpoint:
         return self
 
     async def __aexit__(self, exc_type, exc, traceback):
-        await self._http_session.close()
+        # use local close - this handles subclased close method too
+        await self.close()
 
     def _get_signature(self, method_name: str, timestamp: str):
         return md5(
@@ -126,6 +127,7 @@ class Endpoint:
 
         for tries in range(5):  # pragma: no branch
             try:
+                # prepare the URL
                 req_stack = [self.url, f"{method_name}json"]
                 if method_name == "createsession":
                     timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
@@ -152,10 +154,10 @@ class Endpoint:
                     ))
                 if data:
                     req_stack.extend(map(str, data))
-
                 req_url = '/'.join(req_stack)
                 logger.debug(f"endpoint.request: {method_name}: {req_url}")
 
+                # request
                 async with self._http_session.get(req_url) as response:
                     # Handle special HTTP status codes
                     if response.status == 503:
@@ -163,9 +165,9 @@ class Endpoint:
                         raise Unavailable
                     # Raise for any other error code
                     response.raise_for_status()
-
                     res_data: Union[list, dict] = await response.json()
 
+                # handle some ret_msg errors, if possible
                 if res_data:
                     if isinstance(res_data, list) and isinstance(res_data[0], dict):
                         error = res_data[0].get("ret_msg")
@@ -174,8 +176,6 @@ class Endpoint:
                     else:
                         error = None
                     if error:
-                        # we've got some Hi-Rez API error, handle some of them here
-
                         # Invalid session
                         if error == "Invalid session id.":
                             # Invalidate the current session by expiring it, then retry
@@ -202,14 +202,14 @@ class Endpoint:
                 raise HTTPException(exc)
             # For the case where 'createsession' raises it recursively,
             # or the Hi-Rez API is down - just pass it along
-            except (Unauthorized, Unavailable) as exc:
+            except (Unauthorized, Unavailable) as exc:  # pragma: no branch
                 if isinstance(exc, Unauthorized):
                     logger.error("You are Unauthorized")
                 elif isinstance(exc, Unavailable):  # pragma: no branch
                     logger.warning("Hi-Rez API is Unavailable")
                 raise
             # Some other exception happened, so just wrap it and propagate along
-            except Exception as exc:
+            except Exception as exc:  # pragma: no cover
                 logger.exception("Got an unexpected exception")
                 raise HTTPException(exc)
 
