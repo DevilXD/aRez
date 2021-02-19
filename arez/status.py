@@ -3,8 +3,8 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Optional, Union, List, Dict, Literal, cast, TYPE_CHECKING
 
-from .mixins import CacheClient
 from .statuspage import colors
+from .mixins import CacheClient
 from .match import LiveMatch, _get_players
 from .enums import Activity, Queue, Language
 
@@ -24,6 +24,8 @@ def _convert_platform(platform: str) -> str:
     if platform.startswith('p'):
         return platform.upper()
     return platform.capitalize()
+
+
 
 
 class Status:
@@ -68,20 +70,24 @@ class Status:
         self.up: bool = status_data["status"] == "UP"
         self.limited_access: bool = status_data["limited_access"]
         self.version: str = status_data["version"] or ''
-        self.status: str = "Operational" if self.up else "Down"
-        self.color: int = colors["green"] if self.up else colors["red"]
+        self.status: str = "Operational"
+        self.color: int = colors["green"]
+        if not self.up:
+            self.status = "Down"
+            self.color = colors["red"]
+        elif self.limited_access:
+            self.status = "Limited access"
+            self.color = colors["yellow"]
         self.incidents: List[Incident] = []
         self.scheduled_maintenances: List[ScheduledMaintenance] = []
 
     def __repr__(self) -> str:
-        la_text = ''
-        if self.limited_access:
-            la_text = ", Limited Access"
-        return f"{self.__class__.__name__}({self.platform}: {self.status}{la_text})"
+        return f"{self.__class__.__name__}({self.platform}: {self.status})"
 
     def _attach_component(self, component: Component):
-        self.status = component.status
-        self.color = component.color
+        if component.status != "Operational":  # pragma: no cover
+            self.status = component.status
+            self.color = component.color
         self.incidents = component.incidents
         self.scheduled_maintenances = component.scheduled_maintenances
 
@@ -153,15 +159,18 @@ class ServerStatus(CacheClient):
                 status._attach_component(component)
         self.status: str = group.status
         self.color: int = group.color
+        if self.status == "Operational":  # pragma: no cover
+            if not self.all_up:
+                self.status = "Outage"
+                self.color = colors["red"]
+            elif self.limited_access:
+                self.status = "Limited access"
+                self.color = colors["yellow"]
         self.incidents: List[Incident] = group.incidents
         self.scheduled_maintenances: List[ScheduledMaintenance] = group.scheduled_maintenances
 
     def __repr__(self) -> str:
-        status = "All Up" if self.all_up else "Partially Down"
-        la_text = ''
-        if self.limited_access:
-            la_text = ", Limited Access"
-        return f"{self.__class__.__name__}({status}{la_text})"
+        return f"{self.__class__.__name__}({self.status})"
 
     @property
     def colour(self) -> int:
