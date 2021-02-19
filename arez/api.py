@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import aiohttp
 import asyncio
 import logging
 from operator import itemgetter
@@ -11,6 +12,7 @@ from typing import (
 
 from .bounty import BountyItem
 from .status import ServerStatus
+from .statuspage import StatusPage
 from .exceptions import HTTPException
 from .match import Match, _get_players
 from .cache import DataCache, CacheEntry
@@ -77,6 +79,8 @@ class PaladinsAPI(DataCache):
     ):
         if loop is None:  # pragma: no branch
             loop = asyncio.get_event_loop()
+        self._statuspage = StatusPage("http://status.hirezstudios.com")
+        self._statuspage_group = "Paladins"
         self._server_status: Optional[ServerStatus] = None
         super().__init__(
             "http://api.paladins.com/paladinsapi.svc",
@@ -87,9 +91,18 @@ class PaladinsAPI(DataCache):
             initialize=initialize,
         )
 
-    # solely for typing, __aexit__ exists in the DataCache
+    # solely for typing, __aexit__ exists in the Endpoint
     async def __aenter__(self) -> PaladinsAPI:
         return self
+
+    async def close(self):
+        """
+        Closes the underlying API connection.
+
+        Attempting to make a request after the connection is closed
+        will result in a `RuntimeError`.
+        """
+        await asyncio.gather(super().close(), self._statuspage.close())
 
     async def get_server_status(self, *, force_refresh: bool = False) -> ServerStatus:
         """
@@ -116,19 +129,42 @@ class PaladinsAPI(DataCache):
         NotFound
             There was no cached status and fetching returned an empty response.
         """
+        # Special exception to interrupt processing
+        class EndProcessing(Exception):
+            pass
+
         # Use a lock to ensure we're not fetching this twice in quick succession
         async with self._locks["server_status"]:
-            if (
-                self._server_status is None
-                or datetime.utcnow() - timedelta(minutes=1) >= self._server_status.timestamp
-                or force_refresh
-            ):
+            try:
+                if (
+                    not force_refresh
+                    and self._server_status is not None
+                    and datetime.utcnow() < self._server_status.timestamp + timedelta(minutes=1)
+                ):
+                    # it hasn't been 1 minute since the last fetch - use cached
+                    raise EndProcessing
                 logger.info(f"api.get_server_status({force_refresh=}) -> fetching new")
                 response = await self.request("gethirezserverstatus")
-                if response and not response[0]["ret_msg"]:
-                    self._server_status = ServerStatus(response)
-            else:
+                if not response or response[0]["ret_msg"]:
+                    # got an error from official API - use cached
+                    raise EndProcessing
+                # fetch the statuspage status
+                try:
+                    page_status = await self._statuspage.get_status()
+                except (
+                    aiohttp.ClientConnectionError, aiohttp.ClientResponseError
+                ):  # pragma: no cover
+                    # got an error from status page - use cached
+                    raise EndProcessing
+                group = page_status.group(self._statuspage_group)
+                if group is None:  # pragma: no cover
+                    # for some reason, this group doesn't exist - use cached
+                    raise EndProcessing
+                self._server_status = ServerStatus(response, group)
+            except EndProcessing:
                 logger.info(f"api.get_server_status({force_refresh=}) -> using cached")
+            else:
+                logger.info(f"api.get_server_status({force_refresh=}) -> fetching successful")
         if self._server_status is None:
             raise NotFound("Server status")
         return self._server_status

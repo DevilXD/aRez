@@ -1,14 +1,16 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional, Union, Dict, Literal, cast, TYPE_CHECKING
+from typing import Any, Optional, Union, List, Dict, Literal, cast, TYPE_CHECKING
 
 from .mixins import CacheClient
+from .statuspage import _colors
 from .match import LiveMatch, _get_players
 from .enums import Activity, Queue, Language
 
 if TYPE_CHECKING:
     from .player import PartialPlayer, Player  # noqa
+    from .statuspage import ComponentGroup, Component, Incident, ScheduledMaintenance
 
 
 __all__ = [
@@ -41,8 +43,21 @@ class Status:
     version : str
         The current version of this server.\n
         This will be an empty string if the information wasn't available.
+    status : Literal["Operational",\
+        "Under Maintenance",\
+        "Degraded Performance",\
+        "Partial Outage",\
+        "Major Outage"]
+        This server's status description.
+    color : int
+        The color assiciated with this server's status.
+    incidents : List[Incident]
+        A list of incidents affecting this server status.
+    scheduled_maintenances : List[ScheduledMaintenance]
+        A list of scheduled maintenances that will (or are)
+        affect this server status in the future.
     """
-    def __init__(self, status_data: dict):
+    def __init__(self, status_data: Dict[str, Any]):
         platform: str = status_data["platform"]
         env = status_data["environment"]
         if env == "pts":
@@ -53,16 +68,29 @@ class Status:
         self.up: bool = status_data["status"] == "UP"
         self.limited_access: bool = status_data["limited_access"]
         self.version: str = status_data["version"] or ''
+        self.status: str = "Operational" if self.up else "Down"
+        self.color: int = _colors["operational"] if self.up else _colors["major_outage"]
+        self.incidents: List[Incident] = []
+        self.scheduled_maintenances: List[ScheduledMaintenance] = []
 
     def __repr__(self) -> str:
-        up = "Up" if self.up else "Down"
         la_text = ''
         if self.limited_access:
             la_text = ", Limited Access"
-        return f"{self.__class__.__name__}({self.platform}: {up}{la_text})"
+        return f"{self.__class__.__name__}({self.platform}: {self.status}{la_text})"
+
+    def _attach_component(self, component: Component):
+        self.status = component.status
+        self.color = component.color
+        self.incidents = component.incidents
+        self.scheduled_maintenances = component.scheduled_maintenances
+
+    @property
+    def colour(self):
+        return self.color  # pragma: no cover
 
 
-class ServerStatus:
+class ServerStatus(CacheClient):
     """
     An object representing the current HiRez server's status.
 
@@ -78,12 +106,27 @@ class ServerStatus:
     limited_access : bool
         `True` if at least one live server has limited access, `False` otherwise.\n
         Note that this doesn't include PTS.
+    status : Literal["Operational",\
+        "Under Maintenance",\
+        "Degraded Performance",\
+        "Partial Outage",\
+        "Major Outage"]
+        The overall server status description.\n
+        This represents the worst status of all individual server statuses.\n
+        ``Under Maintenance`` is considered second worst.
+    color : int
+        The color associated with the current overall server status.\n
+        There is an alias for this under ``colour``.
     statuses : Dict[str, Status]
-        A dictionary of all available statuses.\n
+        A dictionary of all individual available server statuses.\n
         The usual keys you should be able to find here are:
         ``pc``, ``ps4``, ``xbox``, ``switch`` and ``pts``.
+    incidents : List[Incident]
+        A list of incidents affecting the current server status.
+    scheduled_maintenances : List[ScheduledMaintenance]
+        A list of scheduled maintenances that will (or are) affect the server status in the future.
     """
-    def __init__(self, status_data: list):
+    def __init__(self, status_data: List[Dict[str, Any]], group: ComponentGroup):
         self.timestamp = datetime.utcnow()
         self.all_up = True
         self.limited_access = False
@@ -97,6 +140,21 @@ class ServerStatus:
                     self.all_up = False
                 if status.limited_access:
                     self.limited_access = True
+        # each StatusPage component for Paladins starts with "Paladins ...", we need to strip that
+        group_name = group.name
+        components: Dict[str, Component] = {}
+        for comp in group.components:
+            comp_name = comp.name
+            if comp_name.startswith(group_name):  # pragma: no branch
+                comp_name = comp_name[len(group_name):].strip()
+            components[comp_name.lower()] = comp
+        for status_name, status in self.statuses.items():
+            if component := components.get(status_name):
+                status._attach_component(component)
+        self.status: str = group.status
+        self.color: int = group.color
+        self.incidents: List[Incident] = group.incidents
+        self.scheduled_maintenances: List[ScheduledMaintenance] = group.scheduled_maintenances
 
     def __repr__(self) -> str:
         status = "All Up" if self.all_up else "Partially Down"
@@ -104,6 +162,10 @@ class ServerStatus:
         if self.limited_access:
             la_text = ", Limited Access"
         return f"{self.__class__.__name__}({status}{la_text})"
+
+    @property
+    def colour(self) -> int:
+        return self.color  # pragma: no cover
 
 
 class PlayerStatus(CacheClient):
@@ -125,7 +187,7 @@ class PlayerStatus(CacheClient):
     status : Activity
         An enum representing the current player status.
     """
-    def __init__(self, player: Union[PartialPlayer, Player], status_data: dict):
+    def __init__(self, player: Union[PartialPlayer, Player], status_data: Dict[str, Any]):
         super().__init__(player._api)
         self.player = player
         self.live_match_id: Optional[int] = status_data["Match"] or None
