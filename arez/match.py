@@ -341,8 +341,8 @@ class Match(CacheClient, MatchMixin):
         self.bans: List[Union[Champion, CacheObject]] = []
         for i in range(1, 5):
             ban_id: int = first_player[f"BanId{i}"]
+            # skip 0s
             if not ban_id:
-                # skip 0s
                 continue
             ban_champ: Optional[Union[Champion, CacheObject]] = (
                 self._api.get_champion(ban_id, language)
@@ -396,8 +396,8 @@ class Match(CacheClient, MatchMixin):
         players_dict = await _get_players(self._api, (p.player.id for p in self.players))
         for mp in self.players:
             pid = mp.player.id
+            # skip 0s
             if pid == 0:
-                # skip 0s
                 continue
             if (p := players_dict.get(pid)) is not None:  # pragma: no branch
                 mp.player = p
@@ -457,7 +457,7 @@ class LivePlayer(WinLoseMixin, CacheClient):
                 self._api,
                 id=player_data["playerId"],
                 name=player_data["playerName"],
-                platform=player_data["playerPortalId"],
+                platform=player_data["playerPortalUserId"],
             )
         self.player: Union[PartialPlayer, Player] = player
         champion_id: int = player_data["ChampionId"]
@@ -548,8 +548,8 @@ class LiveMatch(CacheClient):
         players_dict = await _get_players(self._api, (p.player.id for p in self.players))
         for mp in self.players:
             pid = mp.player.id
-            if pid == 0:
-                # skip 0s
+            # skip 0s
+            if pid == 0:  # pragma: no cover
                 continue
             if (p := players_dict.get(pid)) is not None:  # pragma: no branch
                 mp.player = p
