@@ -142,7 +142,7 @@ async def test_get_players(api: arez.PaladinsAPI):
 async def test_search_players(api: arez.PaladinsAPI):
     # all platforms
     player_list = await api.search_players(PLAYER.name)
-    assert len(player_list) == 1 and isinstance(player_list[0], arez.PartialPlayer)
+    assert len(player_list) == 2 and isinstance(player_list[0], arez.PartialPlayer)
     # specific PC platform
     player_list = await api.search_players(PLAYER.name, arez.Platform(PLAYER.platform))
     assert len(player_list) == 1 and isinstance(player_list[0], arez.PartialPlayer)
@@ -230,7 +230,7 @@ async def test_get_matches(api: arez.PaladinsAPI):
 @pytest.mark.slow()
 @pytest.mark.dependency(depends=["tests/utils/test_date_gen.py::test_date_gen"], scope="session")
 async def test_get_matches_for_queue(api: arez.PaladinsAPI):
-    queue = arez.Queue.Test_Maps
+    queue = arez.Queue.Casual_Siege
     start = BASE_DATETIME + timedelta(minutes=2)
     end = BASE_DATETIME + timedelta(minutes=6)
     prev = datetime.min
@@ -244,6 +244,8 @@ async def test_get_matches_for_queue(api: arez.PaladinsAPI):
         assert stamp >= prev
         prev = stamp
         num += 1
+        if num > 15:
+            break
     assert num >= 2, "Generator needs to yield at least 2 matches!"
     # expand players, default language, reverse
     start = BASE_DATETIME + timedelta(minutes=4)
@@ -258,6 +260,8 @@ async def test_get_matches_for_queue(api: arez.PaladinsAPI):
         assert stamp <= prev
         prev = stamp
         num += 1
+        if num > 15:
+            break
     assert num >= 2, "Generator needs to yield at least 2 matches!"
     # local time and early exit
     start = BASE_DATETIME.replace(tzinfo=timezone.utc)

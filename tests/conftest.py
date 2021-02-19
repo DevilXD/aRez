@@ -22,18 +22,18 @@ pytest_plugins = ["asyncio", "recording", "dependency"]
 #####################
 
 # base datetime - has to be within the last 3-30 days, date only
-BASE_DATETIME = datetime(2020, 7, 18)
+BASE_DATETIME = datetime(2021, 2, 15)
 
 # match IDs - at least one private player
-MATCH         = 1005043864  # Ranked Siege
-MATCH_TDM     = 1001566003  # TDM
+MATCH         = 1065720250  # Ranked Siege
+MATCH_TDM     = 1066210958  # TDM
 INVALID_MATCH = 1234        # invalid
 
 # named tuple for player data storage
 test_player = namedtuple("test_player", ("id", "name", "platform"))
 
 # not private player, PC platform
-PLAYER = test_player(5959045, "DevilXD", 5)
+PLAYER = test_player(5959045, "DevilX3", 5)
 # not private player, console platform
 CONSOLE_PLAYER = test_player(501140683, "Djinscar", 9)
 # private player, any platform
