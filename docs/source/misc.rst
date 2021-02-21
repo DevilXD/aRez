@@ -13,7 +13,7 @@ Miscellaneous
 
 .. autoclass:: Lookup
     :members:
-    :special-members: __len__, __iter__
+    :special-members: __len__, __iter__, __getitem__
 
 .. autofunction:: get
 

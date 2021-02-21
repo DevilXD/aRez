@@ -277,7 +277,7 @@ class Lookup(Iterable[LookupType]):
             self._fuzzy_lookup[e.name.lower()] = e
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self._list_lookup.__repr__()})"
+        return f"{self.__class__.__name__}({repr(self._list_lookup)})"
 
     def __len__(self) -> int:
         """
@@ -297,16 +297,20 @@ class Lookup(Iterable[LookupType]):
         """
         return iter(self._list_lookup)
 
-    def __getitem__(self, index: int):
+    def __getitem__(self, index: int) -> LookupType:
         """
-        Returns an item from the internal list, from under the specified index.
+        Returns an item from the internal list, from under the index specified.\n
+        This adds support for the indexing syntax: ``object[index]``.
 
         Parameters
         ----------
         index : int
-            The index unded which you want to get the item from.
+            The index under which you want to get the item from.
 
-        :type: LookupType
+        Returns
+        -------
+        LookupType
+            The element of which the index was specified.
         """
         return self._list_lookup[index]
 
@@ -331,8 +335,7 @@ class Lookup(Iterable[LookupType]):
         if isinstance(name_or_id, int):
             return self._id_lookup.get(name_or_id)
         if fuzzy and isinstance(name_or_id, str):
-            name_or_id = name_or_id.lower()
-            return self._fuzzy_lookup.get(name_or_id)
+            return self._fuzzy_lookup.get(name_or_id.lower())
         return self._name_lookup.get(name_or_id)
 
 
