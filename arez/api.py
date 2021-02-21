@@ -79,7 +79,7 @@ class PaladinsAPI(DataCache):
     ):
         if loop is None:  # pragma: no branch
             loop = asyncio.get_event_loop()
-        self._statuspage = StatusPage("http://status.hirezstudios.com")
+        self._statuspage = StatusPage("http://status.hirezstudios.com", loop=loop)
         self._statuspage_group = "Paladins"
         self._server_status: Optional[ServerStatus] = None
         super().__init__(

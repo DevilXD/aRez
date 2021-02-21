@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import aiohttp
+import asyncio
 from datetime import datetime, timezone
 from typing import Any, Optional, List, Dict, Literal, cast
 
@@ -440,9 +441,11 @@ class StatusPage:
     url : str
         The URL of the StatusPage you want to get this object for.
     """
-    def __init__(self, url: str):
+    def __init__(self, url: str, *, loop: Optional[asyncio.AbstractEventLoop] = None):
+        if loop is None:  # pragma: no cover
+            loop = asyncio.get_event_loop()
         self.url: str = f"{url.rstrip('/')}/api/v2"
-        self._session = aiohttp.ClientSession(raise_for_status=True)
+        self._session = aiohttp.ClientSession(raise_for_status=True, loop=loop)
 
     def __del__(self):
         self._session.detach()
