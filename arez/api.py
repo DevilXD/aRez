@@ -127,7 +127,7 @@ class PaladinsAPI(DataCache):
         Raises
         ------
         NotFound
-            There was no cached status and fetching returned an empty response.
+            There was no cached status and fetching has failed.
         """
         # Special exception to interrupt processing
         class EndProcessing(Exception):

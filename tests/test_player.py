@@ -144,13 +144,17 @@ async def test_player_history(
     history = await player.get_match_history()
     assert all(isinstance(match, arez.PartialMatch) for match in history)
     # repr PartialMatch, MatchItem and MatchLoadout
-    if len(history) > 0:
-        match = history[0]
+    for match in history:
         repr(match)  # PartialMatch
+        repr(match.loadout)  # MatchLoadout
+        if not match.loadout.cards:
+            continue
+        match.loadout.cards[0].description()  # LoadoutCard description
+        assert match.shielding == match.damage_mitigated  # shielding property
         if len(match.items) > 0:
             repr(match.items[0])  # MatchItem
-        repr(match.loadout)  # MatchLoadout
-        match.shielding  # shielding property
+            match.items[0].description()
+            break
     # private
     with pytest.raises(arez.Private):
         history = await private_player.get_match_history()
@@ -158,5 +162,5 @@ async def test_player_history(
     history = await invalid_player.get_match_history(language=arez.Language.English)
     assert len(history) == 0
     # no privacy flag private
-    history = await invalid_player.get_match_history()
+    history = await no_flag_private_player.get_match_history()
     assert len(history) == 0

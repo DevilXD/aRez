@@ -37,8 +37,10 @@ class Device(CacheObject):
         Name of the device.
     type : DeviceType
         The type of the device.
-    description : str
-        The device's description.
+    raw_description : str
+        The raw device's description, possibly containting scale placeholder fields.
+
+        See also: `description`.
     icon_url : str
         The URL of this device's icon.
     ability : Union[Ability, CacheObject]
@@ -48,8 +50,7 @@ class Device(CacheObject):
         or ``Unknown`` in cases where this information couldn't be parsed.
     champion : Optional[Union[Champion, CacheObject]]
         The champion this device belongs to.\n
-        This is a `CacheObject` with incomplete cache.
-        `None` for shop items.
+        This is a `CacheObject` with incomplete cache, and `None` for shop items.
     base : float
         The base value of the card's or shop item's scaling.\n
         ``0.0`` for talents.
@@ -57,29 +58,29 @@ class Device(CacheObject):
         The scale value of the card's or shop item's scaling.\n
         ``0.0`` for talents.
     cooldown : int
-        The cooldown of this device, in seconds.
+        The cooldown of this device, in seconds.\n
         ``0`` if there is no cooldown.
     price : int
-        The price of this device.
+        The price of this device.\n
         ``0`` if there's no price (it's free).
     unlocked_at : int
-        The champion's mastery level required to unlock this device. Applies only to talents.
+        The champion's mastery level required to unlock this device. Applies only to talents.\n
         ``0`` means it's unlocked by default.
     """
-    _desc_pattern = re.compile(r'\[(.+?)\] (.*)')
-    _card_pattern = re.compile(r'{scale=((?:0\.)?\d+)\|((?:0\.)?\d+)}|{(\d+)}')
+    _ability_pattern = re.compile(r'\[(.+?)\] (.*)')
+    _scale_pattern = re.compile(r'{scale=(-?\d*\.?\d+)\|(-?\d*\.?\d+)}|{(-?\d+)}')
 
     def __init__(self, device_data: Dict[str, Any]):
         super().__init__(id=device_data["ItemId"], name=device_data["DeviceName"])
-        self.description: str = device_data["Description"].strip()
+        self.raw_description: str = device_data["Description"].strip()
         self.ability: Union[Ability, CacheObject] = CacheObject()
-        match = self._desc_pattern.match(self.description)
+        match = self._ability_pattern.match(self.raw_description)
         if match:
             self.ability = CacheObject(name=match.group(1))
-            self.description = match.group(2)
+            self.raw_description = match.group(2)
         self.base: float = 0.0
         self.scale: float = 0.0
-        match = self._card_pattern.search(self.description)
+        match = self._scale_pattern.search(self.raw_description)
         if match:
             group3 = match.group(3)
             if group3:
@@ -89,19 +90,19 @@ class Device(CacheObject):
                 self.base = float(match.group(1))
                 self.scale = float(match.group(2))
         item_type = device_data["item_type"]
-        if item_type == "Inventory Vendor - Talents":
-            self.type = DeviceType.Talent
-        elif (
+        if (
             item_type.startswith("Card Vendor Rank")
             or item_type == "Inventory Vendor - Champion Cards"
         ):
             self.type = DeviceType.Card
+        elif item_type == "Inventory Vendor - Talents":
+            self.type = DeviceType.Talent
         elif item_type.startswith("Burn Card"):
             self.type = DeviceType.Item
         else:
             self.type = DeviceType.Undefined
         # start with None by default
-        self.champion: Optional[Union["Champion", CacheObject]] = None
+        self.champion: Optional[Union[Champion, CacheObject]] = None
         # if the champion ID is non-zero, replace it with a cache object
         if champion_id := device_data["champion_id"]:
             # later overwritten when the device is added to a champion
@@ -124,6 +125,31 @@ class Device(CacheObject):
             if ability:
                 self.ability = ability
 
+    @staticmethod
+    def _scale_format(value: float) -> str:  # pragma: no cover
+        if value % 1 == 0:
+            return str(int(value))   # remove .0
+        return str(round(value, 3))  # remove floating point math errors
+
+    def description(self, level: int) -> str:
+        """
+        Formats the item's description, based on the level of the device provided.
+        This replaces the scale placeholder fields with the calculated value.
+
+        Parameters
+        ----------
+        level : int
+            The level of the device.\n
+            This should range 1-3 for shop items and 1-5 for cards.
+
+        Returns
+        -------
+        str
+            The formatted device's description.
+        """
+        return self._scale_pattern.sub(
+            self._scale_format(self.base + self.scale * level), self.raw_description
+        )
 
 class LoadoutCard:
     """
@@ -149,6 +175,16 @@ class LoadoutCard:
             return self.card == other.card and self.points == other.points
         return NotImplemented
 
+    def description(self) -> str:
+        """
+        The formatted card's description, based on the points assigned.\n
+        If the `card` is a `CacheObject`, this will be an empty string.
+
+        :type: str
+        """
+        if isinstance(self.card, Device):
+            return self.card.description(self.points)
+        return ''
 
 class Loadout(CacheObject, CacheClient):
     """
@@ -229,6 +265,17 @@ class MatchItem:
             return self.item == other.item and self.level == other.level
         return NotImplemented
 
+    def description(self) -> str:
+        """
+        The formatted item's description, based on it's level.\n
+        If the `item` is a `CacheObject`, this will be an empty string.
+
+        :type: str
+        """
+        if isinstance(self.item, Device):
+            return self.item.description(self.level)
+        return ''
+
 
 class MatchLoadout:
     """
@@ -246,7 +293,7 @@ class MatchLoadout:
     """
     def __init__(self, api: DataCache, language: Language, match_data: Dict[str, Any]):
         self.cards: List[LoadoutCard] = []
-        for i in range(1, 6):
+        for i in range(1, 6):  # 1-5
             card_id: int = match_data[f"ItemId{i}"]
             if not card_id:
                 # skip 0s

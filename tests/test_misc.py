@@ -218,10 +218,15 @@ async def test_cache_disabled(api: arez.PaladinsAPI, player: arez.Player):
         # test player history
         history = await player.get_match_history()
         if len(history) > 0:
-            partial_match_champ = history[0].champion
-            assert isinstance(partial_match_champ, arez.CacheObject)
+            partial_match = history[0]
+            assert isinstance(partial_match.champion, arez.CacheObject)
             # repr CacheObject
-            repr(partial_match_champ)
+            repr(partial_match)
+            # MatchItem and LoadoutCard descriptions (empty strings)
+            if len(partial_match.items) > 0:
+                partial_match.items[0].description()
+            if len(partial_match.loadout.cards) > 0:
+                partial_match.loadout.cards[0].description()
         # test player loadouts
         loadouts = await player.get_loadouts()
         assert isinstance(loadouts[0].champion, arez.CacheObject)
