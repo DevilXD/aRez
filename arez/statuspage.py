@@ -90,7 +90,7 @@ class _BaseComponent(_NameBase):
         )
         self.color: int = colors[comp_data["status"]]
         self.incidents: List[Incident] = []
-        self.scheduled_maintenances: List[ScheduledMaintenance] = []
+        self.maintenances: List[Maintenance] = []
 
 
 class _BaseEvent(_NameBase):
@@ -172,37 +172,37 @@ class Incident(_BaseEvent):
                 comp._add_incident(self)
 
 
-class ScheduledMaintenance(_BaseEvent):
+class Maintenance(_BaseEvent):
     """
-    Represents a scheduled maintenance.
+    Represents a (scheduled) maintenance.
 
     Attributes
     ----------
     id : str
-        The ID of the scheduled maintenance.
+        The ID of the maintenance.
     created_at : datetime.datetime
-        The time when this scheduled maintenance was created.
+        The time when this maintenance was created.
     updated_at : datetime.datetime
-        The last time this scheduled maintenance was updated.
+        The last time this maintenance was updated.
     name : str
-        The name of the scheduled maintenance.
+        The name of the maintenance.
     status : Literal["Scheduled", "In Progress", "Verifying", "Completed"]
-        The current scheduled maintenance's status.
+        The current maintenance's status.
     impact : Literal["Maintenance"]
-        The impact of this scheduled maintenance.
+        The impact of this maintenance.
     color : int
-        The color associated with this scheduled maintenance (based on impact).\n
+        The color associated with this maintenance (based on impact).\n
         There is an alias for this under ``colour``.
     components : List[Component]
-        A list of components affected by this scheduled maintenance.
+        A list of components affected by this maintenance.
     scheduled_for : datetime.datetime
-        The planned time this maintenance is scheduled to start.
+        The planned time this maintenance is to start.
     scheduled_until : datetime.datetime
-        The planned time this maintenance is scheduled to end.
+        The planned time this maintenance is to end.
     updates : List[Update]
-        A list of updates this scheduled maintenance has.
+        A list of updates this maintenance has.
     last_update : Update
-        The most recent update this scheduled maintenance has.
+        The most recent update this maintenance has.
     """
     def __init__(self, main_data: Dict[str, Any], comp_mapping: Dict[str, Component]):
         super().__init__(main_data)
@@ -216,7 +216,7 @@ class ScheduledMaintenance(_BaseEvent):
             comp = comp_mapping.get(comp_data["id"])
             if comp:  # pragma: no branch
                 self.components.append(comp)
-                comp._add_scheduled_mainenance(self)
+                comp._add_mainenance(self)
 
 
 class Component(_BaseComponent):
@@ -247,8 +247,8 @@ class Component(_BaseComponent):
         Can be `None` if it belongs to no group.
     incidents : List[Incident]
         A list of incidents referring to this component.
-    scheduled_maintenances : List[ScheduledMaintenance]
-        A list of scheduled maintenances referring to this component.
+    maintenances : List[Maintenance]
+        A list of maintenances referring to this component.
     """
     def __init__(self, group: Optional[ComponentGroup], comp_data: Dict[str, Any]):
         super().__init__(comp_data)
@@ -261,10 +261,10 @@ class Component(_BaseComponent):
         if self.group:  # pragma: no branch
             self.group._add_incident(incident)
 
-    def _add_scheduled_mainenance(self, scheduled_maintenance: ScheduledMaintenance):
-        self.scheduled_maintenances.append(scheduled_maintenance)
+    def _add_mainenance(self, maintenance: Maintenance):
+        self.maintenances.append(maintenance)
         if self.group:  # pragma: no branch
-            self.group._add_scheduled_mainenance(scheduled_maintenance)
+            self.group._add_mainenance(maintenance)
 
 
 class ComponentGroup(_BaseComponent):
@@ -296,7 +296,7 @@ class ComponentGroup(_BaseComponent):
         A list of components this group has.
     incidents : List[Incident]
         A list of incidents referring to components of this group.
-    scheduled_maintenances : List[ScheduledMaintenance]
+    maintenances : List[Maintenance]
         A list of scheduled maintenances referring to components of this group.
     """
     def __init__(self, group_data: Dict[str, Any]):
@@ -310,9 +310,9 @@ class ComponentGroup(_BaseComponent):
         if incident not in self.incidents:
             self.incidents.append(incident)
 
-    def _add_scheduled_mainenance(self, scheduled_maintenance: ScheduledMaintenance):
-        if scheduled_maintenance not in self.scheduled_maintenances:
-            self.scheduled_maintenances.append(scheduled_maintenance)
+    def _add_mainenance(self, maintenance: Maintenance):
+        if maintenance not in self.maintenances:
+            self.maintenances.append(maintenance)
 
 
 class CurrentStatus:
@@ -348,7 +348,7 @@ class CurrentStatus:
         This includes groups only.
     incidents : List[Incident]
         A list of current incidents.
-    scheduled_maintenances : List[ScheduledMaintenance]
+    maintenances : List[Maintenance]
         A list of scheduled maintenances.
     """
     def __init__(self, page_data: Dict[str, Any]):
@@ -393,8 +393,8 @@ class CurrentStatus:
         self.incidents: List[Incident] = [
             Incident(i, id_components) for i in page_data["incidents"]
         ]
-        self.scheduled_maintenances: List[ScheduledMaintenance] = [
-            ScheduledMaintenance(sm, id_components) for sm in page_data["scheduled_maintenances"]
+        self.maintenances: List[Maintenance] = [
+            Maintenance(sm, id_components) for sm in page_data["scheduled_maintenances"]
         ]
 
     def component(self, component: str) -> Optional[Component]:

@@ -17,8 +17,8 @@ async def test_statuspage(sp: arez.StatusPage):
             repr(incident.updates[0])
         # property access
         incident.colour
-    if status.scheduled_maintenances:
-        maintenance = status.scheduled_maintenances[0]
+    if status.maintenances:
+        maintenance = status.maintenances[0]
         repr(maintenance)
         if maintenance.updates:
             repr(maintenance.updates[0])
