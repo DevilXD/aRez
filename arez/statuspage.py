@@ -6,6 +6,9 @@ from datetime import datetime, timezone
 from typing import Any, Optional, List, Dict, Literal, cast
 
 
+timeout = aiohttp.ClientTimeout(total=20, connect=5)
+
+
 def _convert_timestamp(stamp: str) -> datetime:
     return datetime.strptime(
         stamp, "%Y-%m-%dT%H:%M:%S.%f%z"
@@ -445,7 +448,7 @@ class StatusPage:
         if loop is None:  # pragma: no cover
             loop = asyncio.get_event_loop()
         self.url: str = f"{url.rstrip('/')}/api/v2"
-        self._session = aiohttp.ClientSession(raise_for_status=True, loop=loop)
+        self._session = aiohttp.ClientSession(timeout=timeout, loop=loop)
 
     def __del__(self):
         self._session.detach()
@@ -461,8 +464,8 @@ class StatusPage:
         await self._session.close()
 
     async def request(self, endpoint: str):
-        route = f"{self.url}/{endpoint}"
-        async with self._session.get(route) as response:
+        async with self._session.get(f"{self.url}/{endpoint}") as response:
+            response.raise_for_status()
             return await response.json()
 
     async def get_status(self) -> CurrentStatus:
