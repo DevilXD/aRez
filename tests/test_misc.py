@@ -102,31 +102,35 @@ def test_enum():
 @pytest.mark.asyncio()
 @pytest.mark.dependency(depends=["tests/test_endpoint.py::test_session"], scope="session")
 async def test_get_server_status(api: arez.PaladinsAPI):
-    # test Notfound
+    # empty responses from both
     with pytest.raises(arez.NotFound):
-        current_status = await api.get_server_status()
-    # test fetching first, limited, not all up
-    current_status = await api.get_server_status()
-    assert isinstance(current_status, arez.ServerStatus)
+        current_status = await api.get_server_status(force_refresh=True)
+    # empty api response, but statuspage returns
+    current_status = await api.get_server_status(force_refresh=True)
+    assert "epic" in current_status.statuses
+    # api response but empty statuspage, not all up
+    current_status = await api.get_server_status(force_refresh=True)
+    assert "epic" not in current_status.statuses
     assert not current_status.all_up
+    assert not current_status.limited_access
+    # both available, all up but limited access
+    current_status = await api.get_server_status(force_refresh=True)
+    assert isinstance(current_status, arez.ServerStatus)
+    assert current_status.all_up
     assert current_status.limited_access
-    # repr with limited access
-    assert "pc" in current_status.statuses
-    repr(current_status)
-    repr(current_status.statuses["pc"])
     # test returning cached
     current_status2 = await api.get_server_status()
     assert current_status2 is current_status
-    # test force refresh
-    current_status = await api.get_server_status(force_refresh=True)
-    assert current_status2 is not current_status
+    # test cached on empty responses from both
+    current_status2 = await api.get_server_status(force_refresh=True)
+    assert current_status2 is current_status
     # test attributes
-    assert len(current_status.statuses) == 5
-    assert "pc" in current_status.statuses
-    assert "ps4" in current_status.statuses
-    assert "pts" in current_status.statuses
-    assert "xbox" in current_status.statuses
-    assert "switch" in current_status.statuses
+    keys = set(("pc", "ps4", "xbox", "switch", "epic", "pts"))
+    assert (
+        len(current_status.statuses)
+        == len(keys.intersection(current_status.statuses))
+        == len(keys)
+    )
     # repr
     repr(current_status)
     repr(current_status.statuses["pc"])

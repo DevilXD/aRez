@@ -12,13 +12,13 @@ from typing import (
 
 from .bounty import BountyItem
 from .status import ServerStatus
-from .statuspage import StatusPage
-from .exceptions import HTTPException
 from .match import Match, _get_players
 from .cache import DataCache, CacheEntry
 from .exceptions import Private, NotFound
 from .player import Player, PartialPlayer
+from .exceptions import HTTPException, Unavailable
 from .enums import Language, Platform, Queue, PC_PLATFORMS
+from .statuspage import ComponentGroup, CurrentStatus, StatusPage
 from .utils import chunk, group_by, _date_gen, _convert_timestamp, _deduplicate
 
 
@@ -129,44 +129,61 @@ class PaladinsAPI(DataCache):
         NotFound
             There was no cached status and fetching has failed.
         """
-        # Special exception to interrupt processing
-        class EndProcessing(Exception):
-            pass
-
         # Use a lock to ensure we're not fetching this twice in quick succession
         async with self._locks["server_status"]:
-            try:
-                if (
-                    not force_refresh
-                    and self._server_status is not None
-                    and datetime.utcnow() < self._server_status.timestamp + timedelta(minutes=1)
-                ):
-                    # it hasn't been 1 minute since the last fetch - use cached
-                    raise EndProcessing
-                logger.info(f"api.get_server_status({force_refresh=}) -> fetching new")
-                response = await self.request("gethirezserverstatus")
-                if not response or response[0]["ret_msg"]:
-                    # got an error from official API - use cached
-                    raise EndProcessing
-                # fetch the statuspage status
-                try:
-                    page_status = await self._statuspage.get_status()
-                except (
-                    aiohttp.ClientConnectionError, aiohttp.ClientResponseError
-                ):  # pragma: no cover
-                    # got an error from status page - use cached
-                    raise EndProcessing
-                group = page_status.group(self._statuspage_group)
-                if group is None:  # pragma: no cover
-                    # for some reason, this group doesn't exist - use cached
-                    raise EndProcessing
-                self._server_status = ServerStatus(response, group)
-            except EndProcessing:
+            if (
+                not force_refresh
+                and self._server_status is not None
+                and datetime.utcnow() < self._server_status.timestamp + timedelta(minutes=1)
+            ):
+                # it hasn't been 1 minute since the last fetch - use cached
                 logger.info(f"api.get_server_status({force_refresh=}) -> using cached")
+                return self._server_status
+            logger.info(f"api.get_server_status({force_refresh=}) -> fetching new")
+            # fetch from the official API
+            api_status: List[Dict[str, Any]]
+            try:
+                api_status = await self.request("gethirezserverstatus")
+            except (Unavailable, HTTPException):  # pragma: no cover
+                api_status = []  # no data could be fetched
+            if api_status and api_status[0]["ret_msg"]:  # pragma: no cover
+                # got an error from official API - use empty
+                api_status = []
+            # unify PTS as a platform, not an environment
+            if pts_dict := next(  # pragma: no branch
+                (s for s in api_status if s["environment"] == "pts"), None
+            ):
+                pts_dict["platform"] = pts_dict["environment"]
+            # process "status" into "up" as a bool
+            for status_data in api_status:
+                status_data["up"] = status_data["status"] == "UP"
+
+            # fetch from the StatusPage
+            group: Optional[ComponentGroup]
+            try:
+                page_status: CurrentStatus = await self._statuspage.get_status()
+            except (
+                asyncio.TimeoutError,
+                aiohttp.ClientResponseError,
+                aiohttp.ClientConnectionError,
+            ):
+                group = None  # no data could be fetched
             else:
-                logger.info(f"api.get_server_status({force_refresh=}) -> fetching successful")
-        if self._server_status is None:
-            raise NotFound("Server status")
+                group = page_status.group(self._statuspage_group)
+
+            if not api_status and group is None:
+                # can't do anything here chief - use cached, if possible
+                if self._server_status is None:
+                    logger.info(f"api.get_server_status({force_refresh=}) -> fetching failed")
+                    raise NotFound("Server status")
+                logger.info(
+                    f"api.get_server_status({force_refresh=}) -> fetching failed, using cached"
+                )
+                return self._server_status
+
+            # pack it
+            self._server_status = ServerStatus(api_status, group)
+            logger.info(f"api.get_server_status({force_refresh=}) -> fetching successful")
         return self._server_status
 
     async def get_champion_info(

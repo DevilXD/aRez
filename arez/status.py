@@ -10,7 +10,7 @@ from .enums import Activity, Queue, Language
 
 if TYPE_CHECKING:
     from .player import PartialPlayer, Player  # noqa
-    from .statuspage import ComponentGroup, Component, Incident, ScheduledMaintenance
+    from .statuspage import Component, ComponentGroup, Incident, Maintenance
 
 
 __all__ = [
@@ -20,10 +20,15 @@ __all__ = [
 ]
 
 
-def _convert_platform(platform: str) -> str:
+_platforms = Literal["PC", "PS4", "Xbox", "Switch", "Epic", "PTS"]
+
+
+def _convert_platform(platform: str) -> _platforms:
     if platform.startswith('p'):
-        return platform.upper()
-    return platform.capitalize()
+        text = platform.upper()
+    else:
+        text = platform.capitalize()
+    return cast(_platforms, text)
 
 
 class Status:
@@ -36,8 +41,9 @@ class Status:
     ----------
     platform : Literal["PC", "PS4", "Xbox", "Switch", "PTS"]
         A string denoting which platform this status is for.
-    up : bool
-        `True` if the server is UP, `False` otherwise.
+    up : Optional[bool]
+        `True` if the server is UP, `False` otherwise.\n
+        A value of `None` signifies the state of the server couldn't be determined.
     limited_access : bool
         `True` if this server has limited access, `False` otherwise.
     version : str
@@ -57,37 +63,54 @@ class Status:
         A list of scheduled maintenances that will (or are)
         affect this server status in the future.
     """
-    def __init__(self, status_data: Dict[str, Any]):
+    def __init__(self, status_data: Dict[str, Any], components: Dict[str, Component]):
         platform: str = status_data["platform"]
         env = status_data["environment"]
         if env == "pts":
             platform = env
-        self.platform: Literal["PC", "PS4", "Xbox", "Switch", "PTS"] = cast(
-            Literal["PC", "PS4", "Xbox", "Switch", "PTS"], _convert_platform(platform)
-        )
-        self.up: bool = status_data["status"] == "UP"
+        self.platform: _platforms = _convert_platform(platform)
+        self.up: Optional[bool] = status_data["up"]
         self.limited_access: bool = status_data["limited_access"]
         self.version: str = status_data["version"] or ''
         self.status: str = "Operational"
         self.color: int = colors["green"]
         if not self.up:
-            self.status = "Down"
+            self.status = "Outage"
             self.color = colors["red"]
         elif self.limited_access:
             self.status = "Limited access"
             self.color = colors["yellow"]
         self.incidents: List[Incident] = []
-        self.scheduled_maintenances: List[ScheduledMaintenance] = []
+        self.maintenances: List[Maintenance] = []
+        if comp := components.pop(self.platform.lower(), None):
+            if comp.status != "Operational":  # pragma: no cover
+                self.status = comp.status
+                self.color = comp.color
+            self.incidents = comp.incidents
+            self.maintenances = comp.maintenances
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.platform}: {self.status})"
 
-    def _attach_component(self, component: Component):
-        if component.status != "Operational":  # pragma: no cover
-            self.status = component.status
-            self.color = component.color
+    @classmethod
+    def from_component(cls, platform_name: str, component: Component):
+        # build it from scratch
+        self: Status = super().__new__(cls)
+        self.platform = _convert_platform(platform_name)
+        self.limited_access = False
+        self.version = ''
+        status: str = component.status
+        if status == "Operational":  # pragma: no branch
+            self.up = True
+        elif "Outage" in status:  # pragma: no cover
+            self.up = False
+        else:  # pragma: no cover
+            self.up = None
+        self.status = status
+        self.color = component.color
         self.incidents = component.incidents
-        self.scheduled_maintenances = component.scheduled_maintenances
+        self.maintenances = component.maintenances
+        return self
 
     @property
     def colour(self):
@@ -124,51 +147,62 @@ class ServerStatus(CacheClient):
     statuses : Dict[str, Status]
         A dictionary of all individual available server statuses.\n
         The usual keys you should be able to find here are:
-        ``pc``, ``ps4``, ``xbox``, ``switch`` and ``pts``.
+        ``pc``, ``ps4``, ``xbox``, ``switch``, ``epic`` and ``pts``.
     incidents : List[Incident]
         A list of incidents affecting the current server status.
-    scheduled_maintenances : List[ScheduledMaintenance]
-        A list of scheduled maintenances that will (or are) affect the server status in the future.
+    maintenances : List[Maintenance]
+        A list of maintenances that will (or are) affect the server status in the future.
     """
-    def __init__(self, status_data: List[Dict[str, Any]], group: ComponentGroup):
+    def __init__(self, api_status: List[Dict[str, Any]], group: Optional[ComponentGroup]):
         self.timestamp = datetime.utcnow()
         self.all_up = True
         self.limited_access = False
+        self.status: str = "Operational"
+        self.color: int = colors["green"]
         self.statuses: Dict[str, Status] = {}
-        for s in status_data:
-            status = Status(s)
-            platform = status.platform.lower()
-            self.statuses[platform] = status
-            if platform != "pts":
-                if not status.up:
-                    self.all_up = False
-                if status.limited_access:
-                    self.limited_access = True
+        self.incidents: List[Incident] = []
+        self.maintenances: List[Maintenance] = []
         # each StatusPage component for Paladins starts with "Paladins ...", we need to strip that
-        group_name = group.name
         components: Dict[str, Component] = {}
-        for comp in group.components:
-            comp_name = comp.name
-            if comp_name.startswith(group_name):  # pragma: no branch
-                comp_name = comp_name[len(group_name):].strip()
-            components[comp_name.lower()] = comp
-        for status_name, status in self.statuses.items():
-            if component := components.get(status_name):
-                status._attach_component(component)
-        self.status: str = group.status
-        self.color: int = group.color
-        if self.status == "Operational":  # pragma: no cover
-            if not self.all_up:
-                self.status = "Outage"
-                self.color = colors["red"]
-            elif self.limited_access:
-                self.status = "Limited access"
-                self.color = colors["yellow"]
-        self.incidents: List[Incident] = group.incidents
-        self.scheduled_maintenances: List[ScheduledMaintenance] = group.scheduled_maintenances
+        if group is not None:
+            group_name: str = group.name
+            for comp in group.components:
+                comp_name = comp.name
+                if comp_name.startswith(group_name):  # pragma: no branch
+                    comp_name = comp_name[len(group_name):].strip()
+                components[comp_name.lower()] = comp
+        # match keys with existing official data, and add StatusPage data
+        # note: this may not run at all, if the official API's response was empty
+        for status_data in api_status:
+            self._add_status(Status(status_data, components))
+        # add any remaining StatusPage components data (can be none left)
+        for platform_name, comp in components.items():
+            self._add_status(Status.from_component(platform_name, comp))
+        # handle the rest
+        if not self.all_up:
+            self.status = "Outage"
+            self.color = colors["red"]
+        elif self.limited_access:
+            self.status = "Limited access"
+            self.color = colors["yellow"]
+        if group is not None:
+            if self.status != "Operational":  # pragma: no cover
+                self.status = group.status
+                self.color = group.color
+            self.incidents = group.incidents
+            self.maintenances = group.maintenances
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.status})"
+
+    def _add_status(self, status: Status):
+        platform = status.platform.lower()
+        if platform != "pts":
+            if status.up is False:  # None doesn't change this
+                self.all_up = False
+            if status.limited_access:
+                self.limited_access = True
+        self.statuses[platform] = status
 
     @property
     def colour(self) -> int:
