@@ -5,10 +5,11 @@ from datetime import datetime
 from abc import ABC, abstractmethod
 from typing import Optional, Union, List, Tuple, Literal, TYPE_CHECKING
 
-from .enums import Language, Queue, Region
+from .enums import Queue, Region
 
 if TYPE_CHECKING:
     from .items import Device
+    from .enums import Language
     from .cache import DataCache
     from .champion import Champion
     from .player import PartialPlayer, Player

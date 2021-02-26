@@ -3,10 +3,11 @@ from __future__ import annotations
 import re
 from typing import Any, Optional, Union, List, Dict, TYPE_CHECKING
 
-from .enums import DeviceType, Language
+from .enums import DeviceType
 from .mixins import CacheClient, CacheObject
 
 if TYPE_CHECKING:
+    from .enums import Language
     from .cache import DataCache
     from .champion import Champion, Ability
     from .player import PartialPlayer, Player

@@ -4,15 +4,18 @@ import asyncio
 import logging
 from itertools import chain
 from datetime import datetime, timedelta
-from typing import Any, Optional, Union, List, Dict
+from typing import Any, Optional, Union, List, Dict, TYPE_CHECKING
 
 from .items import Device
+from .champion import Champion
 from .endpoint import Endpoint
 from .mixins import CacheClient
-from .champion import Champion, Ability
 from .enums import Language, DeviceType
 from .utils import Lookup, WeakValueDefaultDict
 from .exceptions import Unavailable, HTTPException
+
+if TYPE_CHECKING:
+    from .champion import Ability
 
 
 __all__ = [

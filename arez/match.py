@@ -5,16 +5,17 @@ from itertools import count
 from typing import Any, Optional, Union, List, Dict, Iterable, Generator, TYPE_CHECKING
 
 from .exceptions import NotFound
-from .enums import Queue, Language, Region, Rank
+from .enums import Queue, Region, Rank
 from .utils import chunk, _convert_map_name, _deduplicate
 from .mixins import (
     CacheClient, CacheObject, MatchMixin, MatchPlayerMixin, Expandable, WinLoseMixin
 )
 
 if TYPE_CHECKING:
+    from .enums import Language
     from .cache import DataCache
     from .champion import Champion
-    from .player import PartialPlayer, Player  # noqa
+    from .player import PartialPlayer, Player
 
 
 __all__ = [
@@ -250,7 +251,7 @@ class MatchPlayer(MatchPlayerMixin):
         player: Optional[Union[PartialPlayer, Player]] = players.get(int(player_data["playerId"]))
         if player is None:
             # if no full player was found
-            from .player import PartialPlayer  # noqa, cyclic imports
+            from .player import PartialPlayer  # cyclic imports
             player = PartialPlayer(
                 match._api,
                 id=player_data["playerId"],
@@ -452,7 +453,7 @@ class LivePlayer(WinLoseMixin, CacheClient):
         player: Optional[Union[PartialPlayer, Player]] = players.get(int(player_data["playerId"]))
         if player is None:
             # if no full player was found
-            from .player import PartialPlayer  # noqa, cyclic imports
+            from .player import PartialPlayer  # cyclic imports
             player = PartialPlayer(
                 self._api,
                 id=player_data["playerId"],

@@ -3,13 +3,13 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Union, Dict, Any, Literal, cast, TYPE_CHECKING
 
-from .enums import Language
-from .champion import Champion
 from .utils import _convert_timestamp
 from .mixins import CacheClient, CacheObject
 
 if TYPE_CHECKING:
+    from .enums import Language
     from .cache import DataCache
+    from .champion import Champion
 
 
 __all__ = ["BountyItem"]

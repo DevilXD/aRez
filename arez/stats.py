@@ -3,12 +3,13 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Optional, Union, Dict, Literal, TYPE_CHECKING
 
-from .enums import Rank, Language, Queue
+from .enums import Rank
 from .utils import Duration, _convert_timestamp
 from .mixins import CacheObject, WinLoseMixin, KDAMixin
 
 if TYPE_CHECKING:
     from .champion import Champion
+    from .enums import Language, Queue
     from .player import PartialPlayer, Player
 
 

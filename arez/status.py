@@ -5,11 +5,12 @@ from typing import Any, Optional, Union, List, Dict, Literal, cast, TYPE_CHECKIN
 
 from .statuspage import colors
 from .mixins import CacheClient
+from .enums import Activity, Queue
 from .match import LiveMatch, _get_players
-from .enums import Activity, Queue, Language
 
 if TYPE_CHECKING:
-    from .player import PartialPlayer, Player  # noqa
+    from .enums import Language
+    from .player import PartialPlayer, Player
     from .statuspage import Component, ComponentGroup, Incident, Maintenance
 
 

@@ -7,20 +7,35 @@ import logging
 from operator import itemgetter
 from datetime import datetime, timedelta, timezone
 from typing import (
-    Any, Optional, Union, List, Dict, Tuple, Iterable, Sequence, AsyncGenerator, Literal, overload
+    Any,
+    Optional,
+    Union,
+    List,
+    Dict,
+    Tuple,
+    Iterable,
+    Sequence,
+    AsyncGenerator,
+    Literal,
+    overload,
+    TYPE_CHECKING,
 )
 
+from .cache import DataCache
 from .bounty import BountyItem
 from .status import ServerStatus
+from .statuspage import StatusPage
 from .match import Match, _get_players
-from .cache import DataCache, CacheEntry
 from .exceptions import Private, NotFound
 from .player import Player, PartialPlayer
+from .enums import Language, Platform, PC_PLATFORMS
 from .exceptions import HTTPException, Unavailable
-from .enums import Language, Platform, Queue, PC_PLATFORMS
-from .statuspage import ComponentGroup, CurrentStatus, StatusPage
 from .utils import chunk, group_by, _date_gen, _convert_timestamp, _deduplicate
 
+if TYPE_CHECKING:
+    from .enums import Queue
+    from .cache import CacheEntry
+    from .statuspage import ComponentGroup, CurrentStatus
 
 __all__ = ["PaladinsAPI"]
 logger = logging.getLogger(__package__)
@@ -144,7 +159,7 @@ class PaladinsAPI(DataCache):
             api_status: List[Dict[str, Any]]
             try:
                 api_status = await self.request("gethirezserverstatus")
-            except (Unavailable, HTTPException):  # pragma: no cover
+            except (HTTPException, Unavailable):  # pragma: no cover
                 api_status = []  # no data could be fetched
             if api_status and api_status[0]["ret_msg"]:  # pragma: no cover
                 # got an error from official API - use empty
