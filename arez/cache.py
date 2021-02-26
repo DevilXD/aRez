@@ -89,7 +89,7 @@ class DataCache(Endpoint, CacheClient):
         self.cache_enabled = enabled
         self.refresh_every = timedelta(hours=12)
         if initialize:  # pragma: no cover
-            self.loop.create_task(self.initialize())
+            self._loop.create_task(self.initialize())
 
     # solely for typing, __aexit__ exists in the Endpoint
     async def __aenter__(self) -> DataCache:

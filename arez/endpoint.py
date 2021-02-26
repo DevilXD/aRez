@@ -55,7 +55,7 @@ class Endpoint:
     ):
         if loop is None:  # pragma: no cover
             loop = asyncio.get_event_loop()
-        self.loop = loop
+        self._loop = loop
         self.url = url.rstrip('/')
         self._session_key = ''
         self._session_lock = asyncio.Lock()
