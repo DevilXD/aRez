@@ -4,7 +4,6 @@ import re
 from typing import Any, Optional, Union, List, Dict, Literal, TYPE_CHECKING
 
 from .utils import Lookup
-from .enums import AbilityType, DeviceType
 from .mixins import CacheClient, CacheObject
 from .enums import Language, DeviceType, AbilityType, Rarity
 
@@ -105,6 +104,7 @@ class Skin(CacheObject):
             f"{self.__class__.__name__}: {self._name} {self.champion.name}"
             f"({self.rarity.name}, {self._id})"
         )
+
 
 class Champion(CacheObject, CacheClient):
     """

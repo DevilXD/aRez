@@ -43,7 +43,7 @@ class HTTPException(ArezException):
         if description:  # pragma: no cover
             text = f"There was an error while processing the request: {description}"
         else:
-            text = f"There was an error while processing the request!"
+            text = "There was an error while processing the request!"
         text += f"\nCause: {original_exc!r}"
         super().__init__(text)
         self.cause = original_exc

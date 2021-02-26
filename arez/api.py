@@ -856,6 +856,6 @@ class PaladinsAPI(DataCache):
             # check if Hi-Rez hasn't fucked up and there's at least one active skin,
             # otherwise fall back idx to 0
             if i > 0:  # pragma: no cover
-                idx = i-1
+                idx = i - 1
             break
-        return (items[idx], items[idx-len(items)-1::-1], items[idx+1:])
+        return (items[idx], items[idx-len(items)-1::-1], items[idx+1:])  # noqa

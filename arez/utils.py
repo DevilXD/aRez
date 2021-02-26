@@ -69,6 +69,7 @@ def _deduplicate(iterable: Iterable[X], *to_remove: X) -> List[X]:
             no_dups.remove(value)
     return no_dups
 
+
 def _convert_timestamp(timestamp: str) -> datetime:
     """
     Converts the timestamp format returned by the API.

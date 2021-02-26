@@ -151,6 +151,7 @@ class Device(CacheObject):
             self._scale_format(self.base + self.scale * level), self.raw_description
         )
 
+
 class LoadoutCard:
     """
     Represents a Loadout Card.
@@ -185,6 +186,7 @@ class LoadoutCard:
         if isinstance(self.card, Device):
             return self.card.description(self.points)
         return ''
+
 
 class Loadout(CacheObject, CacheClient):
     """
