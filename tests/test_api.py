@@ -269,6 +269,7 @@ async def test_get_matches_for_queue(api: arez.PaladinsAPI):
     async for match in api.get_matches_for_queue(queue, start=start, end=end, local_time=True):
         assert False, "Generator didn't exit early!"
 
+
 async def test_bounty(api: arez.PaladinsAPI):
     # normal
     current_item, upcoming_items, past_items = await api.get_bounty()
