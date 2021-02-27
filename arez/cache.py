@@ -7,12 +7,12 @@ from datetime import datetime, timedelta
 from typing import Any, Optional, Union, List, Dict, TYPE_CHECKING
 
 from .items import Device
-from .champion import Champion
+from .champion import Champion, Skin
 from .endpoint import Endpoint
 from .mixins import CacheClient
 from .enums import Language, DeviceType
-from .utils import Lookup, WeakValueDefaultDict
 from .exceptions import Unavailable, HTTPException
+from .utils import group_by, Lookup, WeakValueDefaultDict
 
 if TYPE_CHECKING:
     from .champion import Ability
@@ -148,18 +148,33 @@ class DataCache(Endpoint, CacheClient):
         async with self._locks[f"cache_fetch_{language.name}"]:
             now = datetime.utcnow()
             entry = self._cache.get(language)
-            if entry is None or now >= entry._expires_at or force_refresh:
-                champions_data = await self.request("getgods", language.value)
-                items_data = await self.request("getitems", language.value)
-                if champions_data and items_data:
-                    expires_at = now + self.refresh_every
-                    entry = CacheEntry(
-                        self, language, expires_at, champions_data, items_data
-                    )
-                    if cache is None:
-                        cache = self.cache_enabled
-                    if cache:
-                        self._cache[language] = entry
+            if not force_refresh and entry is not None and now < entry._expires_at:
+                logger.debug(
+                    f"cache.fetch_entry({language=}, {force_refresh=}, {cache=}) -> using cached"
+                )
+                return entry
+            logger.debug(
+                f"cache.fetch_entry({language=}, {force_refresh=}, {cache=}) -> fetching new"
+            )
+            champions_data = await self.request("getgods", language.value)
+            items_data = await self.request("getitems", language.value)
+            skins_data = await self.request("getchampionskins", -1, language.value)
+            if not (champions_data and items_data and skins_data):
+                logger.debug(
+                    f"cache.fetch_entry({language=}, {force_refresh=}, {cache=})"
+                    " -> fetching failed, using cached"
+                )
+                return entry
+            expires_at = now + self.refresh_every
+            entry = CacheEntry(self, language, expires_at, champions_data, items_data, skins_data)
+            logger.debug(
+                f"cache.fetch_entry({language=}, {force_refresh=}, {cache=})"
+                " -> fetching completed"
+            )
+            if cache is None:
+                cache = self.cache_enabled
+            if cache:
+                self._cache[language] = entry
         return entry
 
     async def _ensure_entry(self, language: Language):
@@ -414,6 +429,9 @@ class CacheEntry:
     abilities : Lookup[Ability]
         An object that lets you iterate over all champion's abilities.\n
         Use ``list(...)`` to get a list instead.
+    skins : Lookup[Skin]
+        An object that lets you iterate over all champion's skins.\n
+        Use ``list(...)`` to get a list instead.
     items : Lookup[Device]
         An object that lets you iterate over all shop items.\n
         Use ``list(...)`` to get a list instead.
@@ -432,12 +450,14 @@ class CacheEntry:
         cache: DataCache,
         language: Language,
         expires_at: datetime,
-        champions_data: dict,
-        items_data: dict,
+        champions_data: List[Dict[str, Any]],
+        items_data: List[Dict[str, Any]],
+        skins_data: List[Dict[str, Any]],
     ):
         self._cache = cache
         self.language = language
         self._expires_at = expires_at
+        # process devices (shop items, cards and talents)
         sorted_devices: Dict[int, List[Device]] = {}
         items = []
         cards = []
@@ -459,20 +479,33 @@ class CacheEntry:
         self.cards: Lookup[Device] = Lookup(cards)
         self.talents: Lookup[Device] = Lookup(talents)
         self.devices: Lookup[Device] = Lookup(chain(items, talents, cards))
+        # pre-process skins (sort per champion)
+        skins: Dict[int, List[Dict[str, Any]]] = group_by(
+            skins_data, key=lambda s: s["champion_id"]
+        )
+        # process champions
         self.champions: Lookup[Champion] = Lookup(
             Champion(
-                self._cache, language, sorted_devices.get(champ_data["id"], []), champ_data
+                self._cache,
+                language,
+                champ_data,
+                sorted_devices.get(champ_data["id"], []),
+                skins.get(champ_data["id"], []),
             )
             for champ_data in champions_data
         )
         self.abilities: Lookup[Ability] = Lookup(
             ability for champion in self.champions for ability in champion.abilities
         )
+        # process skins
+        self.skins: Lookup[Skin] = Lookup(
+            skin for champion in self.champions for skin in champion.skins
+        )
         logger.debug(
             f"CacheEntry({language=}, expires_at={self._expires_at}, "
             f"len(champions)={len(self.champions)}, len(devices)={len(self.devices)}, "
             f"len(items)={len(self.items)}, len(cards)={len(self.cards)}, "
-            f"len(talents)={len(self.talents)}) -> created"
+            f"len(talents)={len(self.talents)}, len(skins)={len(self.skins)}) -> created"
         )
 
     def get_champion(

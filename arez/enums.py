@@ -755,6 +755,7 @@ class Rarity(Enum):
 
     Attributes
     ----------
+    Default
     Common
     Uncommon
     Rare
@@ -763,13 +764,14 @@ class Rarity(Enum):
     Unlimited
     Limited
     """
-    Common    = 0
-    Uncommon  = 1
-    Rare      = 2
-    Epic      = 3
-    Legendary = 4
-    Unlimited = 5
-    Limited   = 6
+    Default   = 0
+    Common    = 1
+    Uncommon  = 2
+    Rare      = 3
+    Epic      = 4
+    Legendary = 5
+    Unlimited = 6
+    Limited   = 7
 
 
 class AbilityType(Enum, default_value=0):

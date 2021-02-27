@@ -98,7 +98,7 @@ class Skin(CacheObject):
         if rarity:  # not an empty string
             self.rarity = Rarity(rarity, return_default=True)
         else:
-            self.rarity = Rarity.Common
+            self.rarity = Rarity.Default
 
     def __repr__(self) -> str:
         return (
@@ -169,6 +169,9 @@ class Champion(CacheObject, CacheClient):
     cards : Lookup[Device]
         An iterator that lets you iterate over all cards this champion has.\n
         Use ``list(...)`` to get a list instead.
+    skins : Lookup[Skin]
+        An object that lets you iterate over all skins this champion has.\n
+        Use ``list(...)`` to get a list instead.
     """
     _name_pattern = re.compile(r'([a-z ]+)(?:/\w+)? \(([a-z ]+)\)', re.I)
     _desc_pattern = re.compile(r'([A-Z][a-zA-Z ]+): ([\w\s\-\'%,.]+)(?:<br><br>|[\r\n]?\n|$)')
@@ -178,8 +181,9 @@ class Champion(CacheObject, CacheClient):
         self,
         cache: DataCache,
         language: Language,
-        devices: List[Device],
         champion_data: Dict[str, Any],
+        devices: List[Device],
+        skins_data: List[Dict[str, Any]],
     ):
         CacheClient.__init__(self, cache)
         CacheObject.__init__(self, id=champion_data["id"], name=champion_data["Name"])
@@ -240,6 +244,11 @@ class Champion(CacheObject, CacheClient):
         cards.sort(key=_card_ability_sort)
         self.cards: Lookup[Device] = Lookup(cards)
         self.talents: Lookup[Device] = Lookup(talents)
+
+        # Skins
+        self.skins: Lookup[Skin] = Lookup(sorted(
+            (Skin(self, d) for d in skins_data), key=lambda s: s.rarity.value
+        ))
 
     __hash__ = CacheObject.__hash__
 
@@ -312,10 +321,17 @@ class Champion(CacheObject, CacheClient):
         """
         Returns a list of skins this champion has.
 
+        .. note::
+
+            This information is cached under the `skins` attribute.
+
         Returns
         -------
         List[Skin]
-            The list of skins available.
+            The list of skins available for this champion.
         """
-        response = await self._api.request("getChampionSkins", self.id, self._language.value)
-        return sorted((Skin(self, d) for d in response), key=lambda s: s.rarity.value)
+        response = await self._api.request("getchampionskins", self.id, self._language.value)
+        self.skins = Lookup(sorted(
+            (Skin(self, d) for d in response), key=lambda s: s.rarity.value
+        ))
+        return list(self.skins)
