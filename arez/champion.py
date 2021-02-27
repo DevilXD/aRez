@@ -171,7 +171,7 @@ class Champion(CacheObject, CacheClient):
         Use ``list(...)`` to get a list instead.
     """
     _name_pattern = re.compile(r'([a-z ]+)(?:/\w+)? \(([a-z ]+)\)', re.I)
-    _desc_pattern = re.compile(r'([A-Z][a-zA-Z ]+): ([\w\s\-\'%,.]+)(?:<br><br>|(?:\r|\n)\n|$)')
+    _desc_pattern = re.compile(r'([A-Z][a-zA-Z ]+): ([\w\s\-\'%,.]+)(?:<br><br>|[\r\n]?\n|$)')
     _url_pattern = re.compile(r'([a-z\-]+)(?=\.(?:jpg|png))')
 
     def __init__(
