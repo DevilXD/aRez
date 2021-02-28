@@ -1,4 +1,5 @@
 from enum import IntEnum
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 import arez
@@ -10,10 +11,77 @@ from .conftest import MATCH
 # test type errors
 @pytest.mark.base()
 @pytest.mark.asyncio()
-async def test_type_errors(api: arez.PaladinsAPI):
-    # string as platform
+async def test_type_errors(api: arez.PaladinsAPI, player: arez.Player):
+    # cache.py
+    # language not None or an instance of arez.Language
+    with pytest.raises(TypeError):
+        api.set_default_language("en")  # type: ignore
+
+    # api.py
+    # player not an int or str
+    with pytest.raises(TypeError):
+        await api.get_player([])  # type: ignore
+    # no iterable
+    with pytest.raises(TypeError):
+        await api.get_players(0)  # type: ignore
+    # iterable with not an int inside
+    with pytest.raises(TypeError):
+        await api.get_players(["test"])  # type: ignore
+    # player_name not a str
+    with pytest.raises(TypeError):
+        await api.search_players(1234)  # type: ignore
+    # platform not an instance of arez.Platform
     with pytest.raises(TypeError):
         await api.search_players("1234", "pc")  # type: ignore
+    # platform_id not a str
+    with pytest.raises(TypeError):
+        await api.get_from_platform("1234", "pc")  # type: ignore
+    # platform not None or an instance of arez.Platform
+    with pytest.raises(TypeError):
+        await api.get_from_platform(1234, "pc")  # type: ignore
+    # match_id not an int
+    with pytest.raises(TypeError):
+        await api.get_match("1234")  # type: ignore
+    # language not None or an instance of arez.Language
+    with pytest.raises(TypeError):
+        await api.get_match(1234, "en")  # type: ignore
+    # no iterable
+    with pytest.raises(TypeError):
+        await api.get_matches(1234)  # type: ignore
+    # iterable with not an int inside
+    with pytest.raises(TypeError):
+        await api.get_matches(["1234"])  # type: ignore
+    # language not None or an instance of arez.Language
+    with pytest.raises(TypeError):
+        await api.get_matches([1234], "en")  # type: ignore
+    # queue not an instance of arez.Queue
+    start = end = datetime.utcnow()
+    with pytest.raises(TypeError):
+        ran = False
+        async for match in api.get_matches_for_queue(
+            "casual", start=start, end=end  # type: ignore
+        ):
+            ran = True
+        assert not ran
+    # language not None or an instance of arez.Language
+    with pytest.raises(TypeError):
+        ran = False
+        async for match in api.get_matches_for_queue(
+            arez.Queue.Casual_Siege, language="en", start=start, end=end  # type: ignore
+        ):
+            ran = True
+        assert not ran
+
+    # player.py
+    # language not None or an instance of arez.Language
+    with pytest.raises(TypeError):
+        await player.get_loadouts("en")  # type: ignore
+    # language not None or an instance of arez.Language
+    with pytest.raises(TypeError):
+        await player.get_champion_stats("en")  # type: ignore
+    # language not None or an instance of arez.Language
+    with pytest.raises(TypeError):
+        await player.get_match_history("en")  # type: ignore
 
 
 # test enum creation and casting

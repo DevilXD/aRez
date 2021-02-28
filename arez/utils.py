@@ -63,6 +63,8 @@ def _deduplicate(iterable: Iterable[X], *to_remove: X) -> List[X]:
     List[X]
         The deduplicated list of values.
     """
+    if not isinstance(iterable, Iterable):
+        raise TypeError(f"Expected an iterable, got {type(iterable)}")
     no_dups: List[X] = list(OrderedDict.fromkeys(iterable))
     for value in to_remove:
         if value in no_dups:

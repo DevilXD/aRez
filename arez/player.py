@@ -232,7 +232,10 @@ class PartialPlayer(Expandable, CacheClient):
         Private
             The player's profile was private.
         """
-        assert language is None or isinstance(language, Language)
+        if language is not None and not isinstance(language, Language):
+            raise TypeError(
+                f"language argument has to be None or of arez.Language type, got {type(language)}"
+            )
         if self.private:
             raise Private
         if language is None:
@@ -273,7 +276,10 @@ class PartialPlayer(Expandable, CacheClient):
         Private
             The player's profile was private.
         """
-        assert language is None or isinstance(language, Language)
+        if language is not None and not isinstance(language, Language):
+            raise TypeError(
+                f"language argument has to be None or of arez.Language type, got {type(language)}"
+            )
         if self.private:
             raise Private
         if language is None:
@@ -312,7 +318,10 @@ class PartialPlayer(Expandable, CacheClient):
         Private
             The player's profile was private.
         """
-        assert language is None or isinstance(language, Language)
+        if language is not None and not isinstance(language, Language):
+            raise TypeError(
+                f"language argument has to be None or of arez.Language type, got {type(language)}"
+            )
         if self.private:
             raise Private
         if language is None:

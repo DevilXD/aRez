@@ -106,7 +106,10 @@ class DataCache(Endpoint, CacheClient):
         language : Language
             The new default language you want to set.
         """
-        assert isinstance(language, Language)
+        if not isinstance(language, Language):
+            raise TypeError(
+                f"language argument has to be of arez.Language type, got {type(language)}"
+            )
         logger.info(f"cache.set_default_language({language=})")
         self._default_language = language
 

@@ -28,12 +28,11 @@ from .statuspage import StatusPage
 from .match import Match, _get_players
 from .exceptions import Private, NotFound
 from .player import Player, PartialPlayer
-from .enums import Language, Platform, PC_PLATFORMS
 from .exceptions import HTTPException, Unavailable
+from .enums import Language, Platform, Queue, PC_PLATFORMS
 from .utils import chunk, group_by, _date_gen, _convert_timestamp, _deduplicate
 
 if TYPE_CHECKING:
-    from .enums import Queue
     from .cache import CacheEntry
     from .statuspage import ComponentGroup, CurrentStatus
 
@@ -242,7 +241,10 @@ class PaladinsAPI(DataCache):
         NotFound
             The champion information wasn't available on the server.
         """
-        assert language is None or isinstance(language, Language)
+        if language is not None and not isinstance(language, Language):
+            raise TypeError(
+                f"language argument has to be None or of arez.Language type, got {type(language)}"
+            )
         if language is None:
             language = self._default_language
         logger.info(f"api.get_champion_info({language=}, {force_refresh=})")
@@ -291,7 +293,6 @@ class PaladinsAPI(DataCache):
         PartialPlayer
             The wrapped player object.
         """
-        assert isinstance(player_id, int)
         logger.debug(f"api.wrap_player({player_id=}, {player_name=}, {platform=}, {private=})")
         return PartialPlayer(
             self, id=player_id, name=player_name, platform=platform, private=private
@@ -345,7 +346,8 @@ class PaladinsAPI(DataCache):
         Private
             The player's profile was private.
         """
-        assert isinstance(player, (int, str))
+        if not isinstance(player, (int, str)):
+            raise TypeError(f"player argument has to be of int or str type, got {type(player)}")
         player = str(player)  # explicit cast to str
         # save on the request by raising Notfound for zero straight away
         if player == '0':
@@ -413,7 +415,12 @@ class PaladinsAPI(DataCache):
         ids_list: List[int] = _deduplicate(player_ids, 0)  # also remove private accounts
         if not ids_list:
             return []
-        assert all(isinstance(player_id, int) for player_id in ids_list)
+        # verify the types
+        for player_id in ids_list:
+            if not isinstance(player_id, int):
+                raise TypeError(
+                    f"Incorrect type found in the iterable: int expected, got {type(player_id)}"
+                )
         logger.info(
             f"api.get_players(player_ids=[{', '.join(map(str, ids_list))}], {return_private=})"
         )
@@ -477,11 +484,13 @@ class PaladinsAPI(DataCache):
         NotFound
             There was no player for the given name (and optional platform) found.
         """
-        assert isinstance(player_name, str)
-        # fail early for an incorrect platform type
+        # fail early for an incorrect player_name or platform type
+        if not isinstance(player_name, str):
+            raise TypeError(f"player_name argument has to be of str type, got {type(player_name)}")
         if platform is not None and not isinstance(platform, Platform):
             raise TypeError(
-                f"platform arg has to be of type arez.Platform, not {type(platform)!r}"
+                "platform argument has to be None or of arez.Platform type, "
+                f"got {type(platform)!r}"
             )
         list_response: List[Dict[str, Any]]
         if platform is not None:
@@ -554,8 +563,12 @@ class PaladinsAPI(DataCache):
         NotFound
             The linked profile doesn't exist / couldn't be found.
         """
-        assert isinstance(platform_id, int)
-        assert isinstance(platform, Platform)
+        if not isinstance(platform_id, int):
+            raise TypeError(f"platform_id argument has to be of int type, got {type(platform_id)}")
+        if not isinstance(platform, Platform):
+            raise TypeError(
+                f"platform argument has to be of arez.Platform type, got {type(platform)!r}"
+            )
         logger.info(f"api.get_from_platform({platform_id=}, platform={platform.name})")
         response = await self.request("getplayeridbyportaluserid", platform.value, platform_id)
         if not response:
@@ -597,8 +610,12 @@ class PaladinsAPI(DataCache):
             The match wasn't available on the server.\n
             This can happen if the match is older than 30 days, or is currently in progress.
         """
-        assert isinstance(match_id, int)
-        assert language is None or isinstance(language, Language)
+        if not isinstance(match_id, int):
+            raise TypeError(f"match_id argument has to be of int type, got {type(match_id)}")
+        if language is not None and not isinstance(language, Language):
+            raise TypeError(
+                f"language argument has to be None or of arez.Language type, got {type(language)}"
+            )
         if language is None:
             language = self._default_language
         # ensure we have champion information first
@@ -647,7 +664,16 @@ class PaladinsAPI(DataCache):
         ids_list: List[int] = _deduplicate(match_ids)
         if not ids_list:
             return []
-        assert all(isinstance(match_id, int) for match_id in ids_list)
+        # verify the types
+        if language is not None and not isinstance(language, Language):
+            raise TypeError(
+                f"language argument has to be None or of arez.Language type, got {type(language)}"
+            )
+        for match_id in ids_list:
+            if not isinstance(match_id, int):
+                raise TypeError(
+                    f"Incorrect type found in the iterable: int expected, got {type(match_id)}"
+                )
         if language is None:
             language = self._default_language
         # ensure we have champion information first
@@ -757,11 +783,16 @@ class PaladinsAPI(DataCache):
             An async generator yielding matches played in the queue specified, between the
             timestamps specified.
         """
-        # process start timestamp
+        if not isinstance(queue, Queue):
+            raise TypeError(f"queue argument has to be of arez.Queue type, got {type(queue)}")
+        if language is not None and not isinstance(language, Language):
+            raise TypeError(
+                f"language argument has to be None or of arez.Language type, got {type(language)}"
+            )
+        # process start and end timestamps
         if start.tzinfo is not None or local_time:
             # assume local timezone, convert into UTC
             start = start.astimezone(timezone.utc).replace(tzinfo=None)
-        # process end timestamp
         if end.tzinfo is not None or local_time:
             end = end.astimezone(timezone.utc).replace(tzinfo=None)
         # exit early for a negative interval

@@ -51,6 +51,9 @@ async def test_champion_info(api: arez.PaladinsAPI, lang_num: int):
         # nothing is returned, expect an exception
         with pytest.raises(arez.NotFound):
             champion_info = await api.get_champion_info()
+        # check TypeError
+        with pytest.raises(TypeError):
+            champion_info = await api.get_champion_info("test")  # type: ignore
         return  # if the above passes, end here
     champion_info = await api.get_champion_info(arez.Language(lang_num), cache=False)
     assert champion_info is not None
