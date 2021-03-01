@@ -16,7 +16,7 @@ async def main():
     api = arez.PaladinsAPI(DEV_ID, AUTH_KEY)
 
     # get a PC player directly by their name, or any player by their Player ID
-    player = await api.get_player("DevilXD")
+    player = await api.get_player("Player")
     player = await api.get_player(5959045)
     # check if a player like that exists
     if not player:

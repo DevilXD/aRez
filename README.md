@@ -74,7 +74,7 @@ async def main():
     # create an API instance
     api = arez.PaladinsAPI(DEV_ID, AUTH_KEY)
     # fetch Player stats
-    player = await api.get_player("DevilXD")
+    player = await api.get_player(5959045)
     # display your rank
     print(player.ranked_best.rank.name)
     # close the API once you're done with it
