@@ -42,9 +42,8 @@ class Status:
     ----------
     platform : Literal["PC", "PS4", "Xbox", "Switch", "PTS"]
         A string denoting which platform this status is for.
-    up : Optional[bool]
-        `True` if the server is UP, `False` otherwise.\n
-        A value of `None` signifies the state of the server couldn't be determined.
+    up : bool
+        `True` if the server is UP, `False` otherwise.
     limited_access : bool
         `True` if this server has limited access, `False` otherwise.
     version : str
@@ -84,8 +83,14 @@ class Status:
         self.incidents: List[Incident] = []
         self.maintenances: List[Maintenance] = []
         if comp := components.pop(self.platform.lower(), None):
-            if comp.status != "Operational":  # pragma: no cover
-                self.status = comp.status
+            status = comp.status
+            if (
+                (not self.up or self.limited_access) and status != "Operational"
+                or self.up and not self.limited_access and status == "Degraded Performance"
+            ):  # pragma: no cover
+                if "Outage" in status:
+                    self.up = False
+                self.status = status
                 self.color = comp.color
             self.incidents = comp.incidents
             self.maintenances = comp.maintenances
@@ -98,15 +103,13 @@ class Status:
         # build it from scratch
         self: Status = super().__new__(cls)
         self.platform = _convert_platform(platform_name)
-        self.limited_access = False
-        self.version = ''
+        self.limited_access = False  # no info on this here
+        self.version = ''  # same here
         status: str = component.status
-        if status == "Operational":  # pragma: no branch
+        if status in ("Operational", "Degraded Performance"):  # pragma: no branch
             self.up = True
-        elif "Outage" in status:  # pragma: no cover
-            self.up = False
-        else:  # pragma: no cover
-            self.up = None
+        else:
+            self.up = False  # pragma: no cover
         self.status = status
         self.color = component.color
         self.incidents = component.incidents
@@ -187,9 +190,15 @@ class ServerStatus(CacheClient):
             self.status = "Limited access"
             self.color = colors["yellow"]
         if group is not None:
-            if self.status != "Operational":  # pragma: no cover
-                self.status = group.status
-                self.color = group.color
+            status = group.status
+            if (
+                (not self.all_up or self.limited_access) and status != "Operational"
+                or self.all_up and not self.limited_access and status == "Degraded Performance"
+            ):  # pragma: no cover
+                if "Outage" in status:
+                    self.all_up = False
+                self.status = status
+                self.color = comp.color
             self.incidents = group.incidents
             self.maintenances = group.maintenances
 
@@ -199,7 +208,7 @@ class ServerStatus(CacheClient):
     def _add_status(self, status: Status):
         platform = status.platform.lower()
         if platform != "pts":
-            if status.up is False:  # None doesn't change this
+            if not status.up:
                 self.all_up = False
             if status.limited_access:
                 self.limited_access = True
