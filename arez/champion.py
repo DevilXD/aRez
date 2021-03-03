@@ -159,9 +159,8 @@ class Champion(CacheObject, CacheClient):
 
         .. note::
 
-            Some champions may have 7 abilities instead of 5 - this will happen if one of their
-            other abilities allows switching the primary and secondary abilities between
-            two states.
+            Some champions may have more than 5 abilities - this will happen if one of their
+            abilities allows switching other abilities between their states.
 
     talents : Lookup[Device]
         An object that lets you iterate over all talents this champion has.\n
