@@ -6,6 +6,7 @@ import asyncio
 import logging
 from operator import itemgetter
 from datetime import datetime, timedelta, timezone
+from inspect import Parameter, signature, isfunction, iscoroutinefunction
 from typing import (
     Any,
     Optional,
@@ -13,8 +14,10 @@ from typing import (
     List,
     Dict,
     Tuple,
+    Callable,
     Iterable,
     Sequence,
+    Awaitable,
     AsyncGenerator,
     Literal,
     overload,
@@ -26,10 +29,9 @@ from .bounty import BountyItem
 from .status import ServerStatus
 from .statuspage import StatusPage
 from .match import Match, _get_players
-from .exceptions import Private, NotFound
 from .player import Player, PartialPlayer
-from .exceptions import HTTPException, Unavailable
 from .enums import Language, Platform, Queue, PC_PLATFORMS
+from .exceptions import HTTPException, Private, NotFound, Unavailable
 from .utils import chunk, group_by, _date_gen, _convert_timestamp, _deduplicate
 
 if TYPE_CHECKING:
@@ -93,9 +95,6 @@ class PaladinsAPI(DataCache):
     ):
         if loop is None:  # pragma: no branch
             loop = asyncio.get_event_loop()
-        self._statuspage = StatusPage("http://status.hirezstudios.com", loop=loop)
-        self._statuspage_group = "Paladins"
-        self._server_status: Optional[ServerStatus] = None
         super().__init__(
             "http://api.paladins.com/paladinsapi.svc",
             dev_id,
@@ -103,6 +102,16 @@ class PaladinsAPI(DataCache):
             loop=loop,
             enabled=cache,
             initialize=initialize,
+        )
+        self._statuspage = StatusPage("http://status.hirezstudios.com", loop=loop)
+        self._statuspage_group = "Paladins"
+        self._server_status: Optional[ServerStatus] = None
+        self._status_callback: Optional[
+            Callable[[ServerStatus, ServerStatus], Awaitable[Any]]
+        ] = None
+        self._status_task: Optional[asyncio.Task] = None
+        self._status_intervals: Tuple[timedelta, timedelta] = (
+            timedelta(minutes=3), timedelta(minutes=1)  # check, recheck
         )
 
     # solely for typing, __aexit__ exists in the Endpoint
@@ -195,10 +204,116 @@ class PaladinsAPI(DataCache):
                 )
                 return self._server_status
 
-            # pack it
-            self._server_status = ServerStatus(api_status, group)
+            # pack it and handle the callback
             logger.info(f"api.get_server_status({force_refresh=}) -> fetching successful")
+            old_status = self._server_status
+            self._server_status = ServerStatus(api_status, group)
+            if (
+                old_status is not None
+                and old_status != self._server_status
+                and self._status_callback is not None
+            ):
+                try:
+                    await self._status_callback(old_status, self._server_status)
+                except Exception as e:  # pragma: no cover
+                    logger.exception("Exception in the server status callback", exc_info=e)
         return self._server_status
+
+    async def _status_loop(self):
+        delay = self._status_intervals[0].total_seconds()
+        while True:
+            try:
+                server_status = await self.get_server_status(force_refresh=True)
+            except (NotFound, Unavailable):  # pragma: no cover
+                pass  # just skip it this time
+            except Exception as e:  # pragma: no cover, this also logs HTTPExceptions
+                logger.exception("Exception in the server status loop", exc_info=e)
+            else:
+                if not server_status.all_up or server_status.limited_access:
+                    delay = self._status_intervals[1].total_seconds()
+            await asyncio.sleep(delay)
+
+    def register_status_callback(
+        self,
+        callback: Union[
+            None,
+            Callable[[ServerStatus], Union[Awaitable[Any], Any]],
+            Callable[[ServerStatus, ServerStatus], Union[Awaitable[Any], Any]],
+        ],
+        check_interval: timedelta = timedelta(minutes=3),
+        recheck_interval: timedelta = timedelta(minutes=1),
+    ):
+        """
+        Registers a callback function, that will periodically check the status of the servers,
+        every `check_interval` specified. If the status changes, the callback function
+        will then be called with the new status (and optionally the previous one) passed as the
+        arguments, like so: ``callback(after)`` or ``callback(before, after)``.
+
+        Parameters
+        ----------
+        callback : Union[\
+                None,\
+                Callable[[ServerStatus], Union[Awaitable[Any], Any]],\
+                Callable[[ServerStatus, ServerStatus], Union[Awaitable[Any], Any]],\
+            ]
+            The callback function you want to register. This can be either a normal function
+            or an async one, accepting either ``1`` or ``2`` positional arguments,
+            with any return type.\n
+            Passing a new callback function, while one is already running,
+            will overwrite the previous one and reset the timer.\n
+            Passing `None` stops the checking loop.
+        check_interval : timedelta
+            The length of the interval used between Operational
+            (all servers up, no limited access) server status checks.\n
+            The default check interval is 3 minutes.
+        recheck_interval : timedelta
+            The length of the interval used between non-Operational
+            (at least one server is down, or limited access) server status checks.\n
+            The default recheck interval is 1 minute.
+
+        Raises
+        ------
+        TypeError
+            The callback passed was not a function.
+        ValueError
+            The callback passed had an incorrect number (or types) of its parameters.
+        """
+        if callback is None:
+            if self._status_task is not None:
+                self._status_task.cancel()
+            self._status_task = None
+            return
+        if not isfunction(callback):
+            raise TypeError("Callback has to be either a normal or async function")
+        sig = signature(callback)
+        arg_types = (Parameter.POSITIONAL_OR_KEYWORD, Parameter.POSITIONAL_ONLY)
+        if not (
+            1 <= len(sig.parameters) <= 2  # 1 or 2 args
+            and all(arg.kind in arg_types for arg in sig.parameters.values())  # positionals only
+        ):
+            raise ValueError(
+                "The callaback function has to accept either 1 or 2 positional arguments"
+            )
+        if iscoroutinefunction(callback):
+            if len(sig.parameters) == 1:
+                async def _status_callback(before: ServerStatus, after: ServerStatus):
+                    await callback(after)  # type: ignore
+            else:
+                async def _status_callback(before: ServerStatus, after: ServerStatus):
+                    await callback(before, after)  # type: ignore
+        else:
+            if len(sig.parameters) == 1:
+                async def _status_callback(before: ServerStatus, after: ServerStatus):
+                    callback(after)  # type: ignore
+            else:
+                async def _status_callback(before: ServerStatus, after: ServerStatus):
+                    callback(before, after)  # type: ignore
+        if self._status_task is not None:
+            self._status_task.cancel()
+            # await self._status_task  # not worth making it an async method for this
+        self._status_callback = _status_callback
+        self._status_intervals = (check_interval, recheck_interval)
+        self._status_task = self._loop.create_task(self._status_loop())
 
     async def get_champion_info(
         self,

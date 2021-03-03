@@ -1,5 +1,6 @@
 from enum import IntEnum
-from datetime import datetime
+from asyncio import Event, wait_for
+from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
 import arez
@@ -18,6 +19,12 @@ async def test_type_errors(api: arez.PaladinsAPI, player: arez.Player):
         api.set_default_language("en")  # type: ignore
 
     # api.py
+    # not a function or None
+    with pytest.raises(TypeError):
+        api.register_status_callback(0)  # type: ignore
+    # not 1 or 2 input arguments
+    with pytest.raises(ValueError):
+        api.register_status_callback(lambda: 0)  # type: ignore
     # player not an int or str
     with pytest.raises(TypeError):
         await api.get_player([])  # type: ignore
@@ -202,6 +209,58 @@ async def test_get_server_status(api: arez.PaladinsAPI):
     # repr
     repr(current_status)
     repr(current_status.statuses["pc"])
+
+    # test callback loop
+    n = 0
+    can_continue = Event()
+    one_second = timedelta(seconds=1)
+
+    async def test_callback(callback, *, double_register=False):
+        nonlocal n
+        n = 0
+        can_continue.clear()
+        api.register_status_callback(callback, one_second, one_second)
+        if double_register:
+            api.register_status_callback(callback, one_second, one_second)
+        await wait_for(can_continue.wait(), timeout=2.5)
+        api.register_status_callback(None)
+
+    # normal function, one argument
+    def callback(after):
+        nonlocal n
+        n += 1
+        if n >= 2:  # count two calls
+            can_continue.set()
+    # double register
+    await test_callback(callback, double_register=True)
+
+    # normal function, two arguments
+    def callback(before, after):  # type: ignore
+        nonlocal n
+        assert before != after
+        n += 1
+        if n >= 2:  # count two calls
+            can_continue.set()
+    await test_callback(callback)
+    # double un-register
+    api.register_status_callback(None)
+
+    # async function, one argument
+    async def callback(after):  # type: ignore
+        nonlocal n
+        n += 1
+        if n >= 2:  # count two calls
+            can_continue.set()
+    await test_callback(callback)
+
+    # async function, two arguments
+    async def callback(before, after):  # type: ignore
+        nonlocal n
+        assert before != after
+        n += 1
+        if n >= 2:  # count two calls
+            can_continue.set()
+    await test_callback(callback)
 
 
 @pytest.mark.api()

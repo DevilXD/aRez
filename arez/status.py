@@ -82,6 +82,7 @@ class Status:
             self.color = colors["yellow"]
         self.incidents: List[Incident] = []
         self.maintenances: List[Maintenance] = []
+        # this also removes the component from the dictionary
         if comp := components.pop(self.platform.lower(), None):
             status = comp.status
             if (
@@ -97,6 +98,14 @@ class Status:
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.platform}: {self.status})"
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return all(
+            getattr(self, attr_name) == getattr(other, attr_name)
+            for attr_name in ("up", "limited_access", "version", "status")
+        )
 
     @classmethod
     def from_component(cls, platform_name: str, component: Component):
@@ -204,6 +213,30 @@ class ServerStatus(CacheClient):
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.status})"
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        # check attributes
+        if not all(
+            getattr(self, attr_name) == getattr(other, attr_name)
+            for attr_name in ("all_up", "limited_access", "status")
+        ):
+            return False
+        # incidents
+        if (
+            self.incidents and other.incidents
+            and self.incidents[0].updated_at != other.incidents[0].updated_at
+        ):
+            return False
+        # maintenances
+        if (
+            self.maintenances and other.maintenances
+            and self.maintenances[0].updated_at != other.maintenances[0].updated_at
+        ):
+            return False
+        # compare all stored statuses
+        return self.statuses == other.statuses
 
     def _add_status(self, status: Status):
         platform = status.platform.lower()
