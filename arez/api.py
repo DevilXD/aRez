@@ -6,7 +6,7 @@ import asyncio
 import logging
 from operator import itemgetter
 from datetime import datetime, timedelta, timezone
-from inspect import Parameter, signature, isfunction, iscoroutinefunction
+from inspect import Parameter, signature, isfunction, ismethod, iscoroutinefunction
 from typing import (
     Any,
     Optional,
@@ -283,7 +283,7 @@ class PaladinsAPI(DataCache):
                 self._status_task.cancel()
             self._status_task = None
             return
-        if not isfunction(callback):
+        if not (isfunction(callback) or ismethod(callback)):
             raise TypeError("Callback has to be either a normal or async function")
         sig = signature(callback)
         arg_types = (Parameter.POSITIONAL_OR_KEYWORD, Parameter.POSITIONAL_ONLY)
