@@ -23,7 +23,7 @@ fetching the current server status from the status page.
 .. autoclass:: Incident()
     :members:
 
-.. autoclass:: ScheduledMaintenance()
+.. autoclass:: Maintenance()
     :members:
 
 .. autoclass:: Update()
