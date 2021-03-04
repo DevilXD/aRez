@@ -120,11 +120,14 @@ class PaladinsAPI(DataCache):
 
     async def close(self):
         """
-        Closes the underlying API connection.
+        Closes the underlying API connection,
+        and stops the server status checking loop (see `register_status_callback`).
 
         Attempting to make a request after the connection is closed
         will result in a `RuntimeError`.
         """
+        if self._status_task is not None:  # pragma: no cover
+            self._status_task.cancel()
         await asyncio.gather(super().close(), self._statuspage.close())
 
     async def get_server_status(self, *, force_refresh: bool = False) -> ServerStatus:
@@ -245,17 +248,15 @@ class PaladinsAPI(DataCache):
     ):
         """
         Registers a callback function, that will periodically check the status of the servers,
-        every `check_interval` specified. If the status changes, the callback function
+        every ``check_interval`` specified. If the status changes, the callback function
         will then be called with the new status (and optionally the previous one) passed as the
         arguments, like so: ``callback(after)`` or ``callback(before, after)``.
 
         Parameters
         ----------
-        callback : Union[\
-                None,\
+        callback : Union[None,\
                 Callable[[ServerStatus], Union[Awaitable[Any], Any]],\
-                Callable[[ServerStatus, ServerStatus], Union[Awaitable[Any], Any]],\
-            ]
+                Callable[[ServerStatus, ServerStatus], Union[Awaitable[Any], Any]]]
             The callback function you want to register. This can be either a normal function
             or an async one, accepting either ``1`` or ``2`` positional arguments,
             with any return type.\n
@@ -310,7 +311,6 @@ class PaladinsAPI(DataCache):
                     callback(before, after)  # type: ignore
         if self._status_task is not None:
             self._status_task.cancel()
-            # await self._status_task  # not worth making it an async method for this
         self._status_callback = _status_callback
         self._status_intervals = (check_interval, recheck_interval)
         self._status_task = self._loop.create_task(self._status_loop())
