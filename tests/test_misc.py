@@ -174,6 +174,7 @@ def test_enum():
 
 @pytest.mark.api()
 @pytest.mark.vcr()
+@pytest.mark.slow()
 @pytest.mark.asyncio()
 @pytest.mark.dependency(depends=["tests/test_endpoint.py::test_session"], scope="session")
 async def test_get_server_status(api: arez.PaladinsAPI):
