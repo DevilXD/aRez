@@ -99,7 +99,7 @@ class Status:
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.platform}: {self.status})"
 
-    def __eq__(self, other: object) -> bool:
+    def __eq__(self, other: object) -> bool:  # pragma: no cover
         if not isinstance(other, self.__class__):
             return NotImplemented
         return all(
@@ -214,7 +214,7 @@ class ServerStatus(CacheClient):
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.status})"
 
-    def __eq__(self, other: object) -> bool:
+    def __eq__(self, other: object) -> bool:  # pragma: no cover
         if not isinstance(other, self.__class__):
             return NotImplemented
         # check attributes
@@ -225,14 +225,20 @@ class ServerStatus(CacheClient):
             return False
         # incidents
         if (
-            self.incidents and other.incidents
-            and self.incidents[0].updated_at != other.incidents[0].updated_at
+            len(self.incidents) != len(other.incidents)
+            or (
+                self.incidents and other.incidents
+                and self.incidents[0].updated_at != other.incidents[0].updated_at
+            )
         ):
             return False
         # maintenances
         if (
-            self.maintenances and other.maintenances
-            and self.maintenances[0].updated_at != other.maintenances[0].updated_at
+            len(self.incidents) != len(other.incidents)
+            or (
+                self.maintenances and other.maintenances
+                and self.maintenances[0].updated_at != other.maintenances[0].updated_at
+            )
         ):
             return False
         # compare all stored statuses
