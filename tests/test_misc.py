@@ -304,6 +304,7 @@ async def test_cache(api: arez.PaladinsAPI):
     assert api.get_card(0) is None
     assert api.get_item(0) is None
     assert api.get_device(0) is None
+    assert api.get_skin(0) is None
     # get specific entry - fail cos missing initialize
     german = arez.Language.German
     entry = api.get_entry(german)
@@ -314,6 +315,7 @@ async def test_cache(api: arez.PaladinsAPI):
     assert api.get_card(0, language=german) is None
     assert api.get_item(0, language=german) is None
     assert api.get_device(0, language=german) is None
+    assert api.get_skin(0, language=german) is None
 
 
 @pytest.mark.api()

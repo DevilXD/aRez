@@ -416,6 +416,47 @@ class DataCache(Endpoint, CacheClient):
             return entry.get_device(device, fuzzy=fuzzy)
         return None
 
+    def get_skin(
+        self,
+        skin: Union[str, int],
+        /,
+        language: Optional[Language] = None,
+        *,
+        fuzzy: bool = False,
+    ) -> Optional[Skin]:
+        """
+        Returns a skin for the given Name or ID, and Language specified.
+        Case sensitive.
+
+        This method can return `None` or stale data if the entry hasn't been fetched yet,
+        or haven't been updated in a while.\n
+        Consider using the `get_champion_info` method from the main API instead.
+
+        Parameters
+        ----------
+        skin : Union[str, int]
+            The Name or ID of the item you want to get.
+        language : Optional[Language]
+            The `Language` you want to get the skin in.\n
+            Default language is used if not provided.
+        fuzzy : bool
+            When set to `True`, makes the Name search case insensitive.\n
+            Defaults to `False`.
+
+        Returns
+        -------
+        Optional[Skin]
+            The skin you requested.\n
+            `None` is returned if a skin couldn't be found, or the entry for the language
+            specified hasn't been fetched yet.
+        """
+        if language is None:
+            language = self._default_language
+        entry = self._cache.get(language)
+        if entry:
+            return entry.get_skin(skin, fuzzy=fuzzy)
+        return None
+
 
 class CacheEntry:
     """
@@ -617,3 +658,24 @@ class CacheEntry:
             `None` is returned if a device with the requested Name or ID couldn't be found.
         """
         return self.devices._lookup(device, fuzzy=fuzzy)
+
+    def get_skin(self, skin: Union[str, int], /, *, fuzzy: bool = False) -> Optional[Skin]:
+        """
+        Returns a skin for the given Name or ID.
+        Case sensitive.
+
+        Parameters
+        ----------
+        skin : Union[str, int]
+            The Name or ID of the skin you want to get.
+        fuzzy : bool
+            When set to `True`, makes the Name search case insensitive.\n
+            Defaults to `False`.
+
+        Returns
+        -------
+        Optional[Skin]
+            The skin you requested.\n
+            `None` is returned if a skin with the requested Name or ID couldn't be found.
+        """
+        return self.skins._lookup(skin, fuzzy=fuzzy)
