@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from .items import Device
     from .enums import Language
     from .cache import DataCache
-    from .champion import Champion
+    from .champion import Champion, Skin
     from .player import PartialPlayer, Player
 
 
@@ -342,7 +342,7 @@ class MatchPlayerMixin(KDAMixin, CacheClient):
         KDAMixin.__init__(
             self, kills=kills, deaths=match_data["Deaths"], assists=match_data["Assists"]
         )
-        self.player: Union[Player, PartialPlayer] = player
+        # Champion
         champion_id = match_data["ChampionId"]
         champion: Optional[Union[Champion, CacheObject]] = (
             self._api.get_champion(champion_id, language)
@@ -350,6 +350,14 @@ class MatchPlayerMixin(KDAMixin, CacheClient):
         if champion is None:
             champion = CacheObject(id=champion_id, name=champion_name)
         self.champion: Union[Champion, CacheObject] = champion
+        # Skin
+        skin_id = match_data["SkinId"]
+        skin: Optional[Union[Skin, CacheObject]] = self._api.get_skin(skin_id, language)
+        if skin is None:  # pragma: no cover
+            skin = CacheObject(id=skin_id, name=match_data["Skin"])
+        self.skin: Union[Skin, CacheObject] = skin
+        # Other
+        self.player: Union[Player, PartialPlayer] = player
         self.credits: int = creds
         self.damage_done: int = damage
         self.damage_bot: int = match_data["Damage_Bot"]
@@ -360,7 +368,6 @@ class MatchPlayerMixin(KDAMixin, CacheClient):
         self.healing_self: int = match_data["Healing_Player_Self"]
         self.objective_time: int = match_data["Objective_Assists"]
         self.multikill_max: int = match_data["Multi_kill_Max"]
-        self.skin = CacheObject(id=match_data["SkinId"], name=match_data["Skin"])
         self.team_number: Literal[1, 2] = match_data["TaskForce"]
         self.team_score: int = match_data[f"Team{self.team_number}Score"]
         self.winner: bool = self.team_number == match_data["Winning_TaskForce"]

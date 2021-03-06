@@ -14,7 +14,7 @@ from .mixins import (
 if TYPE_CHECKING:
     from .enums import Language
     from .cache import DataCache
-    from .champion import Champion
+    from .champion import Champion, Skin
     from .player import PartialPlayer, Player
 
 
@@ -450,6 +450,7 @@ class LivePlayer(WinLoseMixin, CacheClient):
             losses=player_data["tierLosses"],
         )
         self.match: LiveMatch = match
+        # Player
         player: Optional[Union[PartialPlayer, Player]] = players.get(int(player_data["playerId"]))
         if player is None:
             # if no full player was found
@@ -461,6 +462,7 @@ class LivePlayer(WinLoseMixin, CacheClient):
                 platform=player_data["playerPortalUserId"],
             )
         self.player: Union[PartialPlayer, Player] = player
+        # Champion
         champion_id: int = player_data["ChampionId"]
         champion: Optional[Union[Champion, CacheObject]] = (
             self._api.get_champion(champion_id, language)
@@ -468,7 +470,13 @@ class LivePlayer(WinLoseMixin, CacheClient):
         if champion is None:
             champion = CacheObject(id=champion_id, name=player_data["ChampionName"])
         self.champion: Union[Champion, CacheObject] = champion
-        self.skin = CacheObject(id=player_data["SkinId"], name=player_data["Skin"])
+        # Skin
+        skin_id = player_data["SkinId"]
+        skin: Optional[Union[Skin, CacheObject]] = self._api.get_skin(skin_id, language)
+        if skin is None:  # pragma: no cover
+            skin = CacheObject(id=skin_id, name=player_data["Skin"])
+        self.skin: Union[Skin, CacheObject] = skin
+        # Other
         self.rank: Optional[Rank]
         if match.queue.is_ranked():  # pragma: no cover
             self.rank = Rank(player_data["Tier"], return_default=True)
