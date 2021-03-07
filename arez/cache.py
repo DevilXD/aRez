@@ -162,7 +162,11 @@ class DataCache(Endpoint, CacheClient):
             champions_data = await self.request("getgods", language.value)
             items_data = await self.request("getitems", language.value)
             skins_data = await self.request("getchampionskins", -1, language.value)
-            if not (champions_data and items_data and skins_data):
+            # Don't strictly enforce skins_data to be there
+            # The reason is: the skins list that's returned right now is quite incomplete,
+            # and the only useful information it provides, is Rarity. Failing the whole refresh,
+            # just due to the skins list missing, would be quite unfortunate.
+            if not (champions_data and items_data):  # and skins_data
                 logger.debug(
                     f"cache.fetch_entry({language=}, {force_refresh=}, {cache=})"
                     " -> fetching failed, using cached"

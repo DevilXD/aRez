@@ -323,12 +323,12 @@ class PaladinsAPI(DataCache):
         cache: Optional[bool] = None,
     ) -> CacheEntry:
         """
-        Fetches the champion information.
+        Fetches the champions, talents, cards, shop items and skins information.
 
         To preserve requests, the information returned is cached once every 12 hours.
         Use the ``force_refresh`` parameter to override this behavior.
 
-        Uses up two requests each time the cache is refreshed, per language.
+        Uses up three requests each time the cache is refreshed, per language.
 
         Parameters
         ----------
@@ -348,7 +348,7 @@ class PaladinsAPI(DataCache):
         Returns
         -------
         CacheEntry
-            An object containing all champions, cards, talents and items information
+            An object containing all champions, cards, talents, shop items and skins information,
             in the chosen language.
 
         Raises
