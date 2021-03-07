@@ -295,20 +295,15 @@ class PaladinsAPI(DataCache):
             raise ValueError(
                 "The callaback function has to accept either 1 or 2 positional arguments"
             )
-        if iscoroutinefunction(callback):
-            if len(sig.parameters) == 1:
-                async def _status_callback(before: ServerStatus, after: ServerStatus):
-                    await callback(after)  # type: ignore
-            else:
-                async def _status_callback(before: ServerStatus, after: ServerStatus):
-                    await callback(before, after)  # type: ignore
-        else:
-            if len(sig.parameters) == 1:
-                async def _status_callback(before: ServerStatus, after: ServerStatus):
-                    callback(after)  # type: ignore
-            else:
-                async def _status_callback(before: ServerStatus, after: ServerStatus):
-                    callback(before, after)  # type: ignore
+        pass_before = len(sig.parameters) != 1
+        is_coro = iscoroutinefunction(callback)
+
+        async def _status_callback(before: ServerStatus, after: ServerStatus):
+            args = (before, after) if pass_before else (after,)
+            ret = callback(*args)  # type: ignore
+            if is_coro:
+                await ret
+
         if self._status_task is not None:
             self._status_task.cancel()
         self._status_callback = _status_callback
