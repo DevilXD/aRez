@@ -464,7 +464,7 @@ class LivePlayer(WinLoseMixin, CacheClient):
                 self._api,
                 id=player_data["playerId"],
                 name=player_data["playerName"],
-                platform=player_data["playerPortalUserId"],
+                platform=player_data["playerPortalId"],
             )
         self.player: Union[PartialPlayer, Player] = player
         # Champion
