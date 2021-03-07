@@ -13,8 +13,8 @@ from .mixins import (
 
 if TYPE_CHECKING:
     from .enums import Language
-    from .cache import DataCache
     from .champion import Champion, Skin
+    from .cache import DataCache, CacheEntry
     from .player import PartialPlayer, Player
 
 
@@ -122,9 +122,13 @@ class PartialMatch(MatchPlayerMixin, MatchMixin, Expandable):
         `True` if the player won this match, `False` otherwise.
     """
     def __init__(
-        self, player: Union[PartialPlayer, Player], language: Language, match_data: dict
+        self,
+        player: Union[PartialPlayer, Player],
+        language: Language,
+        cache_entry: Optional[CacheEntry],
+        match_data: Dict[str, Any],
     ):
-        MatchPlayerMixin.__init__(self, player, language, match_data)
+        MatchPlayerMixin.__init__(self, player, cache_entry, match_data)
         MatchMixin.__init__(self, match_data)
         self._language = language
 
@@ -148,7 +152,8 @@ class PartialMatch(MatchPlayerMixin, MatchMixin, Expandable):
         response = await self._api.request("getmatchdetails", self.id)
         if not response:
             raise NotFound("Match")
-        return Match(self._api, self._language, response, {})
+        cache_entry = self._api.get_entry(self._language)
+        return Match(self._api, cache_entry, response, {})
 
     def __repr__(self) -> str:
         return f"{self.queue.name}: {self.champion.name}: {self.kda_text}"
@@ -243,7 +248,7 @@ class MatchPlayer(MatchPlayerMixin):
     def __init__(
         self,
         match: Match,
-        language: Language,
+        cache_entry: Optional[CacheEntry],
         player_data: Dict[str, Any],
         parties: Dict[int, int],
         players: Dict[int, Player],
@@ -258,7 +263,7 @@ class MatchPlayer(MatchPlayerMixin):
                 name=player_data["playerName"],
                 platform=player_data["playerPortalId"],
             )
-        super().__init__(player, language, player_data)
+        super().__init__(player, cache_entry, player_data)
         self.rank: Optional[Rank]
         if match.queue.is_ranked():
             self.rank = Rank(player_data["League_Tier"], return_default=True)
@@ -330,7 +335,7 @@ class Match(CacheClient, MatchMixin):
     def __init__(
         self,
         api: DataCache,
-        language: Language,
+        cache_entry: Optional[CacheEntry],
         match_data: List[Dict[str, Any]],
         players: Dict[int, Player],
     ):
@@ -345,9 +350,9 @@ class Match(CacheClient, MatchMixin):
             # skip 0s
             if not ban_id:
                 continue
-            ban_champ: Optional[Union[Champion, CacheObject]] = (
-                self._api.get_champion(ban_id, language)
-            )
+            ban_champ: Optional[Union[Champion, CacheObject]] = None
+            if cache_entry is not None:
+                ban_champ = cache_entry.champions.get(ban_id)
             if ban_champ is None:
                 ban_champ = CacheObject(id=ban_id, name=first_player[f"Ban_{i}"])
             self.bans.append(ban_champ)
@@ -369,7 +374,7 @@ class Match(CacheClient, MatchMixin):
                     parties[pid] = next(party_count)
         # iterate over a second time, now that we have the party numbers sorted out
         for player_data in match_data:
-            match_player = MatchPlayer(self, language, player_data, parties, players)
+            match_player = MatchPlayer(self, cache_entry, player_data, parties, players)
             team_number = player_data["TaskForce"]
             if team_number == 1:
                 self.team1.append(match_player)
@@ -439,7 +444,7 @@ class LivePlayer(WinLoseMixin, CacheClient):
     def __init__(
         self,
         match: LiveMatch,
-        language: Language,
+        cache_entry: Optional[CacheEntry],
         player_data: Dict[str, Any],
         players: Dict[int, Player],
     ):
@@ -464,15 +469,17 @@ class LivePlayer(WinLoseMixin, CacheClient):
         self.player: Union[PartialPlayer, Player] = player
         # Champion
         champion_id: int = player_data["ChampionId"]
-        champion: Optional[Union[Champion, CacheObject]] = (
-            self._api.get_champion(champion_id, language)
-        )
+        champion: Optional[Union[Champion, CacheObject]] = None
+        if cache_entry is not None:
+            champion = cache_entry.champions.get(champion_id)
         if champion is None:
             champion = CacheObject(id=champion_id, name=player_data["ChampionName"])
         self.champion: Union[Champion, CacheObject] = champion
         # Skin
         skin_id = player_data["SkinId"]
-        skin: Optional[Union[Skin, CacheObject]] = self._api.get_skin(skin_id, language)
+        skin: Optional[Union[Skin, CacheObject]] = None
+        if cache_entry is not None:
+            skin = cache_entry.skins.get(skin_id)
         if skin is None:  # pragma: no cover
             skin = CacheObject(id=skin_id, name=player_data["Skin"])
         self.skin: Union[Skin, CacheObject] = skin
@@ -518,7 +525,7 @@ class LiveMatch(CacheClient):
     def __init__(
         self,
         api: DataCache,
-        language: Language,
+        cache_entry: Optional[CacheEntry],
         match_data: List[Dict[str, Any]],
         players: Dict[int, Player],
     ):
@@ -531,7 +538,7 @@ class LiveMatch(CacheClient):
         self.team1: List[LivePlayer] = []
         self.team2: List[LivePlayer] = []
         for player_data in match_data:
-            live_player = LivePlayer(self, language, player_data, players)
+            live_player = LivePlayer(self, cache_entry, player_data, players)
             if player_data["taskForce"] == 1:
                 self.team1.append(live_player)
             elif player_data["taskForce"] == 2:  # pragma: no branch

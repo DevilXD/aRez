@@ -3,14 +3,13 @@ from __future__ import annotations
 from math import nan
 from datetime import datetime
 from abc import ABC, abstractmethod
-from typing import Optional, Union, List, Tuple, Literal, TYPE_CHECKING
+from typing import Any, Optional, Union, List, Dict, Tuple, Literal, TYPE_CHECKING
 
 from .enums import Queue, Region
 
 if TYPE_CHECKING:
     from .items import Device
-    from .enums import Language
-    from .cache import DataCache
+    from .cache import DataCache, CacheEntry
     from .champion import Champion, Skin
     from .player import PartialPlayer, Player
 
@@ -241,7 +240,7 @@ class MatchMixin:
     winning_team : Literal[1, 2]
         The winning team of this match.
     """
-    def __init__(self, match_data: dict):
+    def __init__(self, match_data: Dict[str, Any]):
         self.id: int = match_data["Match"]
         if "hasReplay" in match_data:
             # we're in a full match data
@@ -324,7 +323,10 @@ class MatchPlayerMixin(KDAMixin, CacheClient):
         `True` if the player won this match, `False` otherwise.
     """
     def __init__(
-        self, player: Union[Player, PartialPlayer], language: Language, match_data: dict
+        self,
+        player: Union[Player, PartialPlayer],
+        cache_entry: Optional[CacheEntry],
+        match_data: Dict[str, Any],
     ):
         CacheClient.__init__(self, player._api)
         if "hasReplay" in match_data:
@@ -344,15 +346,17 @@ class MatchPlayerMixin(KDAMixin, CacheClient):
         )
         # Champion
         champion_id = match_data["ChampionId"]
-        champion: Optional[Union[Champion, CacheObject]] = (
-            self._api.get_champion(champion_id, language)
-        )
+        champion: Optional[Union[Champion, CacheObject]] = None
+        if cache_entry is not None:
+            champion = cache_entry.champions.get(champion_id)
         if champion is None:
             champion = CacheObject(id=champion_id, name=champion_name)
         self.champion: Union[Champion, CacheObject] = champion
         # Skin
         skin_id = match_data["SkinId"]
-        skin: Optional[Union[Skin, CacheObject]] = self._api.get_skin(skin_id, language)
+        skin: Optional[Union[Skin, CacheObject]] = None
+        if cache_entry is not None:
+            skin = cache_entry.skins.get(skin_id)
         if skin is None:  # pragma: no cover
             skin = CacheObject(id=skin_id, name=match_data["Skin"])
         self.skin: Union[Skin, CacheObject] = skin
@@ -378,7 +382,9 @@ class MatchPlayerMixin(KDAMixin, CacheClient):
             item_id = match_data[f"ActiveId{i}"]
             if not item_id:
                 continue
-            item: Optional[Union[Device, CacheObject]] = self._api.get_item(item_id, language)
+            item: Optional[Union[Device, CacheObject]] = None
+            if cache_entry is not None:
+                item = cache_entry.items.get(item_id)
             if item is None:
                 if "hasReplay" in match_data:
                     # we're in a full match data
@@ -394,7 +400,7 @@ class MatchPlayerMixin(KDAMixin, CacheClient):
                 # we're in a partial (player history) match data
                 level = match_data[f"ActiveLevel{i}"] // 4 + 1
             self.items.append(MatchItem(item, level))
-        self.loadout = MatchLoadout(self._api, language, match_data)
+        self.loadout = MatchLoadout(cache_entry, match_data)
 
     @property
     def shielding(self) -> int:

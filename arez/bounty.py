@@ -1,15 +1,14 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Union, Dict, Any, Literal, cast, TYPE_CHECKING
+from typing import Optional, Union, Dict, Any, Literal, cast, TYPE_CHECKING
 
 from .utils import _convert_timestamp
 from .mixins import CacheClient, CacheObject
 
 if TYPE_CHECKING:
-    from .enums import Language
-    from .cache import DataCache
     from .champion import Champion
+    from .cache import DataCache, CacheEntry
 
 
 __all__ = ["BountyItem"]
@@ -44,7 +43,7 @@ class BountyItem(CacheClient):
         All active deals have their prices hidden, and remaining quantity is missing altogether.
         This is a limitation of the Hi-Rez API, not the library.
     """
-    def __init__(self, api: DataCache, language: Language, data: Dict[str, Any]):
+    def __init__(self, api: DataCache, cache_entry: Optional[CacheEntry], data: Dict[str, Any]):
         super().__init__(api)
         self.active: bool = data["active"] == 'y'
         self.item = CacheObject(id=data["bounty_item_id2"], name=data["bounty_item_name"])
@@ -58,10 +57,9 @@ class BountyItem(CacheClient):
         self.initial_price: int = int(initial) if initial.isdecimal() else 0
         self.final_price: int = int(final) if final.isdecimal() else 0
         # handle champion
-        champion = api.get_champion(data["champion_id"], language)
-        if champion:
-            self.champion: Union[Champion, CacheObject] = champion
-        else:
-            self.champion = CacheObject(
-                id=data["champion_id"], name=data["champion_name"]
-            )
+        champion: Optional[Union[Champion, CacheObject]] = None
+        if cache_entry is not None:
+            champion = cache_entry.champions.get(data["champion_id"])
+        if champion is None:
+            champion = CacheObject(id=data["champion_id"], name=data["champion_name"])
+        self.champion: Union[Champion, CacheObject] = champion

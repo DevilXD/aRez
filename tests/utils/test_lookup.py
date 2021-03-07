@@ -33,11 +33,11 @@ def test_lookup():
         "Lookup([Element(1, One), Element(3, Three), Element(2, Two), "
         "Element(4, Four), Element(5, Five)])"
     )
-    assert lcp._lookup(4) == 4
-    assert lcp._lookup("two") is None
-    assert lcp._lookup("Two") == 2
-    assert lcp._lookup("two", fuzzy=True) == 2
-    assert lcp._lookup("six", fuzzy=True) is None
+    assert lcp.get(4) == 4
+    assert lcp.get("two") is None
+    assert lcp.get("Two") == 2
+    assert lcp.get("two", fuzzy=True) == 2
+    assert lcp.get("six", fuzzy=True) is None
     assert len(lcp) == len(original)
     for i, it1, it2 in zip(range(len(lcp)), lcp, original):
         assert it1 == it2

@@ -323,6 +323,7 @@ class PlayerStatus(CacheClient):
             language = self._api._default_language
         # ensure we have champion information first
         await self._api._ensure_entry(language)
+        cache_entry = self._api.get_entry(language)
         response = await self._api.request("getmatchplayerdetails", self.live_match_id)
         if not response:
             return None
@@ -332,4 +333,4 @@ class PlayerStatus(CacheClient):
         players_dict: Dict[int, Player] = {}
         if expand_players:
             players_dict = await _get_players(self._api, (int(p["playerId"]) for p in response))
-        return LiveMatch(self._api, language, response, players_dict)
+        return LiveMatch(self._api, cache_entry, response, players_dict)

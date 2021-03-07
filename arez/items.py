@@ -7,8 +7,7 @@ from .enums import DeviceType
 from .mixins import CacheClient, CacheObject
 
 if TYPE_CHECKING:
-    from .enums import Language
-    from .cache import DataCache
+    from .cache import CacheEntry
     from .champion import Champion, Ability
     from .player import PartialPlayer, Player
 
@@ -122,7 +121,7 @@ class Device(CacheObject):
         self.champion = champion
         if type(self.ability) is CacheObject and self.ability.name != "Unknown":
             # upgrade the ability to a full object if possible
-            ability = champion.get_ability(self.ability.name)
+            ability = champion.abilities.get(self.ability.name)
             if ability:
                 self.ability = ability
 
@@ -206,35 +205,34 @@ class Loadout(CacheObject, CacheClient):
     champion : Union[Champion, CacheObject]
         The champion this loadout belongs to.\n
         With incomplete cache, this will be a `CacheObject` with the name and ID set.
-    language : Language
-        The language of all the cards this loadout has.
     cards : List[LoadoutCard]
         A list of loadout cards this loadout consists of.
     """
     def __init__(
         self,
         player: Union[PartialPlayer, Player],
-        language: Language,
+        cache_entry: Optional[CacheEntry],
         loadout_data: Dict[str, Any],
     ):
         assert player.id == loadout_data["playerId"]
         CacheClient.__init__(self, player._api)
         CacheObject.__init__(self, id=loadout_data["DeckId"], name=loadout_data["DeckName"])
         self.player: Union[PartialPlayer, Player] = player
-        self.language: Language = language
-        champion_id: int = loadout_data["ChampionId"]
-        champion: Optional[Union[Champion, CacheObject]] = (
-            self._api.get_champion(champion_id, language)
-        )
+        champion: Optional[Union[Champion, CacheObject]] = None
+        if cache_entry is not None:
+            champion = cache_entry.champions.get(loadout_data["ChampionId"])
         if champion is None:
-            champion = CacheObject(id=champion_id, name=loadout_data["ChampionName"])
+            champion = CacheObject(
+                id=loadout_data["ChampionId"], name=loadout_data["ChampionName"]
+            )
         self.champion: Union[Champion, CacheObject] = champion
         self.cards: List[LoadoutCard] = []
         for card_data in loadout_data["LoadoutItems"]:
-            card_id: int = card_data["ItemId"]
-            card: Optional[Union[Device, CacheObject]] = self._api.get_card(card_id, language)
+            card: Optional[Union[Device, CacheObject]] = None
+            if cache_entry is not None:
+                card = cache_entry.cards.get(card_data["ItemId"])
             if card is None:
-                card = CacheObject(id=card_id, name=card_data["ItemName"])
+                card = CacheObject(id=card_data["ItemId"], name=card_data["ItemName"])
             self.cards.append(LoadoutCard(card, card_data["Points"]))
         self.cards.sort(key=lambda lc: lc.points, reverse=True)
 
@@ -294,14 +292,16 @@ class MatchLoadout:
         With incomplete cache, this will be a `CacheObject` with the name and ID set.\n
         `None` when the player hasn't picked a talent during the match.
     """
-    def __init__(self, api: DataCache, language: Language, match_data: Dict[str, Any]):
+    def __init__(self, cache_entry: Optional[CacheEntry], match_data: Dict[str, Any]):
         self.cards: List[LoadoutCard] = []
         for i in range(1, 6):  # 1-5
             card_id: int = match_data[f"ItemId{i}"]
             if not card_id:
                 # skip 0s
                 continue
-            card: Optional[Union[Device, CacheObject]] = api.get_card(card_id, language)
+            card: Optional[Union[Device, CacheObject]] = None
+            if cache_entry is not None:
+                card = cache_entry.cards.get(card_id)
             if card is None:
                 if "hasReplay" in match_data:
                     # we're in a full match data
@@ -314,7 +314,9 @@ class MatchLoadout:
         self.cards.sort(key=lambda c: c.points, reverse=True)
         talent_id: int = match_data["ItemId6"]
         if talent_id:
-            talent: Optional[Union[Device, CacheObject]] = api.get_talent(talent_id, language)
+            talent: Optional[Union[Device, CacheObject]] = None
+            if cache_entry is not None:
+                talent = cache_entry.talents.get(talent_id)
             if talent is None:
                 if "hasReplay" in match_data:
                     # we're in a full match data

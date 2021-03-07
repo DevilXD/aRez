@@ -735,15 +735,15 @@ class PaladinsAPI(DataCache):
             language = self._default_language
         # ensure we have champion information first
         await self._ensure_entry(language)
+        cache_entry = self.get_entry(language)
         logger.info(f"api.get_match({match_id=}, {language=}, {expand_players=})")
         response = await self.request("getmatchdetails", match_id)
         if not response:
             raise NotFound("Match")
-        players: Dict[int, Player] = {}
+        players_dict: Dict[int, Player] = {}
         if expand_players:
-            players_list = await self.get_players((int(p["playerId"]) for p in response))
-            players = {p.id: p for p in players_list}
-        return Match(self, language, response, players)
+            players_dict = await _get_players(self, (int(p["playerId"]) for p in response))
+        return Match(self, cache_entry, response, players_dict)
 
     async def get_matches(
         self,
@@ -793,6 +793,7 @@ class PaladinsAPI(DataCache):
             language = self._default_language
         # ensure we have champion information first
         await self._ensure_entry(language)
+        cache_entry = self.get_entry(language)
         logger.info(
             f"api.get_matches(match_ids=[{', '.join(map(str, ids_list))}], "
             f"{language=}, {expand_players=})"
@@ -821,7 +822,7 @@ class PaladinsAPI(DataCache):
                 players_list = await self.get_players(player_ids)
                 players.update({p.id: p for p in players_list})
             chunked_matches: List[Match] = [
-                Match(self, language, match_list, players)
+                Match(self, cache_entry, match_list, players)
                 for match_list in bunched_matches.values()
             ]
             matches.extend(chunked_matches)
@@ -917,6 +918,7 @@ class PaladinsAPI(DataCache):
             language = self._default_language
         # ensure we have champion information first
         await self._ensure_entry(language)
+        cache_entry = self.get_entry(language)
         logger.info(
             f"api.get_matches_for_queue({queue=}, {language=}, {start=} UTC, {end=} UTC, "
             f"{reverse=}, {local_time=}, {expand_players=})"
@@ -972,7 +974,7 @@ class PaladinsAPI(DataCache):
                     players_dict = await _get_players(self, player_ids)
                     players.update(players_dict)
                 chunked_matches = [
-                    Match(self, language, match_list, players)
+                    Match(self, cache_entry, match_list, players)
                     for match_list in bunched_matches.values()
                 ]
                 chunked_matches.sort(key=lambda m: chunk_ids.index(m.id))
@@ -1022,10 +1024,11 @@ class PaladinsAPI(DataCache):
             language = self._default_language
         # ensure we have champion information first
         await self._ensure_entry(language)
+        cache_entry = self.get_entry(language)
         response = await self.request("getBountyItems")
         if not response:
             raise NotFound("Bounty items")
-        items = [BountyItem(self, language, d) for d in response]
+        items = [BountyItem(self, cache_entry, d) for d in response]
         idx: int = 0
         # find the most recent inactive deal, then go back one index to get the current one
         for i, item in enumerate(items):  # pragma: no branch

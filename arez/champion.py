@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Optional, Union, List, Dict, Literal, TYPE_CHECKING
+from typing import Any, List, Dict, Literal, TYPE_CHECKING
 
 from .utils import Lookup
 from .mixins import CacheClient, CacheObject
@@ -253,68 +253,6 @@ class Champion(CacheObject, CacheClient):
 
     def __bool__(self) -> bool:
         return len(self.cards) == 16 and len(self.talents) == 3
-
-    def get_ability(
-        self, ability: Union[str, int], /, *, fuzzy: bool = False
-    ) -> Optional[Ability]:
-        """
-        Returns an ability for this champion with the given Name or ID.
-
-        Parameters
-        ----------
-        ability : Union[str, int]
-            The ability's Name or ID you want to get.
-        fuzzy : bool
-            When set to `True`, makes the Name search case insensitive.\n
-            Defaults to `False`.
-
-        Returns
-        -------
-        Optional[Ability]
-            The ability you requested.\n
-            `None` is returned if the ability couldn't be found.
-        """
-        return self.abilities._lookup(ability, fuzzy=fuzzy)
-
-    def get_card(self, card: Union[str, int], /, *, fuzzy: bool = False) -> Optional[Device]:
-        """
-        Returns a card for this champion with the given Name or ID.
-
-        Parameters
-        ----------
-        card : Union[str, int]
-            The card's Name or ID you want to get.
-        fuzzy : bool
-            When set to `True`, makes the Name search case insensitive.\n
-            Defaults to `False`.
-
-        Returns
-        -------
-        Optional[Device]
-            The card you requested.\n
-            `None` is returned if the card couldn't be found.
-        """
-        return self.cards._lookup(card, fuzzy=fuzzy)
-
-    def get_talent(self, talent: Union[str, int], /, *, fuzzy: bool = False) -> Optional[Device]:
-        """
-        Returns a talent for this champion with the given Name or ID.
-
-        Parameters
-        ----------
-        talent : Union[str, int]
-            The talent's Name or ID you want to get.
-        fuzzy : bool
-            When set to `True`, makes the Name search case insensitive.\n
-            Defaults to `False`.
-
-        Returns
-        -------
-        Optional[Device]
-            The talent you requested.\n
-            `None` is returned if the talent couldn't be found.
-        """
-        return self.talents._lookup(talent, fuzzy=fuzzy)
 
     async def get_skins(self) -> List[Skin]:
         """

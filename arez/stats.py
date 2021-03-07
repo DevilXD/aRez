@@ -8,8 +8,9 @@ from .utils import Duration, _convert_timestamp
 from .mixins import CacheObject, WinLoseMixin, KDAMixin
 
 if TYPE_CHECKING:
+    from .enums import Queue
+    from .cache import CacheEntry
     from .champion import Champion
-    from .enums import Language, Queue
     from .player import PartialPlayer, Player
 
 
@@ -123,7 +124,7 @@ class ChampionStats(WinLoseMixin, KDAMixin):
     def __init__(
         self,
         player: Union[PartialPlayer, Player],
-        language: Language,
+        cache_entry: Optional[CacheEntry],
         stats_data: Dict[str, Any],
         queue: Optional[Queue] = None,
     ):
@@ -146,9 +147,9 @@ class ChampionStats(WinLoseMixin, KDAMixin):
         else:
             champion_id = int(stats_data["ChampionId"])
             champion_name = stats_data["Champion"]
-        champion: Optional[Union[Champion, CacheObject]] = (
-            self.player._api.get_champion(champion_id, language)
-        )
+        champion: Optional[Union[Champion, CacheObject]] = None
+        if cache_entry is not None:
+            champion = cache_entry.champions.get(champion_id)
         if champion is None:
             champion = CacheObject(id=champion_id, name=champion_name)
         self.champion: Union[Champion, CacheObject] = champion

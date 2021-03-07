@@ -317,7 +317,7 @@ class Lookup(Iterable[LookupType]):
         """
         return self._list_lookup[index]
 
-    def _lookup(self, name_or_id: Union[int, str], *, fuzzy: bool = False) -> Optional[LookupType]:
+    def get(self, name_or_id: Union[int, str], *, fuzzy: bool = False) -> Optional[LookupType]:
         """
         Allows you to quickly lookup an element by it's Name or ID.
 

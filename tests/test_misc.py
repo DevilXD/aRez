@@ -285,37 +285,21 @@ async def test_cache(api: arez.PaladinsAPI):
     # repr
     repr(entry)
     # get a valid champion, then an invalid card and talent
-    champion = entry.get_champion("Androxus")
+    champion = entry.champions.get("Androxus")
     assert champion is not None
     # repr Champion and Ability
     repr(champion)
     repr(list(champion.abilities)[0])
-    assert champion.get_card(0) is None
-    assert champion.get_talent(0) is None
     # test Skins
     skins = await champion.get_skins()
     assert len(skins) > 0, f"No skins returned for {champion.name}!"
     assert all(isinstance(s, arez.Skin) for s in skins)
     # Skin repr
     repr(skins[0])
-    # fail getting a champion, talent, card, shop item and device, due to invalid ID
-    assert api.get_champion(0) is None
-    assert api.get_talent(0) is None
-    assert api.get_card(0) is None
-    assert api.get_item(0) is None
-    assert api.get_device(0) is None
-    assert api.get_skin(0) is None
     # get specific entry - fail cos missing initialize
     german = arez.Language.German
     entry = api.get_entry(german)
     assert entry is None
-    # fail getting a champion, talent, card, shop item and device, due to missing cache
-    assert api.get_champion(0, language=german) is None
-    assert api.get_talent(0, language=german) is None
-    assert api.get_card(0, language=german) is None
-    assert api.get_item(0, language=german) is None
-    assert api.get_device(0, language=german) is None
-    assert api.get_skin(0, language=german) is None
 
 
 @pytest.mark.api()

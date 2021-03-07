@@ -190,9 +190,11 @@ class DataCache(Endpoint, CacheClient):
         """
         Returns a cache entry for the given language specified.
 
-        This method can return `None` or stale data if the entry hasn't been fetched yet,
-        or haven't been updated in a while.\n
-        Consider using the `get_champion_info` method from the main API instead.
+        .. note::
+
+            This method can return `None` or stale data if the entry hasn't been fetched yet,
+            or haven't been updated in a while.\n
+            Consider using the `get_champion_info` method from the main API instead.
 
         Parameters
         ----------
@@ -211,283 +213,47 @@ class DataCache(Endpoint, CacheClient):
         logger.info(f"cache.get_entry({language=})")
         return self._cache.get(language)
 
-    def get_champion(
-        self,
-        champion: Union[str, int],
-        /,
-        language: Optional[Language] = None,
-        *,
-        fuzzy: bool = False,
-    ) -> Optional[Champion]:
-        """
-        Returns a champion for the given Name or ID, and Language specified.
-        Case sensitive.
-
-        This method can return `None` or stale data if the entry hasn't been fetched yet,
-        or haven't been updated in a while.\n
-        Consider using the `get_champion_info` method from the main API instead.
-
-        Parameters
-        ----------
-        champion : Union[str, int]
-            The Name or ID of the champion you want to get.
-        language : Optional[Language]
-            The `Language` you want to get the champion in.\n
-            Default language is used if not provided.
-        fuzzy : bool
-            When set to `True`, makes the Name search case insensitive.\n
-            Defaults to `False`.
-
-        Returns
-        -------
-        Optional[Champion]
-            The champion you requested.\n
-            `None` is returned if a champion couldn't be found, or the entry for the language
-            specified hasn't been fetched yet.
-        """
-        if language is None:
-            language = self._default_language
-        entry = self._cache.get(language)
-        if entry:
-            return entry.get_champion(champion, fuzzy=fuzzy)
-        return None
-
-    def get_card(
-        self,
-        card: Union[str, int],
-        /,
-        language: Optional[Language] = None,
-        *,
-        fuzzy: bool = False,
-    ) -> Optional[Device]:
-        """
-        Returns a card for the given Name or ID, and Language specified.
-        Case sensitive.
-
-        This method can return `None` or stale data if the entry hasn't been fetched yet,
-        or haven't been updated in a while.\n
-        Consider using the `get_champion_info` method from the main API instead.
-
-        Parameters
-        ----------
-        card : Union[str, int]
-            The Name or ID of the card you want to get.
-        language : Optional[Language]
-            The `Language` you want to get the card in.\n
-            Default language is used if not provided.
-        fuzzy : bool
-            When set to `True`, makes the Name search case insensitive.\n
-            Defaults to `False`.
-
-        Returns
-        -------
-        Optional[Device]
-            The card you requested.\n
-            `None` is returned if a card couldn't be found, or the entry for the language
-            specified hasn't been fetched yet.
-        """
-        if language is None:
-            language = self._default_language
-        entry = self._cache.get(language)
-        if entry:
-            return entry.get_card(card, fuzzy=fuzzy)
-        return None
-
-    def get_talent(
-        self,
-        talent: Union[str, int],
-        /,
-        language: Optional[Language] = None,
-        *,
-        fuzzy: bool = False,
-    ) -> Optional[Device]:
-        """
-        Returns a talent for the given Name or ID, and Language specified.
-        Case sensitive.
-
-        This method can return `None` or stale data if the entry hasn't been fetched yet,
-        or haven't been updated in a while.\n
-        Consider using the `get_champion_info` method from the main API instead.
-
-        Parameters
-        ----------
-        talent : Union[str, int]
-            The Name or ID of the talent you want to get.
-        language : Optional[Language]
-            The `Language` you want to get the talent in.\n
-            Default language is used if not provided.
-        fuzzy : bool
-            When set to `True`, makes the Name search case insensitive.\n
-            Defaults to `False`.
-
-        Returns
-        -------
-        Optional[Device]
-            The talent you requested.\n
-            `None` is returned if a talent couldn't be found, or the entry for the language
-            specified hasn't been fetched yet.\n
-        """
-        if language is None:
-            language = self._default_language
-        entry = self._cache.get(language)
-        if entry:
-            return entry.get_talent(talent, fuzzy=fuzzy)
-        return None
-
-    def get_item(
-        self,
-        item: Union[str, int],
-        /,
-        language: Optional[Language] = None,
-        *,
-        fuzzy: bool = False,
-    ) -> Optional[Device]:
-        """
-        Returns a shop item for the given Name or ID, and Language specified.
-        Case sensitive.
-
-        This method can return `None` or stale data if the entry hasn't been fetched yet,
-        or haven't been updated in a while.\n
-        Consider using the `get_champion_info` method from the main API instead.
-
-        Parameters
-        ----------
-        item : Union[str, int]
-            The Name or ID of the item you want to get.
-        language : Optional[Language]
-            The `Language` you want to get the shop item in.\n
-            Default language is used if not provided.
-        fuzzy : bool
-            When set to `True`, makes the Name search case insensitive.\n
-            Defaults to `False`.
-
-        Returns
-        -------
-        Optional[Device]
-            The shop item you requested.\n
-            `None` is returned if a shop item couldn't be found, or the entry for the language
-            specified hasn't been fetched yet.
-        """
-        if language is None:
-            language = self._default_language
-        entry = self._cache.get(language)
-        if entry:
-            return entry.get_item(item, fuzzy=fuzzy)
-        return None
-
-    def get_device(
-        self,
-        device: Union[str, int],
-        /,
-        language: Optional[Language] = None,
-        *,
-        fuzzy: bool = False,
-    ) -> Optional[Device]:
-        """
-        Returns a device for the given Name or ID, and Language specified.
-        Case sensitive.
-
-        This method can return `None` or stale data if the entry hasn't been fetched yet,
-        or haven't been updated in a while.\n
-        Consider using the `get_champion_info` method from the main API instead.
-
-        Parameters
-        ----------
-        device : Union[str, int]
-            The Name or ID of the item you want to get.
-        language : Optional[Language]
-            The `Language` you want to get the device in.\n
-            Default language is used if not provided.
-        fuzzy : bool
-            When set to `True`, makes the Name search case insensitive.\n
-            Defaults to `False`.
-
-        Returns
-        -------
-        Optional[Device]
-            The device you requested.\n
-            `None` is returned if a device couldn't be found, or the entry for the language
-            specified hasn't been fetched yet.
-        """
-        if language is None:
-            language = self._default_language
-        entry = self._cache.get(language)
-        if entry:
-            return entry.get_device(device, fuzzy=fuzzy)
-        return None
-
-    def get_skin(
-        self,
-        skin: Union[str, int],
-        /,
-        language: Optional[Language] = None,
-        *,
-        fuzzy: bool = False,
-    ) -> Optional[Skin]:
-        """
-        Returns a skin for the given Name or ID, and Language specified.
-        Case sensitive.
-
-        This method can return `None` or stale data if the entry hasn't been fetched yet,
-        or haven't been updated in a while.\n
-        Consider using the `get_champion_info` method from the main API instead.
-
-        Parameters
-        ----------
-        skin : Union[str, int]
-            The Name or ID of the item you want to get.
-        language : Optional[Language]
-            The `Language` you want to get the skin in.\n
-            Default language is used if not provided.
-        fuzzy : bool
-            When set to `True`, makes the Name search case insensitive.\n
-            Defaults to `False`.
-
-        Returns
-        -------
-        Optional[Skin]
-            The skin you requested.\n
-            `None` is returned if a skin couldn't be found, or the entry for the language
-            specified hasn't been fetched yet.
-        """
-        if language is None:
-            language = self._default_language
-        entry = self._cache.get(language)
-        if entry:
-            return entry.get_skin(skin, fuzzy=fuzzy)
-        return None
-
 
 class CacheEntry:
     """
     Represents a collection of champions, cards, talents and shop items.
     You can get this one from the `PaladinsAPI.get_champion_info` or `DataCache.get_entry` methods.
 
+    .. note::
+
+        The `Lookup` class provides an easy way of searching for a particular object,
+        based on its Name or ID. You can also obtain a list of all objects instead.\n
+        Please see the example code below:
+
+        .. code-block:: py
+
+            entry: CacheEntry
+
+            # obtain a list of all champions
+            champions = list(entry.champions)
+            # get a particular champion by their name
+            champion = entry.champions.get("Androxus")
+            # fuzzy name matching
+            champion = entry.champions.get("makoa", fuzzy=True)
+
     Attributes
     ----------
     language : Language
         The language of this entry.
     champions : Lookup[Champion]
-        An object that lets you iterate over all champions.\n
-        Use ``list(...)`` to get a list instead.
+        An object that lets you iterate over all champions.
     abilities : Lookup[Ability]
-        An object that lets you iterate over all champion's abilities.\n
-        Use ``list(...)`` to get a list instead.
+        An object that lets you iterate over all champion's abilities.
     skins : Lookup[Skin]
-        An object that lets you iterate over all champion's skins.\n
-        Use ``list(...)`` to get a list instead.
+        An object that lets you iterate over all champion's skins.
     items : Lookup[Device]
-        An object that lets you iterate over all shop items.\n
-        Use ``list(...)`` to get a list instead.
+        An object that lets you iterate over all shop items.
     cards : Lookup[Device]
-        An object that lets you iterate over all cards.\n
-        Use ``list(...)`` to get a list instead.
+        An object that lets you iterate over all cards.
     talents : Lookup[Device]
-        An object that lets you iterate over all talents.\n
-        Use ``list(...)`` to get a list instead.
+        An object that lets you iterate over all talents.
     devices : Lookup[Device]
-        An object that lets you iterate over all devices (shop items, cards and talents).\n
-        Use ``list(...)`` to get a list instead.
+        An object that lets you iterate over all devices (shop items, cards and talents).
     """
     def __init__(
         self,
@@ -551,131 +317,3 @@ class CacheEntry:
             f"len(items)={len(self.items)}, len(cards)={len(self.cards)}, "
             f"len(talents)={len(self.talents)}, len(skins)={len(self.skins)}) -> created"
         )
-
-    def get_champion(
-        self, champion: Union[str, int], /, *, fuzzy: bool = False
-    ) -> Optional[Champion]:
-        """
-        Returns a champion for the given Name or ID.
-        Case sensitive.
-
-        Parameters
-        ----------
-        champion : Union[str, int]
-            The Name or ID of the champion you want to get.
-        fuzzy : bool
-            When set to `True`, makes the Name search case insensitive.\n
-            Defaults to `False`.
-
-        Returns
-        -------
-        Optional[Champion]
-            The champion you requested.\n
-            `None` is returned if a champion with the requested Name or ID couldn't be found.
-        """
-        return self.champions._lookup(champion, fuzzy=fuzzy)
-
-    def get_card(self, card: Union[str, int], /, *, fuzzy: bool = False) -> Optional[Device]:
-        """
-        Returns a champion's card for the given Name or ID.
-        Case sensitive.
-
-        Parameters
-        ----------
-        card : Union[str, int]
-            The Name or ID of the card you want to get.
-        fuzzy : bool
-            When set to `True`, makes the Name search case insensitive.\n
-            Defaults to `False`.
-
-        Returns
-        -------
-        Optional[Device]
-            The card you requested.\n
-            `None` is returned if a card with the requested Name or ID couldn't be found.
-        """
-        return self.cards._lookup(card, fuzzy=fuzzy)
-
-    def get_talent(self, talent: Union[str, int], /, *, fuzzy: bool = False) -> Optional[Device]:
-        """
-        Returns a champion's talent for the given Name or ID.
-        Case sensitive.
-
-        Parameters
-        ----------
-        talent : Union[str, int]
-            The Name or ID of the talent you want to get.
-        fuzzy : bool
-            When set to `True`, makes the Name search case insensitive.\n
-            Defaults to `False`.
-
-        Returns
-        -------
-        Optional[Device]
-            The talent you requested.\n
-            `None` is returned if a talent with the requested Name or ID couldn't be found.
-        """
-        return self.talents._lookup(talent, fuzzy=fuzzy)
-
-    def get_item(self, item: Union[str, int], /, *, fuzzy: bool = False) -> Optional[Device]:
-        """
-        Returns a shop item for the given Name or ID.
-        Case sensitive.
-
-        Parameters
-        ----------
-        item : Union[str, int]
-            The Name or ID of the shop item you want to get.
-        fuzzy : bool
-            When set to `True`, makes the Name search case insensitive.\n
-            Defaults to `False`.
-
-        Returns
-        -------
-        Optional[Device]
-            The shop item you requested.\n
-            `None` is returned if a shop item with the requested Name or ID couldn't be found.
-        """
-        return self.items._lookup(item, fuzzy=fuzzy)
-
-    def get_device(self, device: Union[str, int], /, *, fuzzy: bool = False) -> Optional[Device]:
-        """
-        Returns a device for the given Name or ID.
-        Case sensitive.
-
-        Parameters
-        ----------
-        device : Union[str, int]
-            The Name or ID of the device you want to get.
-        fuzzy : bool
-            When set to `True`, makes the Name search case insensitive.\n
-            Defaults to `False`.
-
-        Returns
-        -------
-        Optional[Device]
-            The device you requested.\n
-            `None` is returned if a device with the requested Name or ID couldn't be found.
-        """
-        return self.devices._lookup(device, fuzzy=fuzzy)
-
-    def get_skin(self, skin: Union[str, int], /, *, fuzzy: bool = False) -> Optional[Skin]:
-        """
-        Returns a skin for the given Name or ID.
-        Case sensitive.
-
-        Parameters
-        ----------
-        skin : Union[str, int]
-            The Name or ID of the skin you want to get.
-        fuzzy : bool
-            When set to `True`, makes the Name search case insensitive.\n
-            Defaults to `False`.
-
-        Returns
-        -------
-        Optional[Skin]
-            The skin you requested.\n
-            `None` is returned if a skin with the requested Name or ID couldn't be found.
-        """
-        return self.skins._lookup(skin, fuzzy=fuzzy)

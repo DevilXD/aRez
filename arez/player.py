@@ -242,11 +242,12 @@ class PartialPlayer(Expandable, CacheClient):
             language = self._api._default_language
         # ensure we have champion information first
         await self._api._ensure_entry(language)
+        cache_entry = self._api.get_entry(language)
         logger.info(f"Player(id={self._id}).get_loadouts({language=})")
         response = await self._api.request("getplayerloadouts", self._id, language.value)
         if not response or response and not response[0]["playerId"]:
             return []
-        return [Loadout(self, language, l) for l in response]
+        return [Loadout(self, cache_entry, loadout_data) for loadout_data in response]
 
     async def get_champion_stats(
         self, language: Optional[Language] = None, *, queue: Optional[Queue] = None
@@ -286,12 +287,13 @@ class PartialPlayer(Expandable, CacheClient):
             language = self._api._default_language
         # ensure we have champion information first
         await self._api._ensure_entry(language)
+        cache_entry = self._api.get_entry(language)
         logger.info(f"Player(id={self._id}).get_champion_stats({language=})")
         if queue is None:
             response = await self._api.request("getgodranks", self._id)
         else:
             response = await self._api.request("getqueuestats", self._id, queue.value)
-        return [ChampionStats(self, language, s, queue) for s in response]
+        return [ChampionStats(self, cache_entry, stats_data, queue) for stats_data in response]
 
     async def get_match_history(self, language: Optional[Language] = None) -> List[PartialMatch]:
         """
@@ -328,11 +330,12 @@ class PartialPlayer(Expandable, CacheClient):
             language = self._api._default_language
         # ensure we have champion information first
         await self._api._ensure_entry(language)
+        cache_entry = self._api.get_entry(language)
         logger.info(f"Player(id={self._id}).get_match_history({language=})")
         response = await self._api.request("getmatchhistory", self._id)
         if not response or response and response[0]["ret_msg"]:
             return []
-        return [PartialMatch(self, language, m) for m in response]
+        return [PartialMatch(self, language, cache_entry, m) for m in response]
 
 
 class Player(PartialPlayer):
