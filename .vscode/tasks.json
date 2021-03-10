@@ -43,6 +43,20 @@
             }
         },
         {
+            "label": "Reinstall dev library",
+            "type": "shell",
+            "command": "pip install --force-reinstall git+https://github.com/DevilXD/aRez@dev",
+            "problemMatcher": [],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": false
+            },
+        },
+        {
             "label": "Show Coverage Report",
             "type": "shell",
             "command": "coverage report --rcfile=coverage.ini --skip-covered",
