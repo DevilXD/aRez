@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from math import floor
 from collections import OrderedDict
+from difflib import SequenceMatcher
 from functools import partialmethod
 from weakref import WeakValueDictionary
 from datetime import datetime, timedelta
-from operator import attrgetter, eq, ne, lt, le, gt, ge
+from operator import itemgetter, attrgetter, eq, ne, lt, le, gt, ge
 from typing import (
     Optional,
     Union,
@@ -20,6 +21,7 @@ from typing import (
     Generator,
     AsyncGenerator,
     TypeVar,
+    Literal,
     cast,
     overload,
 )
@@ -280,8 +282,9 @@ def group_by(iterable: Iterable[X], key: Callable[[X], Y]) -> Dict[Y, List[X]]:
 
 class Lookup(Iterable[LookupType]):
     """
-    A helper class utilizing an internal list and three dictionaries, allowing for easy indexing
-    and lookup based on Name and ID attributes. Supports fuzzy Name searches too.
+    A helper class utilizing an internal list and two dictionaries, allowing for easy indexing
+    and lookup of `CacheObject` and it's subclasses, based on the Name and ID attributes.
+    Supports fuzzy Name searches too.
 
     This object resembles an immutable list, but exposes `__len__`, `__iter__` and `__getitem__`
     special methods for ease of use.
@@ -295,7 +298,6 @@ class Lookup(Iterable[LookupType]):
             self._list_lookup.append(e)
             self._id_lookup[e.id] = e
             self._name_lookup[e.name] = e
-            self._fuzzy_lookup[e.name.lower()] = e
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({repr(self._list_lookup)})"
@@ -314,14 +316,14 @@ class Lookup(Iterable[LookupType]):
         Returns an iterator over the internal list.\n
         Use ``iter()`` on this object to obtain it.
 
-        :type: Iterator[LookupType]
+        :type: Iterator[CacheObject]
         """
         return iter(self._list_lookup)
 
     def __getitem__(self, index: int) -> LookupType:
         """
         Returns an item from the internal list, from under the index specified.\n
-        This adds support for the indexing syntax: ``object[index]``.
+        This adds support for the indexing syntax: ``lookup[index]``.
 
         Parameters
         ----------
@@ -330,12 +332,17 @@ class Lookup(Iterable[LookupType]):
 
         Returns
         -------
-        LookupType
+        CacheObject
             The element of which the index was specified.
+
+        Raises
+        ------
+        IndexError
+            The list index was out of range.
         """
         return self._list_lookup[index]
 
-    def get(self, name_or_id: Union[int, str], *, fuzzy: bool = False) -> Optional[LookupType]:
+    def get(self, name_or_id: Union[int, str]) -> Optional[LookupType]:
         """
         Allows you to quickly lookup an element by it's Name or ID.
 
@@ -343,21 +350,134 @@ class Lookup(Iterable[LookupType]):
         ----------
         name_or_id : Union[int, str]
             Name or ID of the element you want to lookup.
-        fuzzy : bool
-            When set to `True`, makes the Name search case insensitive.\n
-            Defaults to `False`.
+
+            .. note::
+
+                The name lookup is case-sensitive.
 
         Returns
         -------
-        Optional[LookupType]
+        Optional[CacheObject]
             The element requested.\n
             `None` is returned if the requested element couldn't be found.
         """
         if isinstance(name_or_id, int):
             return self._id_lookup.get(name_or_id)
-        if fuzzy and isinstance(name_or_id, str):
-            return self._fuzzy_lookup.get(name_or_id.lower())
         return self._name_lookup.get(name_or_id)
+
+    @overload
+    def get_fuzzy(
+        self,
+        name: str,
+        *,
+        limit: int = 3,
+        cutoff: float = 0.6,
+        with_scores: Literal[False] = False,
+    ) -> List[LookupType]:
+        ...
+
+    @overload
+    def get_fuzzy(
+        self, name: str, *, limit: int = 3, cutoff: float = 0.6, with_scores: Literal[True]
+    ) -> List[Tuple[LookupType, float]]:
+        ...
+
+    def get_fuzzy(
+        self, name: str, *, limit: int = 3, cutoff: float = 0.6, with_scores: bool = False
+    ) -> Union[List[LookupType], List[Tuple[LookupType, float]]]:
+        """
+        Performs a fuzzy lookup of an element by it's name. Case-insensitive.\n
+        See also: `get_fuzzy_one`.
+
+        Parameters
+        ----------
+        name : str
+            The name of the element to lookup with.
+        limit : int
+            The maximum amount of elements to return in the list.\n
+            Defaults to ``3``.
+        cutoff : float
+            The similarity score cutoff range, below which matches will be excluded
+            from the output. Lower values have a better chance of yielding correct results,
+            but also a higher chance of false-positives. Accepted range is 0 to 1.\n
+            Defaults to ``0.6``.
+        with_scores : bool
+            If set to `True`, returns a list of 2-item tuples
+            Defaults to `False`.
+
+        Returns
+        -------
+        Union[List[CacheObject], List[Tuple[CacheObject, float]]]
+            A list of up to ``limit`` elements, in descending order,
+            sorted by their similarity score.\n
+            If ``with_scores`` is set to `True`, returns a list of up to ``limit`` 2-item tuples,
+            where the first item of each tuple is the element, and the second item
+            is the similarity score it has.
+
+        Raises
+        ------
+        TypeError
+            ``name``, ``limit`` or ``cutoff`` arguments are of incorrect type
+        ValueError
+            ``limit`` or ``cutoff`` arguments have an incorrect value
+        """
+        if not isinstance(name, str):
+            raise TypeError("The name has to be a string of characters")
+        if not isinstance(limit, int):
+            raise TypeError("limit has to be a positive non-zero integer")
+        if not isinstance(cutoff, float):
+            raise TypeError("cutoff has to be a float in 0-1 range")
+        if not limit > 0:
+            raise ValueError("limit has to be a positive non-zero integer")
+        if not 0 <= cutoff <= 1:
+            raise ValueError("cutoff has to be a float in 0-1 range")
+
+        matcher: SequenceMatcher = SequenceMatcher()
+        matcher.set_seq2(name.lower())
+        scores: List[Tuple[str, float]] = []
+        for key in self._name_lookup:
+            matcher.set_seq1(key.lower())
+            if (
+                matcher.real_quick_ratio() >= cutoff
+                and matcher.quick_ratio() >= cutoff
+                and (score := matcher.ratio()) >= cutoff
+            ):
+                scores.append((key, score))
+        scores.sort(key=itemgetter(1), reverse=True)
+        if with_scores:
+            return [(self._name_lookup[key], score) for key, score in scores[:limit]]
+        return [self._name_lookup[key] for key, score in scores[:limit]]
+
+    def get_fuzzy_one(self, name: str, *, cutoff: float = 0.6) -> Optional[LookupType]:
+        """
+        Simplified version of `get_fuzzy`, allowing you to search for a single element,
+        or receive `None` if no matching element was found.
+
+        Parameters
+        ----------
+        name : str
+            The name of the element to lookup with.
+        cutoff : float, optional
+            The similarity score cutoff range. See: `get_fuzzy` for more information.\n
+            Defaults to ``0.6``.
+
+        Returns
+        -------
+        Optional[CacheObject]
+            The element requested.\n
+            `None` is returned if the requested element couldn't be found.
+
+        Raises
+        ------
+        TypeError
+            ``name`` or ``cutoff`` arguments are of incorrect type
+        ValueError
+            ``cutoff`` argument has an incorrect value
+        """
+        matches = self.get_fuzzy(name, limit=1, cutoff=cutoff)
+        if matches:
+            return matches[0]
+        return None
 
 
 def chunk(list_to_chunk: List[X], chunk_length: int) -> Generator[List[X], None, None]:
