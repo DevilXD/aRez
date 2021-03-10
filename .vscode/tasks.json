@@ -4,10 +4,31 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Show Coverage Report",
+            "label": "Build Documentation",
             "type": "shell",
-            "command": "coverage report --rcfile=coverage.ini --skip-covered",
+            "command": "make html",
             "problemMatcher": [],
+            "options": {
+                "cwd": "./docs"
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": false
+            },
+        },
+        {
+            "label": "Show Documentation",
+            "type": "shell",
+            "command": "view",
+            "problemMatcher": [],
+            "dependsOn": ["Build Documentation"],
+            "options": {
+                "cwd": "./docs"
+            },
             "presentation": {
                 "echo": true,
                 "reveal": "always",
@@ -19,6 +40,20 @@
             "group": {
                 "kind": "build",
                 "isDefault": true
+            }
+        },
+        {
+            "label": "Show Coverage Report",
+            "type": "shell",
+            "command": "coverage report --rcfile=coverage.ini --skip-covered",
+            "problemMatcher": [],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": false
             }
         }
     ]
