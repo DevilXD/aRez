@@ -402,7 +402,8 @@ class Lookup(Iterable[LookupType]):
             but also a higher chance of false-positives. Accepted range is 0 to 1.\n
             Defaults to ``0.6``.
         with_scores : bool
-            If set to `True`, returns a list of 2-item tuples
+            If set to `True`, returns a list of 2-item tuples, with the similar element
+            as the first item, and its score as the second.\n
             Defaults to `False`.
 
         Returns
