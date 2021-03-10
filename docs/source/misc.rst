@@ -17,6 +17,8 @@ Miscellaneous
 
 .. autofunction:: get
 
+.. autofunction:: group_by
+
 .. autofunction:: chunk
 
 .. autofunction:: expand_partial

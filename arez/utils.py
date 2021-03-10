@@ -251,6 +251,24 @@ def get(iterable: Iterable[X], **attrs) -> Optional[X]:
 
 
 def group_by(iterable: Iterable[X], key: Callable[[X], Y]) -> Dict[Y, List[X]]:
+    """
+    A helper function for grouping elements of an iterable into a dictionary, where each key
+    represents a common value, and the value represents a list of elements having said
+    common value.
+
+    Parameters
+    ----------
+    iterable : Iterable[X]
+        An iterable of elements to group.
+    key : Callable[[X], Y]
+        A function that takes each element from the provided iterable as it's parameter,
+        and outputs a group to which said element belongs to.
+
+    Returns
+    -------
+    Dict[Y, List[X]]
+        A mapping of groups to lists of grouped elements.
+    """
     item_map: Dict[Y, List[X]] = {}
     for item in iterable:
         group = key(item)
