@@ -207,7 +207,7 @@ class ServerStatus(CacheClient):
                 if "Outage" in status:
                     self.all_up = False
                 self.status = status
-                self.color = comp.color
+                self.color = group.color
             self.incidents = group.incidents
             self.maintenances = group.maintenances
 
