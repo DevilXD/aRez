@@ -173,9 +173,56 @@ def test_enum():
 
 
 @pytest.mark.api()
+@pytest.mark.dependency()
+def test_server_status_merge():
+    cs = arez.status._convert_status
+    colors = arez.statuspage.colors
+    # prepare the table of possibilities and their results
+    # colors:
+    G = colors["green"]   # 2528092
+    B = colors["blue"]    # 3447003
+    Y = colors["yellow"]  # 16568108
+    O = colors["orange"]  # 15234063
+    R = colors["red"]     # 15158332
+    cases = [
+        ((True, False, "Operational",          G), (True, False, "Operational",          G)),
+        ((True, False, "Maintenance",          B), (True, False, "Operational",          G)),
+        ((True, False, "Degraded Performance", Y), (True, False, "Degraded Performance", Y)),
+        ((True, False, "Partial Outage",       O), (True, False, "Operational",          G)),
+        ((True, False, "Major Outage",         R), (True, False, "Operational",          G)),
+
+        ((True, True, "Operational",          G), (True, True, "Limited Access", Y)),
+        ((True, True, "Maintenance",          B), (True, True, "Maintenance",    B)),
+        ((True, True, "Degraded Performance", Y), (True, True, "Limited Access", Y)),
+        ((True, True, "Partial Outage",       O), (True, True, "Partial Outage", O)),
+        ((True, True, "Major Outage",         R), (True, True, "Major Outage",   R)),
+
+        ((False, False, "Operational",          G), (False, False, "Outage",         R)),
+        ((False, False, "Maintenance",          B), (False, False, "Maintenance",    B)),
+        ((False, False, "Degraded Performance", Y), (False, False, "Outage",         R)),
+        ((False, False, "Partial Outage",       O), (False, False, "Partial Outage", O)),
+        ((False, False, "Major Outage",         R), (False, False, "Major Outage",   R)),
+
+        ((None, None, "Operational",          G), (True,  False, "Operational",          G)),
+        ((None, None, "Maintenance",          B), (False, False, "Maintenance",          B)),
+        ((None, None, "Degraded Performance", Y), (True,  False, "Degraded Performance", Y)),
+        ((None, None, "Partial Outage",       O), (False, False, "Partial Outage",       O)),
+        ((None, None, "Major Outage",         R), (False, False, "Major Outage",         R)),
+
+        ((True,  False, None, None), (True,  False, "Operational",    G)),
+        ((True,  True,  None, None), (True,  True,  "Limited Access", Y)),
+        ((False, False, None, None), (False, False, "Outage",         R)),
+    ]
+    # test each case
+    for inputs, outputs in cases:
+        assert cs(*inputs) == outputs
+
+
+@pytest.mark.api()
 @pytest.mark.vcr()
 @pytest.mark.slow()
 @pytest.mark.asyncio()
+@pytest.mark.dependency(depends=["test_server_status_merge"])
 @pytest.mark.dependency(depends=["tests/test_endpoint.py::test_session"], scope="session")
 async def test_get_server_status(api: arez.PaladinsAPI):
     # empty responses from both

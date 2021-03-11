@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Optional, Union, List, Dict, Literal, cast, TYPE_CHECKING
+from typing import Any, Optional, Union, List, Dict, Tuple, Literal, cast, TYPE_CHECKING
 
 from .statuspage import colors
 from .mixins import CacheClient
 from .enums import Activity, Queue
+from .exceptions import ArezException
 from .match import LiveMatch, _get_players
 
 if TYPE_CHECKING:
@@ -30,6 +31,74 @@ def _convert_platform(platform: str) -> _platforms:
     else:
         text = platform.capitalize()
     return cast(_platforms, text)
+
+
+def _convert_status(
+    up: Optional[bool], limited_access: Optional[bool], status: Optional[str], color: Optional[int]
+) -> Tuple[bool, bool, str, int]:
+    """
+    A function responsible for the logic behind merging server status data, from the official API
+    and StatusPage.
+    Depending on the availability, the only accepted input parameters combinations are:
+
+    • up, limited_access, None, None - only official API available
+    • None, None, status, color - only StatusPage available
+    • up, limited_access, status, color - both available
+
+    Any other combination is a library error, and should raise an `arez.ArezException`.
+
+    Parameters
+    ----------
+    up : Optional[bool]
+        Server status flag from the official API.\n
+        `None` when not available.
+    limited_access : Optional[bool]
+        Limited access flag from the official API.\n
+        `None` when not available.
+    status : Optional[str]
+        StatusPage group status description.\n
+        `None` when not available.
+    color : Optional[int]
+        StatusPage group color.\n
+        `None` when not available.
+
+    Returns
+    -------
+    Tuple[bool, bool, str, int]
+        A tuple representing merged status: ``(up, limited_access, status, color)``.
+    """
+    first_set = sum((up is not None, limited_access is not None))
+    second_set = sum((status is not None, color is not None))
+    if first_set % 2 != 0 or second_set % 2 != 0:  # pragma: no cover
+        # checks if any of the two sets has only one argument present, instead of both
+        raise ArezException("Either of the two status input groups had only one argument passed")
+    elif first_set == 0 and second_set == 0:  # pragma: no cover
+        # checks if either of the two sets was passed at all
+        raise ArezException("No status input groups were passed")
+
+    if up is None and limited_access is None and status is not None and color is not None:
+        # StatusPage only
+        if status in ("Operational", "Degraded Performance"):  # pragma: no branch
+            final_up = True
+        else:
+            final_up = False
+        return (final_up, False, status, color)
+    # official API definitely exists here
+    assert up is not None and limited_access is not None
+    status_color: Tuple[str, int] = ("Operational", colors["green"])
+    if not up:
+        status_color = ("Outage", colors["red"])
+    elif limited_access:
+        status_color = ("Limited Access", colors["yellow"])
+    if status is not None and color is not None:
+        # StatusPage is also present
+        if (
+            (not up or limited_access)
+            and status not in ("Operational", "Degraded Performance")
+            or up and not limited_access and status == "Degraded Performance"
+        ):
+            status_color = (status, color)
+    return (up, limited_access, *status_color)
 
 
 class Status:
@@ -64,37 +133,29 @@ class Status:
         affect this server status in the future.
     """
     def __init__(self, status_data: Dict[str, Any], components: Dict[str, Component]):
+        self.up: bool
+        self.limited_access: bool
+        self.status: str
+        self.color: int
+
         platform: str = status_data["platform"]
         env = status_data["environment"]
         if env == "pts":
             platform = env
         self.platform: _platforms = _convert_platform(platform)
-        self.up: Optional[bool] = status_data["up"]
-        self.limited_access: bool = status_data["limited_access"]
         self.version: str = status_data["version"] or ''
-        self.status: str = "Operational"
-        self.color: int = colors["green"]
-        if not self.up:
-            self.status = "Outage"
-            self.color = colors["red"]
-        elif self.limited_access:
-            self.status = "Limited access"
-            self.color = colors["yellow"]
+
+        status_color: Tuple[Optional[str], Optional[int]] = (None, None)
         self.incidents: List[Incident] = []
         self.maintenances: List[Maintenance] = []
         # this also removes the component from the dictionary
         if comp := components.pop(self.platform.lower(), None):
-            status = comp.status
-            if (
-                (not self.up or self.limited_access) and status != "Operational"
-                or self.up and not self.limited_access and status == "Degraded Performance"
-            ):  # pragma: no cover
-                if "Outage" in status:
-                    self.up = False
-                self.status = status
-                self.color = comp.color
+            status_color = (comp.status, comp.color)
             self.incidents = comp.incidents
             self.maintenances = comp.maintenances
+        self.up, self.limited_access, self.status, self.color = _convert_status(
+            status_data["up"], status_data["limited_access"], *status_color
+        )
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.platform}: {self.status})"
@@ -112,15 +173,10 @@ class Status:
         # build it from scratch
         self: Status = super().__new__(cls)
         self.platform = _convert_platform(platform_name)
-        self.limited_access = False  # no info on this here
-        self.version = ''  # same here
-        status: str = component.status
-        if status in ("Operational", "Degraded Performance"):  # pragma: no branch
-            self.up = True
-        else:
-            self.up = False  # pragma: no cover
-        self.status = status
-        self.color = component.color
+        self.up, self.limited_access, self.status, self.color = _convert_status(
+            None, None, component.status, component.color
+        )
+        self.version = ''  # no info on this here
         self.incidents = component.incidents
         self.maintenances = component.maintenances
         return self
@@ -168,13 +224,12 @@ class ServerStatus(CacheClient):
     """
     def __init__(self, api_status: List[Dict[str, Any]], group: Optional[ComponentGroup]):
         self.timestamp = datetime.utcnow()
-        self.all_up = True
-        self.limited_access = False
-        self.status: str = "Operational"
-        self.color: int = colors["green"]
+        self.all_up: bool
+        self.limited_access: bool
+        self.status: str
+        self.color: int
+
         self.statuses: Dict[str, Status] = {}
-        self.incidents: List[Incident] = []
-        self.maintenances: List[Maintenance] = []
         # each StatusPage component for Paladins starts with "Paladins ...", we need to strip that
         components: Dict[str, Component] = {}
         if group is not None:
@@ -192,24 +247,18 @@ class ServerStatus(CacheClient):
         for platform_name, comp in components.items():
             self._add_status(Status.from_component(platform_name, comp))
         # handle the rest
-        if not self.all_up:
-            self.status = "Outage"
-            self.color = colors["red"]
-        elif self.limited_access:
-            self.status = "Limited access"
-            self.color = colors["yellow"]
+        all_up = all(s.up for s in self.statuses.values())
+        limited_access = any(s.limited_access for s in self.statuses.values())
+        status_color: Tuple[Optional[str], Optional[int]] = (None, None)
+        self.incidents: List[Incident] = []
+        self.maintenances: List[Maintenance] = []
         if group is not None:
-            status = group.status
-            if (
-                (not self.all_up or self.limited_access) and status != "Operational"
-                or self.all_up and not self.limited_access and status == "Degraded Performance"
-            ):  # pragma: no cover
-                if "Outage" in status:
-                    self.all_up = False
-                self.status = status
-                self.color = group.color
+            status_color = (group.status, group.color)
             self.incidents = group.incidents
             self.maintenances = group.maintenances
+        self.all_up, self.limited_access, self.status, self.color = _convert_status(
+            all_up, limited_access, *status_color
+        )
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.status})"
