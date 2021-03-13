@@ -473,12 +473,15 @@ class PaladinsAPI(DataCache):
         if ret_msg:
             # 'Player Privacy Flag set for:
             # playerIdStr=<arg>; playerIdType=1; playerId=479353'
-            if return_private:
-                match = re.search(r'playerIdType=([0-9]{1,2}); playerId=([0-9]+)', ret_msg)
-                if match:  # pragma: no branch  # TODO: use the walrus operator here
-                    return PartialPlayer(
-                        self, id=match.group(2), platform=match.group(1), private=True
-                    )
+            if (
+                return_private
+                and (match := re.search(
+                    r'playerIdType=([0-9]{1,2}); playerId=([0-9]+)', ret_msg
+                ))
+            ):
+                return PartialPlayer(
+                    self, id=match.group(2), platform=match.group(1), private=True
+                )
             raise Private
         return Player(self, player_data)
 
@@ -543,11 +546,9 @@ class PaladinsAPI(DataCache):
                 if not ret_msg:
                     # We're good, just pack it up
                     chunk_players.append(Player(self, p))
-                elif return_private:
+                elif return_private and (match := re.search(r'playerId=([0-9]+)', ret_msg)):
                     # Pack up a private player object
-                    match = re.search(r'playerId=([0-9]+)', ret_msg)
-                    if match:  # pragma: no branch  # TODO: use the walrus operator here
-                        chunk_players.append(PartialPlayer(self, id=match.group(1), private=True))
+                    chunk_players.append(PartialPlayer(self, id=match.group(1), private=True))
             chunk_players.sort(key=lambda p: chunk_ids.index(p.id))
             player_list.extend(chunk_players)
         return player_list
