@@ -239,16 +239,26 @@ class ServerStatus(CacheClient):
                 if comp_name.startswith(group_name):  # pragma: no branch
                     comp_name = comp_name[len(group_name):].strip()
                 components[comp_name.lower()] = comp
+        statuses: List[Status] = []
         # match keys with existing official data, and add StatusPage data
         # note: this may not run at all, if the official API's response was empty
         for status_data in api_status:
-            self._add_status(Status(status_data, components))
+            statuses.append(Status(status_data, components))
         # add any remaining StatusPage components data (can be none left)
         for platform_name, comp in components.items():
-            self._add_status(Status.from_component(platform_name, comp))
+            statuses.append(Status.from_component(platform_name, comp))
         # handle the rest
-        all_up = all(s.up for s in self.statuses.values())
-        limited_access = any(s.limited_access for s in self.statuses.values())
+        all_up = True
+        limited_access = False
+        for status in statuses:
+            platform = status.platform.lower()
+            self.statuses[platform] = status
+            if platform == "pts":  # PTS status doesn't change the overall status
+                continue
+            if not status.up:
+                all_up = False
+            if status.limited_access:
+                limited_access = True
         status_color: Tuple[Optional[str], Optional[int]] = (None, None)
         self.incidents: List[Incident] = []
         self.maintenances: List[Maintenance] = []
@@ -292,15 +302,6 @@ class ServerStatus(CacheClient):
             return False
         # compare all stored statuses
         return self.statuses == other.statuses
-
-    def _add_status(self, status: Status):
-        platform = status.platform.lower()
-        if platform != "pts":
-            if not status.up:
-                self.all_up = False
-            if status.limited_access:
-                self.limited_access = True
-        self.statuses[platform] = status
 
     @property
     def colour(self) -> int:
