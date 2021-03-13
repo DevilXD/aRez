@@ -313,8 +313,9 @@ class MatchPlayerMixin(KDAMixin, CacheClient):
         The amount of objective time the player got, in seconds.
     multikill_max : int
         The maximum multikill player did during the match.
-    skin : CacheObject
-        The skin the player had equipped for this match.
+    skin : Union[Skin, CacheObject]
+        The skin the player had equipped for this match.\n
+        With incomplete cache, this will be a `CacheObject` with the name and ID set.
     team_number : Literal[1, 2]
         The team this player belongs to.
     team_score : int
