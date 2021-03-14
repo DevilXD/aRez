@@ -338,7 +338,7 @@ class PaladinsAPI(DataCache):
             Setting this to `True` forces the object to be cached, even
             when the cache is disabled.\n
             Setting this to `False` will never cache the object.\n
-            Default behavior follows the cache existence setting.
+            Default behavior (`None`) follows the cache existence setting.
 
         Returns
         -------
@@ -727,11 +727,7 @@ class PaladinsAPI(DataCache):
             raise TypeError(
                 f"language argument has to be None or of arez.Language type, got {type(language)}"
             )
-        if language is None:
-            language = self._default_language
-        # ensure we have champion information first
-        await self._ensure_entry(language)
-        cache_entry = self.get_entry(language)
+        cache_entry = await self._ensure_entry(language)
         logger.info(f"api.get_match({match_id=}, {language=}, {expand_players=})")
         response = await self.request("getmatchdetails", match_id)
         if not response:
@@ -785,11 +781,7 @@ class PaladinsAPI(DataCache):
                 raise TypeError(
                     f"Incorrect type found in the iterable: int expected, got {type(match_id)}"
                 )
-        if language is None:
-            language = self._default_language
-        # ensure we have champion information first
-        await self._ensure_entry(language)
-        cache_entry = self.get_entry(language)
+        cache_entry = await self._ensure_entry(language)
         logger.info(
             f"api.get_matches(match_ids=[{', '.join(map(str, ids_list))}], "
             f"{language=}, {expand_players=})"
@@ -910,11 +902,7 @@ class PaladinsAPI(DataCache):
         # exit early for a negative interval
         if end < start:
             return
-        if language is None:
-            language = self._default_language
-        # ensure we have champion information first
-        await self._ensure_entry(language)
-        cache_entry = self.get_entry(language)
+        cache_entry = await self._ensure_entry(language)
         logger.info(
             f"api.get_matches_for_queue({queue=}, {language=}, {start=} UTC, {end=} UTC, "
             f"{reverse=}, {local_time=}, {expand_players=})"
@@ -1016,11 +1004,7 @@ class PaladinsAPI(DataCache):
             No bounty items were returned.\n
             This can happen if the bounty store is unavailable for a long time.
         """
-        if language is None:
-            language = self._default_language
-        # ensure we have champion information first
-        await self._ensure_entry(language)
-        cache_entry = self.get_entry(language)
+        cache_entry = await self._ensure_entry(language)
         response = await self.request("getBountyItems")
         if not response:
             raise NotFound("Bounty items")

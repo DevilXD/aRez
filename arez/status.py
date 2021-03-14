@@ -369,11 +369,7 @@ class PlayerStatus(CacheClient):
         if not self.live_match_id:
             # nothing to fetch
             return None
-        if language is None:
-            language = self._api._default_language
-        # ensure we have champion information first
-        await self._api._ensure_entry(language)
-        cache_entry = self._api.get_entry(language)
+        cache_entry = await self._api._ensure_entry(language)
         response = await self._api.request("getmatchplayerdetails", self.live_match_id)
         if not response:
             return None

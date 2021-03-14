@@ -162,11 +162,11 @@ class DataCache(Endpoint, CacheClient):
             champions_data = await self.request("getgods", language.value)
             items_data = await self.request("getitems", language.value)
             skins_data = await self.request("getchampionskins", -1, language.value)
-            # Don't strictly enforce skins_data to be there
+            # Don't strictly enforce skins_data to be there, unless there's no cached entry yet.
             # The reason is: the skins list that's returned right now is quite incomplete,
             # and the only useful information it provides, is Rarity. Failing the whole refresh,
             # just due to the skins list missing, would be quite unfortunate.
-            if not (champions_data and items_data):  # and skins_data
+            if not champions_data or not items_data or (entry is None and not skins_data):
                 logger.debug(
                     f"cache.fetch_entry({language=}, {force_refresh=}, {cache=})"
                     " -> fetching failed, using cached"
@@ -184,11 +184,14 @@ class DataCache(Endpoint, CacheClient):
                 self._cache[language] = entry
         return entry
 
-    async def _ensure_entry(self, language: Language):
+    async def _ensure_entry(self, language: Optional[Language]) -> Optional[CacheEntry]:
+        if language is None:
+            language = self._default_language
         if not self.cache_enabled:
-            return
+            return self.get_entry(language)
         logger.debug(f"cache.ensure_entry({language=})")
-        await self._fetch_entry(language)
+        entry = await self._fetch_entry(language)
+        return entry
 
     def get_entry(self, language: Optional[Language] = None) -> Optional[CacheEntry]:
         """
@@ -308,6 +311,7 @@ class CacheEntry:
             )
             for champ_data in champions_data
         )
+        # process abilities
         self.abilities: Lookup[Ability] = Lookup(
             ability for champion in self.champions for ability in champion.abilities
         )
