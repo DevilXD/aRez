@@ -63,7 +63,7 @@ async def test_player_friends(
 ):
     # standard
     friends = await player.get_friends()
-    assert all(isinstance(f, arez.PartialPlayer) for f in friends)
+    assert len(friends) > 0 and all(isinstance(f, arez.PartialPlayer) for f in friends)
     # private
     with pytest.raises(arez.Private):
         friends = await private_player.get_friends()
