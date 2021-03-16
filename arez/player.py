@@ -232,16 +232,16 @@ class PartialPlayer(Expandable, CacheClient):
         Private
             The player's profile was private.
         """
+        if self.private:
+            raise Private
         if language is not None and not isinstance(language, Language):
             raise TypeError(
                 f"language argument has to be None or of arez.Language type, got {type(language)}"
             )
-        if self.private:
-            raise Private
         if language is None:
             language = self._api._default_language
         cache_entry = await self._api._ensure_entry(language)
-        logger.info(f"Player(id={self._id}).get_loadouts({language=})")
+        logger.info(f"Player(id={self._id}).get_loadouts(language={language.name})")
         response = await self._api.request("getplayerloadouts", self._id, language.value)
         if not response or response and not response[0]["playerId"]:
             return []
@@ -275,14 +275,16 @@ class PartialPlayer(Expandable, CacheClient):
         Private
             The player's profile was private.
         """
+        if self.private:
+            raise Private
         if language is not None and not isinstance(language, Language):
             raise TypeError(
                 f"language argument has to be None or of arez.Language type, got {type(language)}"
             )
-        if self.private:
-            raise Private
+        if language is None:
+            language = self._api._default_language
         cache_entry = await self._api._ensure_entry(language)
-        logger.info(f"Player(id={self._id}).get_champion_stats({language=})")
+        logger.info(f"Player(id={self._id}).get_champion_stats(language={language.name})")
         if queue is None:
             response = await self._api.request("getgodranks", self._id)
         else:
@@ -323,7 +325,7 @@ class PartialPlayer(Expandable, CacheClient):
         if language is None:
             language = self._api._default_language
         cache_entry = await self._api._ensure_entry(language)
-        logger.info(f"Player(id={self._id}).get_match_history({language=})")
+        logger.info(f"Player(id={self._id}).get_match_history(language={language.name})")
         response = await self._api.request("getmatchhistory", self._id)
         if not response or response and response[0]["ret_msg"]:
             return []

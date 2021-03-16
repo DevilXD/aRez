@@ -110,7 +110,7 @@ class DataCache(Endpoint, CacheClient):
             raise TypeError(
                 f"language argument has to be of arez.Language type, got {type(language)}"
             )
-        logger.info(f"cache.set_default_language({language=})")
+        logger.info(f"cache.set_default_language(language={language.name})")
         self._default_language = language
 
     async def initialize(self, *, language: Optional[Language] = None) -> bool:
@@ -136,7 +136,7 @@ class DataCache(Endpoint, CacheClient):
         """
         if language is None:
             language = self._default_language
-        logger.info(f"cache.initialize({language=})")
+        logger.info(f"cache.initialize(language={language.name})")
         try:
             entry = await self._fetch_entry(language, force_refresh=True, cache=True)
         except (HTTPException, Unavailable):  # pragma: no cover
@@ -153,11 +153,13 @@ class DataCache(Endpoint, CacheClient):
             entry = self._cache.get(language)
             if not force_refresh and entry is not None and now < entry._expires_at:
                 logger.debug(
-                    f"cache.fetch_entry({language=}, {force_refresh=}, {cache=}) -> using cached"
+                    f"cache.fetch_entry(language={language.name}, "
+                    f"{force_refresh=}, {cache=}) -> using cached"
                 )
                 return entry
             logger.debug(
-                f"cache.fetch_entry({language=}, {force_refresh=}, {cache=}) -> fetching new"
+                f"cache.fetch_entry(language={language.name}, "
+                f"{force_refresh=}, {cache=}) -> fetching new"
             )
             champions_data = await self.request("getgods", language.value)
             items_data = await self.request("getitems", language.value)
@@ -168,14 +170,14 @@ class DataCache(Endpoint, CacheClient):
             # just due to the skins list missing, would be quite unfortunate.
             if not champions_data or not items_data or (entry is None and not skins_data):
                 logger.debug(
-                    f"cache.fetch_entry({language=}, {force_refresh=}, {cache=})"
+                    f"cache.fetch_entry(language={language.name}, {force_refresh=}, {cache=})"
                     " -> fetching failed, using cached"
                 )
                 return entry
             expires_at = now + self.refresh_every
             entry = CacheEntry(self, language, expires_at, champions_data, items_data, skins_data)
             logger.debug(
-                f"cache.fetch_entry({language=}, {force_refresh=}, {cache=})"
+                f"cache.fetch_entry(language={language.name}, {force_refresh=}, {cache=})"
                 " -> fetching completed"
             )
             if cache is None:
@@ -189,7 +191,7 @@ class DataCache(Endpoint, CacheClient):
             language = self._default_language
         if not self.cache_enabled:
             return self.get_entry(language)
-        logger.debug(f"cache.ensure_entry({language=})")
+        logger.debug(f"cache.ensure_entry(language={language.name})")
         entry = await self._fetch_entry(language)
         return entry
 
@@ -217,7 +219,7 @@ class DataCache(Endpoint, CacheClient):
         """
         if language is None:
             language = self._default_language
-        logger.info(f"cache.get_entry({language=})")
+        logger.info(f"cache.get_entry(language={language.name})")
         return self._cache.get(language)
 
 
@@ -320,7 +322,7 @@ class CacheEntry:
             skin for champion in self.champions for skin in champion.skins
         )
         logger.debug(
-            f"CacheEntry({language=}, expires_at={self._expires_at}, "
+            f"CacheEntry(language={language.name}, expires_at={self._expires_at}, "
             f"len(champions)={len(self.champions)}, len(devices)={len(self.devices)}, "
             f"len(items)={len(self.items)}, len(cards)={len(self.cards)}, "
             f"len(talents)={len(self.talents)}, len(skins)={len(self.skins)}) -> created"

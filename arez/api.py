@@ -357,7 +357,7 @@ class PaladinsAPI(DataCache):
             )
         if language is None:
             language = self._default_language
-        logger.info(f"api.get_champion_info({language=}, {force_refresh=})")
+        logger.info(f"api.get_champion_info(language={language.name}, {force_refresh=})")
         entry = await self._fetch_entry(language, force_refresh=force_refresh, cache=cache)
         if entry is None:
             raise NotFound("Champion information")
@@ -747,8 +747,10 @@ class PaladinsAPI(DataCache):
             raise TypeError(
                 f"language argument has to be None or of arez.Language type, got {type(language)}"
             )
+        if language is None:
+            language = self._default_language
         cache_entry = await self._ensure_entry(language)
-        logger.info(f"api.get_match({match_id=}, {language=}, {expand_players=})")
+        logger.info(f"api.get_match({match_id=}, language={language.name}, {expand_players=})")
         response = await self.request("getmatchdetails", match_id)
         if not response:
             raise NotFound("Match")
@@ -796,6 +798,8 @@ class PaladinsAPI(DataCache):
             raise TypeError(
                 f"language argument has to be None or of arez.Language type, got {type(language)}"
             )
+        if language is None:
+            language = self._default_language
         for match_id in ids_list:
             if not isinstance(match_id, int):
                 raise TypeError(
@@ -804,7 +808,7 @@ class PaladinsAPI(DataCache):
         cache_entry = await self._ensure_entry(language)
         logger.info(
             f"api.get_matches(match_ids=[{', '.join(map(str, ids_list))}], "
-            f"{language=}, {expand_players=})"
+            f"language={language.name}, {expand_players=})"
         )
         matches: List[Match] = []
         players: Dict[int, Player] = {}
@@ -913,6 +917,8 @@ class PaladinsAPI(DataCache):
             raise TypeError(
                 f"language argument has to be None or of arez.Language type, got {type(language)}"
             )
+        if language is None:
+            language = self._default_language
         # process start and end timestamps
         if start.tzinfo is not None or local_time:
             # assume local timezone, convert into UTC
@@ -924,8 +930,8 @@ class PaladinsAPI(DataCache):
             return
         cache_entry = await self._ensure_entry(language)
         logger.info(
-            f"api.get_matches_for_queue({queue=}, {language=}, {start=} UTC, {end=} UTC, "
-            f"{reverse=}, {local_time=}, {expand_players=})"
+            f"api.get_matches_for_queue({queue=}, language={language.name}, "
+            f"{start=} UTC, {end=} UTC, {reverse=}, {local_time=}, {expand_players=})"
         )
 
         # Use the generated date and hour values to iterate over and fetch matches
