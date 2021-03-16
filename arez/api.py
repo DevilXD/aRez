@@ -72,7 +72,7 @@ class PaladinsAPI(DataCache):
         Your developer's authentication key (authKey).
     cache : bool
         When set to `False`, this disables the data cache. This makes most objects returned
-        from the API be `CacheObject` instead of their respective data-rich counterparts.
+        from the API be `CacheObject` instead of their respective data-rich counterparts.\n
         Defaults to `True`.
     initialize : Union[bool, Language]
         When set to `True`, it launches a task that will initialize the cache with
@@ -554,7 +554,12 @@ class PaladinsAPI(DataCache):
         return player_list
 
     async def search_players(
-        self, player_name: str, platform: Optional[Platform] = None, *, return_private: bool = True
+        self,
+        player_name: str,
+        platform: Optional[Platform] = None,
+        *,
+        return_private: bool = True,
+        exact: bool = True,
     ) -> List[PartialPlayer]:
         """
         Fetches all players whose name matches the name specified.
@@ -564,7 +569,7 @@ class PaladinsAPI(DataCache):
 
         .. note::
 
-            Searching on all platforms may limit the number of players returned to ~500.
+            Searching on all platforms will limit the number of players returned to ~500.
             Specifying a particular platform does not have this limitation.
 
         Parameters
@@ -581,6 +586,16 @@ class PaladinsAPI(DataCache):
             set.\n
             When set to `False`, private profiles are omitted from the output list.\n
             Defaults to `True`.
+        exact : bool
+            When set to `True`, only players whose name matches exactly the name provided,
+            will be returned.\n
+            When set to `False`, exact matches will be returned first, followed by players
+            whose name starts with the privided string.\n
+            Defaults to `True`.
+
+            .. warning::
+
+                Settings this to `False` will limit the number of players returned to ~500.
 
         Returns
         -------
@@ -604,7 +619,7 @@ class PaladinsAPI(DataCache):
                 f"got {type(platform)!r}"
             )
         list_response: List[Dict[str, Any]]
-        if platform is not None:
+        if exact and platform is not None:
             # Specific platform
             logger.info(
                 f"api.search_players({player_name=}, platform={platform.name}, {return_private=})"
@@ -618,15 +633,20 @@ class PaladinsAPI(DataCache):
                     "getplayeridsbygamertag", platform.value, player_name
                 )
         else:
-            # All platforms
-            logger.info(f"api.search_players({player_name=}, {platform=}, {return_private=})")
+            # All platforms or not exact
+            logger.info(
+                f"api.search_players({player_name=}, {platform=}, {return_private=}, {exact=})"
+            )
             response = await self.request("searchplayers", player_name)
             player_name = player_name.lower()
+            list_response = []
             # pre-process the names to prioritize unique names first
             for player_dict in response:
                 if name := player_dict["hz_player_name"]:
                     player_dict["Name"] = name
-            list_response = [r for r in response if r["Name"].lower() == player_name]
+                if exact and player_dict["Name"].lower() != player_name:
+                    continue
+                list_response.append(player_dict)
         if not return_private:
             # Exclude private accounts
             list_response = [p for p in list_response if p["privacy_flag"] != 'y']
