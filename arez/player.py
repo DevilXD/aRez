@@ -98,9 +98,9 @@ class PartialPlayer(Expandable, CacheClient):
         return Player(self._api, player_data)
 
     def __eq__(self, other) -> bool:
-        if isinstance(other, self.__class__):
-            return self._id != 0 and other._id != 0 and self._id == other._id
-        return NotImplemented
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self._id != 0 and other._id != 0 and self._id == other._id
 
     def __hash__(self) -> int:
         if self._hash is None:
