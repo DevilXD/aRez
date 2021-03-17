@@ -545,8 +545,8 @@ class Duration:
     def __init__(self, **kwargs):
         self._delta = timedelta(**kwargs)
         self._total_seconds = self._delta.total_seconds()
-        seconds, ms_fraction = divmod(self._total_seconds, 1)
-        self._microseconds = round(ms_fraction * 1e6)  # convert the fractional seconds
+        seconds, us_fraction = divmod(self._total_seconds, 1)
+        self._microseconds = round(us_fraction * 1e6)  # convert the fractional seconds
         minutes, seconds = _int_divmod(seconds, 60)
         self._seconds = seconds
         hours, minutes = _int_divmod(minutes, 60)
