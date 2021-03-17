@@ -223,18 +223,22 @@ class PaladinsAPI(DataCache):
         return self._server_status
 
     async def _status_loop(self):
-        delay = self._status_intervals[0].total_seconds()
         while True:
+            delay_delta = self._status_intervals[0]  # normal check interval
             try:
                 server_status = await self.get_server_status(force_refresh=True)
             except (NotFound, Unavailable):  # pragma: no cover
-                pass  # just skip it this time
-            except Exception as e:  # pragma: no cover, this also logs HTTPExceptions
+                # just skip it this time, use recheck interval
+                delay_delta = self._status_intervals[1]
+            except Exception as e:  # pragma: no cover
+                # this also logs HTTPExceptions, use recheck interval
                 logger.exception("Exception in the server status loop", exc_info=e)
+                delay_delta = self._status_intervals[1]
             else:
                 if not server_status.all_up or server_status.limited_access:
-                    delay = self._status_intervals[1].total_seconds()
-            await asyncio.sleep(delay)
+                    # there is trouble, use recheck interval
+                    delay_delta = self._status_intervals[1]
+            await asyncio.sleep(delay_delta.total_seconds())
 
     def register_status_callback(
         self,
