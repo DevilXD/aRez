@@ -166,7 +166,7 @@ class OrderManager:
                 session_manager = cls.managers["session"] = cls()
             return session_manager
         # module scope
-        module = item.module
+        module = item.module  # type: ignore  # module is added as an attribute, somehow
         module_managers = cls.managers["module"]
         if module not in module_managers:
             module_managers[module] = cls()
@@ -201,7 +201,8 @@ def remove_parametrization(item: Item, scope: Scope) -> str:
     elif scope == "class":
         name = nodeid.split("::", 2)[2]
 
-    original = item.originalname if item.originalname is not None else item.name
+    # originalname is added as an attribute, somehow
+    original = item.originalname if item.originalname is not None else item.name  # type: ignore
     # remove the parametrization part at the end
     if not name.endswith(original):
         index = name.rindex(original) + len(original)
