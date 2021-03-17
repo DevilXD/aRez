@@ -14,11 +14,29 @@ from pytest import Module, Item
 
 from .secret import DEV_ID, AUTH_KEY
 
+######################
+# Note to maintaners #
+######################
+
+# To properly test the library, you'll need to specify your own secret.py file, containing
+# two variables: DEV_ID and AUTH_KEY. Those are your API access credentials of course.
+# The testing suite will generate and store cassette files, allowing you to redo the tests as many
+# times as you'd want to, and everything should work as long as you manually update
+# these constants below:
+
+# BASE_DATETIME
+# MATCH
+# MATCH_TDM
+
+# Once the cassette files are generated, you won't need to touch these ever again,
+# unless you expect the API to change the data types it returns (keys were added or removed).
+# Make sure to read the notes for each constant you update, as they may specify additional
+# restrictions, without which you won't achieve 100% coverage.
 
 pytest_plugins = ["asyncio", "recording", "dependency"]
 
 #####################
-# testing constants #
+# Testing constants #
 #####################
 
 # base datetime - has to be within the last 3-30 days, date only
