@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 from math import floor
 from collections import OrderedDict
 from difflib import SequenceMatcher
@@ -18,6 +19,7 @@ from typing import (
     Callable,
     Iterable,
     Iterator,
+    Sequence,
     Generator,
     AsyncGenerator,
     TypeVar,
@@ -280,13 +282,14 @@ def group_by(iterable: Iterable[X], key: Callable[[X], Y]) -> Dict[Y, List[X]]:
     return item_map
 
 
-class Lookup(Iterable[LookupType]):
+class Lookup(Sequence[LookupType]):
     """
     A helper class utilizing an internal list and two dictionaries, allowing for easy indexing
     and lookup of `CacheObject` and it's subclasses, based on the Name and ID attributes.
     Supports fuzzy Name searches too.
 
-    This object resembles an immutable list, but exposes `__len__`, `__iter__` and `__getitem__`
+    This object resembles an immutable list, and thus exposes ``__len__``, ``__iter__``,
+    ``__getitem__``, ``__contains__``, ``__reversed__``, ``index`` and ``count``
     special methods for ease of use.
     """
     def __init__(self, iterable: Iterable[LookupType]):
@@ -302,44 +305,33 @@ class Lookup(Iterable[LookupType]):
         return f"{self.__class__.__name__}({repr(self._list_lookup)})"
 
     def __len__(self) -> int:
-        """
-        Returns the length of the internal list.\n
-        Use ``len()`` on this object to obtain it.
-
-        :type: int
-        """
         return len(self._list_lookup)
 
     def __iter__(self) -> Iterator[LookupType]:
-        """
-        Returns an iterator over the internal list.\n
-        Use ``iter()`` on this object to obtain it.
-
-        :type: Iterator[CacheObject]
-        """
         return iter(self._list_lookup)
 
+    @overload
     def __getitem__(self, index: int) -> LookupType:
-        """
-        Returns an item from the internal list, from under the index specified.\n
-        This adds support for the indexing syntax: ``lookup[index]``.
+        ...
 
-        Parameters
-        ----------
-        index : int
-            The index under which you want to get the item from.
+    @overload
+    def __getitem__(self, index: slice) -> List[LookupType]:
+        ...
 
-        Returns
-        -------
-        CacheObject
-            The element of which the index was specified.
-
-        Raises
-        ------
-        IndexError
-            The list index was out of range.
-        """
+    def __getitem__(self, index: Union[int, slice]) -> Union[LookupType, List[LookupType]]:
         return self._list_lookup[index]
+
+    def __contains__(self, item: object) -> bool:
+        return item in self._list_lookup
+
+    def __reversed__(self) -> Iterator[LookupType]:
+        return reversed(self._list_lookup)
+
+    def index(self, item: LookupType, start: int = 0, stop: int = sys.maxsize) -> int:
+        return self._list_lookup.index(item, start, stop)
+
+    def count(self, item: LookupType) -> int:
+        return self._list_lookup.count(item)
 
     def get(self, name_or_id: Union[int, str]) -> Optional[LookupType]:
         """

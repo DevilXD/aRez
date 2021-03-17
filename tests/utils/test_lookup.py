@@ -49,10 +49,24 @@ def test_lookup():
     assert first[1] >= cutoff
     # test len
     assert len(lcp) == len(original)
-    # test internal list order and indexing
-    for i, it1, it2 in zip(range(len(lcp)), lcp, original):
-        assert it1 == it2
-        assert lcp[i] == original[i]
+    # test contains
+    assert original[0] in lcp
+    # test count
+    assert lcp.count(original[0]) == 1
+    # test internal list order, reversed and indexing
+    for i, ri, it, rit, org, rorg in zip(
+        range(len(lcp)),  # enumerate
+        range(len(lcp)-1, -1, -1),  # noqa, reverse enumerate
+        lcp,  # lookup
+        reversed(lcp),  # reverse lookup
+        original,
+        reversed(original),
+    ):
+        assert it == org  # lookup vs original
+        assert lcp[i] == original[i]  # order lookup vs original
+        assert lcp.index(it) == i  # index
+        assert rit == rorg  # reversed lookup vs reversed original
+        assert lcp[ri] == original[ri]  # order reversed lookup vs reversed original
 
     # test out-of-bounds index error
     with pytest.raises(IndexError):
