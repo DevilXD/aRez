@@ -340,7 +340,7 @@ class Lookup(Sequence[LookupType]):
         Parameters
         ----------
         name_or_id : Union[int, str]
-            Name or ID of the element you want to lookup.
+            The name or ID of the element you want to lookup.
 
             .. note::
 
@@ -384,9 +384,9 @@ class Lookup(Sequence[LookupType]):
         Parameters
         ----------
         name : str
-            The name of the element to lookup with.
+            The name of the element you want to lookup.
         limit : int
-            The maximum amount of elements to return in the list.\n
+            The maximum amount of elements to return in the list. Has to be greater than ``0``.\n
             Defaults to ``3``.
         cutoff : float
             The similarity score cutoff range, below which matches will be excluded
@@ -449,7 +449,7 @@ class Lookup(Sequence[LookupType]):
         Parameters
         ----------
         name : str
-            The name of the element to lookup with.
+            The name of the element you want to lookup.
         cutoff : float, optional
             The similarity score cutoff range. See: `get_fuzzy_matches` for more information.\n
             Defaults to ``0.6``.
