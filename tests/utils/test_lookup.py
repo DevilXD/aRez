@@ -36,13 +36,17 @@ def test_lookup():
     # test ID get
     assert lcp.get(4) == 4
     # test name get
-    assert lcp.get("two") is None
+    assert lcp.get("tow") is None
     assert lcp.get("Two") == 2
     # test fuzzy name get
-    assert lcp.get_fuzzy_one("two") == 2
-    assert lcp.get_fuzzy_one("six") is None
+    assert lcp.get_fuzzy("two") == 2
+    assert lcp.get_fuzzy("six") is None
     # test fuzzy with scores - first from the list, first from the 2-item tuple
-    assert lcp.get_fuzzy("tow", with_scores=True)[0][0] == 2
+    cutoff = 0.6
+    matches = lcp.get_fuzzy_matches("tow", cutoff=cutoff, with_scores=True)
+    first = matches[0]
+    assert first[0] == 2
+    assert first[1] >= cutoff
     # test len
     assert len(lcp) == len(original)
     # test internal list order and indexing
@@ -55,13 +59,13 @@ def test_lookup():
         lcp[len(original)]
     # test fuzzy type errors
     with pytest.raises(TypeError):  # name
-        lcp.get_fuzzy(123)  # type: ignore
+        lcp.get_fuzzy_matches(123)  # type: ignore
     with pytest.raises(TypeError):  # limit
-        lcp.get_fuzzy("test", limit="yes")  # type: ignore
+        lcp.get_fuzzy_matches("test", limit="yes")  # type: ignore
     with pytest.raises(TypeError):  # cutoff
-        lcp.get_fuzzy("test", cutoff="yes")  # type: ignore
+        lcp.get_fuzzy_matches("test", cutoff="yes")  # type: ignore
     # test fuzzy value errors
     with pytest.raises(ValueError):  # limit
-        lcp.get_fuzzy("test", limit=-1)
+        lcp.get_fuzzy_matches("test", limit=-1)
     with pytest.raises(ValueError):  # limit
-        lcp.get_fuzzy("test", cutoff=3.5)
+        lcp.get_fuzzy_matches("test", cutoff=3.5)

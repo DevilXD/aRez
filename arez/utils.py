@@ -293,11 +293,10 @@ class Lookup(Iterable[LookupType]):
         self._list_lookup: List[LookupType] = []
         self._id_lookup: Dict[int, LookupType] = {}
         self._name_lookup: Dict[str, LookupType] = {}
-        self._fuzzy_lookup: Dict[str, LookupType] = {}
         for e in iterable:
             self._list_lookup.append(e)
             self._id_lookup[e.id] = e
-            self._name_lookup[e.name] = e
+            self._name_lookup[e.name.lower()] = e
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({repr(self._list_lookup)})"
@@ -353,7 +352,7 @@ class Lookup(Iterable[LookupType]):
 
             .. note::
 
-                The name lookup is case-sensitive.
+                The name lookup is case-insensitive.
 
         Returns
         -------
@@ -361,12 +360,12 @@ class Lookup(Iterable[LookupType]):
             The element requested.\n
             `None` is returned if the requested element couldn't be found.
         """
-        if isinstance(name_or_id, int):
-            return self._id_lookup.get(name_or_id)
-        return self._name_lookup.get(name_or_id)
+        if isinstance(name_or_id, str):
+            return self._name_lookup.get(name_or_id.lower())
+        return self._id_lookup.get(name_or_id)
 
     @overload
-    def get_fuzzy(
+    def get_fuzzy_matches(
         self,
         name: str,
         *,
@@ -377,17 +376,18 @@ class Lookup(Iterable[LookupType]):
         ...
 
     @overload
-    def get_fuzzy(
+    def get_fuzzy_matches(
         self, name: str, *, limit: int = 3, cutoff: float = 0.6, with_scores: Literal[True]
     ) -> List[Tuple[LookupType, float]]:
         ...
 
-    def get_fuzzy(
+    def get_fuzzy_matches(
         self, name: str, *, limit: int = 3, cutoff: float = 0.6, with_scores: bool = False
     ) -> Union[List[LookupType], List[Tuple[LookupType, float]]]:
         """
-        Performs a fuzzy lookup of an element by it's name. Case-insensitive.\n
-        See also: `get_fuzzy_one`.
+        Performs a fuzzy lookup of an element by it's name,
+        by calculating the similarity score between each item. Case-insensitive.\n
+        See also: `get_fuzzy`.
 
         Parameters
         ----------
@@ -409,8 +409,8 @@ class Lookup(Iterable[LookupType]):
         Returns
         -------
         Union[List[CacheObject], List[Tuple[CacheObject, float]]]
-            A list of up to ``limit`` elements, in descending order,
-            sorted by their similarity score.\n
+            A list of up to ``limit`` matching elements, with at least ``cutoff`` similarity score,
+            sorted in descending order by their similarity score.\n
             If ``with_scores`` is set to `True`, returns a list of up to ``limit`` 2-item tuples,
             where the first item of each tuple is the element, and the second item
             is the similarity score it has.
@@ -433,11 +433,11 @@ class Lookup(Iterable[LookupType]):
         if not 0 <= cutoff <= 1:
             raise ValueError("cutoff has to be a float in 0-1 range")
 
-        matcher: SequenceMatcher = SequenceMatcher()
+        matcher: SequenceMatcher[str] = SequenceMatcher()
         matcher.set_seq2(name.lower())
         scores: List[Tuple[str, float]] = []
         for key in self._name_lookup:
-            matcher.set_seq1(key.lower())
+            matcher.set_seq1(key)
             if (
                 matcher.real_quick_ratio() >= cutoff
                 and matcher.quick_ratio() >= cutoff
@@ -449,9 +449,9 @@ class Lookup(Iterable[LookupType]):
             return [(self._name_lookup[key], score) for key, score in scores[:limit]]
         return [self._name_lookup[key] for key, score in scores[:limit]]
 
-    def get_fuzzy_one(self, name: str, *, cutoff: float = 0.6) -> Optional[LookupType]:
+    def get_fuzzy(self, name: str, *, cutoff: float = 0.6) -> Optional[LookupType]:
         """
-        Simplified version of `get_fuzzy`, allowing you to search for a single element,
+        Simplified version of `get_fuzzy_matches`, allowing you to search for a single element,
         or receive `None` if no matching element was found.
 
         Parameters
@@ -459,7 +459,7 @@ class Lookup(Iterable[LookupType]):
         name : str
             The name of the element to lookup with.
         cutoff : float, optional
-            The similarity score cutoff range. See: `get_fuzzy` for more information.\n
+            The similarity score cutoff range. See: `get_fuzzy_matches` for more information.\n
             Defaults to ``0.6``.
 
         Returns
@@ -475,7 +475,7 @@ class Lookup(Iterable[LookupType]):
         ValueError
             ``cutoff`` argument has an incorrect value
         """
-        matches = self.get_fuzzy(name, limit=1, cutoff=cutoff)
+        matches = self.get_fuzzy_matches(name, limit=1, cutoff=cutoff)
         if matches:
             return matches[0]
         return None
