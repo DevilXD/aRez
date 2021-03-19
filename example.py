@@ -40,23 +40,23 @@ async def main():
         raise RuntimeError
     # iterate over the player list and pick a player you're the most interested in
     # here we pick the first one returned for simplicity
-    player = player_list[0]
+    partial_player = player_list[0]
 
     # get their in-game status
-    status = await player.get_status()
+    player_status = await partial_player.get_status()
     # get the match they're currently in
-    live_match = await status.get_live_match()
+    live_match = await player_status.get_live_match()
     # get their friends list
-    friends = await player.get_friends()
+    friends = await partial_player.get_friends()
     # get their loadouts
-    loadouts = await player.get_loadouts()
+    loadouts = await partial_player.get_loadouts()
     # get their match history
-    history = await player.get_match_history()
+    history = await partial_player.get_match_history()
     # get their champion stats
-    champ_stats = await player.get_champion_stats()
+    champ_stats = await partial_player.get_champion_stats()
 
     # print them out (or process as necessary)
-    print(status, live_match, friends, loadouts, history, champ_stats, sep='\n')
+    print(player_status, live_match, friends, loadouts, history, champ_stats, sep='\n')
 
     # don't forget to close the API when you'll finish using it - this needs to be called
     # just before application exit, to properly clean up the resources used and prevent warnings.
@@ -72,14 +72,14 @@ async def main():
     ##################################################
 
     # Standard usage:
-    api = arez.StatusPage("http://status.hirezstudios.com")
-    status = await api.get_status()
+    status_page = arez.StatusPage("http://status.hirezstudios.com")
+    status = await status_page.get_status()
     print(status)
-    await api.close()  # don't forget to close when you'll finish using the API
+    await status_page.close()  # don't forget to close when you'll finish using the API
 
     # Async context manager usage (automatically closes the API for you):
-    async with arez.StatusPage("http://status.hirezstudios.com") as api:
-        status = await api.get_status()
+    async with arez.StatusPage("http://status.hirezstudios.com") as status_page:
+        status = await status_page.get_status()
         print(status)
 
 loop = asyncio.get_event_loop()
