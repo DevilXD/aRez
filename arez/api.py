@@ -216,10 +216,7 @@ class PaladinsAPI(DataCache):
                 and old_status != self._server_status
                 and self._status_callback is not None
             ):
-                try:
-                    await self._status_callback(old_status, self._server_status)
-                except Exception as e:  # pragma: no cover
-                    logger.exception("Exception in the server status callback", exc_info=e)
+                self._loop.create_task(self._status_callback(old_status, self._server_status))
         return self._server_status
 
     async def _status_loop(self):
@@ -256,6 +253,19 @@ class PaladinsAPI(DataCache):
         will then be called with the new status (and optionally the previous one) passed as the
         arguments, like so: ``callback(after)`` or ``callback(before, after)``.
 
+        .. note::
+
+            The callback is wrapped inside a task, to prevent it from delaying the checking loop.
+            Please make sure that it's execution time is shorter than the check interval,
+            otherwise you may end up with two callbacks running at once.
+
+        .. note::
+
+            Any exceptions raised by the callback function, will be logged by the library's logger,
+            and ultimately ignored otherwise. If you'd be interested in those, try either
+            catching and processing those yourself (within the callback),
+            or hooking up a logger handler and setting the logger to at least `ERROR` level.
+
         Parameters
         ----------
         callback : Union[None,\
@@ -273,7 +283,8 @@ class PaladinsAPI(DataCache):
             The default check interval is 3 minutes.
         recheck_interval : timedelta
             The length of the interval used between non-Operational
-            (at least one server is down, or limited access) server status checks.\n
+            (at least one server is down, or limited access, not including PTS)
+            server status checks.\n
             The default recheck interval is 1 minute.
 
         Raises
@@ -303,10 +314,14 @@ class PaladinsAPI(DataCache):
         is_coro = iscoroutinefunction(callback)
 
         async def _status_callback(before: ServerStatus, after: ServerStatus):
-            args = (before, after) if pass_before else (after,)
-            ret = callback(*args)  # type: ignore
-            if is_coro:
-                await ret
+            try:
+                args = (before, after) if pass_before else (after,)
+                ret = callback(*args)  # type: ignore
+                if is_coro:
+                    await ret
+            except Exception as e:  # pragma: no cover
+                logger.exception("Exception in the server status callback", exc_info=e)
+                raise  # raise up to the wrapping task
 
         if self._status_task is not None:
             self._status_task.cancel()
