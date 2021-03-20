@@ -1,5 +1,5 @@
 # Base requirements
-aiohttp>=2.0.0
+-r ../requirements.txt
 
 # Sphinx stuff
 sphinx>=2.3.1,<2.4.0
