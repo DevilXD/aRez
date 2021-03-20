@@ -447,7 +447,7 @@ class StatusPage:
     def __init__(self, url: str, *, loop: Optional[asyncio.AbstractEventLoop] = None):
         if loop is None:  # pragma: no cover
             loop = asyncio.get_event_loop()
-        self.url: str = f"{url.rstrip('/')}/api/v2"
+        self.url: str = url.rstrip('/')
         self._session = aiohttp.ClientSession(timeout=timeout, loop=loop)
 
     def __del__(self):
@@ -464,9 +464,17 @@ class StatusPage:
         await self._session.close()
 
     async def request(self, endpoint: str):
-        async with self._session.get(f"{self.url}/{endpoint}") as response:
-            response.raise_for_status()
-            return await response.json()
+        for tries in range(5):  # pragma: no branch
+            try:
+                async with self._session.get(f"{self.url}/api/v2/{endpoint}") as response:
+                    response.raise_for_status()
+                    return await response.json()
+            except (
+                aiohttp.ClientConnectionError, asyncio.TimeoutError
+            ) as exc:  # pragma: no cover
+                last_exc = exc
+                await asyncio.sleep(0.5)
+        raise last_exc  # pragma: no cover
 
     async def get_status(self) -> CurrentStatus:
         """
