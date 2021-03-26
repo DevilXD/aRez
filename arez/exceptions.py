@@ -8,6 +8,7 @@ __all__ = [
     "NotFound",
     "Unauthorized",
     "Unavailable",
+    "LimitReached",
 ]
 
 
