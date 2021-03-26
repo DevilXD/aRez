@@ -92,3 +92,13 @@ class Unavailable(ArezException):
     """
     def __init__(self):
         super().__init__("Hi-Rez API is currently down!")
+
+
+class LimitReached(ArezException):
+    """
+    The exception raised when you reach your daily limit of requests to the API.
+
+    Inherits from `ArezException`.
+    """
+    def __init__(self):
+        super().__init__("Daily request limit reached.")

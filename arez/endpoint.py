@@ -8,7 +8,7 @@ from random import gauss
 from typing import Optional, Union
 from datetime import datetime, timedelta
 
-from .exceptions import HTTPException, Unauthorized, Unavailable
+from .exceptions import HTTPException, Unauthorized, Unavailable, LimitReached
 
 
 __all__ = ["Endpoint"]
@@ -181,6 +181,9 @@ class Endpoint:
                             # Invalidate the current session by expiring it, then retry
                             self._session_expires = datetime.utcnow()
                             continue
+                        # Daily limit reached
+                        elif error == "Daily request limit reached.":
+                            raise LimitReached
 
                 return res_data
 

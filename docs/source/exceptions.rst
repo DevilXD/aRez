@@ -21,6 +21,9 @@ Exceptions
 .. autoexception:: Unavailable
     :members:
 
+.. autoexception:: LimitReached
+    :members:
+
 Exceptions Hierarchy
 --------------------
 
@@ -31,3 +34,4 @@ Exceptions Hierarchy
             - :exc:`NotFound`
             - :exc:`Unauthorized`
             - :exc:`Unavailable`
+            - :exc:`LimitReached`
