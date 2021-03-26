@@ -36,7 +36,7 @@ class Stats(WinLoseMixin):
     leaves : int
         The amount of times player left / disconnected from a match.
     """
-    def __init__(self, stats_data: dict):
+    def __init__(self, stats_data: Dict[str, Any]):
         super().__init__(
             wins=stats_data["Wins"],
             losses=stats_data["Losses"],
@@ -70,7 +70,7 @@ class RankedStats(Stats):
     season : int
         The current ranked season.
     """
-    def __init__(self, type_name: Literal["Keyboard", "Controller"], stats_data: dict):
+    def __init__(self, type_name: Literal["Keyboard", "Controller"], stats_data: Dict[str, Any]):
         super().__init__(stats_data)
         self.type = type_name
         self.rank = Rank(stats_data["Tier"])

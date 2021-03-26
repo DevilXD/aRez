@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional, Union, Dict, Any, Literal, cast, TYPE_CHECKING
+from typing import Optional, Union, Dict, Any, Literal, TYPE_CHECKING
 
 from .utils import _convert_timestamp
 from .mixins import CacheClient, CacheObject
@@ -47,9 +47,7 @@ class BountyItem(CacheClient):
         super().__init__(api)
         self.active: bool = data["active"] == 'y'
         self.item = CacheObject(id=data["bounty_item_id2"], name=data["bounty_item_name"])
-        self.expires: datetime = cast(
-            datetime, _convert_timestamp(data["sale_end_datetime"])
-        )
+        self.expires: datetime = _convert_timestamp(data["sale_end_datetime"])
         self.sale_type: Literal["Increasing", "Decreasing"] = data["sale_type"]
         # handle prices
         initial: str = data["initial_price"]

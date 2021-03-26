@@ -144,7 +144,7 @@ class _EnumBase(int):
     _value: int
 
     def __new__(cls, name: str, value: int) -> _EnumBase:
-        self = super().__new__(cls, value)  # type: ignore
+        self = super().__new__(cls, value)
         self._name = name
         self._value = value
         return self

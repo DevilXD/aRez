@@ -28,7 +28,7 @@ from typing import (
     overload,
 )
 
-from .mixins import CacheObject
+from .mixins import CacheObject, Expandable
 
 
 __all__ = [
@@ -491,7 +491,7 @@ def chunk(list_to_chunk: List[X], chunk_length: int) -> Generator[List[X], None,
         yield list_to_chunk[i:i + chunk_length]
 
 
-async def expand_partial(iterable: Iterable) -> AsyncGenerator:
+async def expand_partial(iterable: Iterable[X]) -> AsyncGenerator[X, None]:
     """
     A helper async generator that can be used to automatically expand partial objects for you.
     Any other object found in the ``iterable`` is passed unchanged.
@@ -510,10 +510,8 @@ async def expand_partial(iterable: Iterable) -> AsyncGenerator:
     AsyncGenerator
         An async generator yielding expanded versions of each partial object.
     """
-    from .player import PartialPlayer  # cyclic imports
-    from .match import PartialMatch  # cyclic imports
     for element in iterable:
-        if isinstance(element, (PartialPlayer, PartialMatch)):
+        if isinstance(element, Expandable):
             expanded = await element
             yield expanded
         else:
@@ -777,7 +775,7 @@ class Duration:
         return Duration(seconds=self._total_seconds)
 
 
-class WeakValueDefaultDict(WeakValueDictionary, Mapping[X, Y]):
+class WeakValueDefaultDict(WeakValueDictionary, Mapping[X, Y]):  # type: ignore
     def __init__(
         self,
         default_factory: Optional[Callable[[], Any]] = None,

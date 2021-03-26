@@ -20,6 +20,7 @@ from typing import (
     Awaitable,
     AsyncGenerator,
     Literal,
+    NoReturn,
     overload,
     TYPE_CHECKING,
 )
@@ -109,7 +110,7 @@ class PaladinsAPI(DataCache):
         self._status_callback: Optional[
             Callable[[ServerStatus, ServerStatus], Awaitable[Any]]
         ] = None
-        self._status_task: Optional[asyncio.Task] = None
+        self._status_task: Optional[asyncio.Task[NoReturn]] = None
         self._status_intervals: Tuple[timedelta, timedelta] = (
             timedelta(minutes=3), timedelta(minutes=1)  # check, recheck
         )
@@ -227,9 +228,9 @@ class PaladinsAPI(DataCache):
             except (NotFound, Unavailable):  # pragma: no cover
                 # just skip it this time, use recheck interval
                 delay_delta = self._status_intervals[1]
-            except Exception as e:  # pragma: no cover
+            except Exception:  # pragma: no cover
                 # this also logs HTTPExceptions, use recheck interval
-                logger.exception("Exception in the server status loop", exc_info=e)
+                logger.exception("Exception in the server status loop")
                 delay_delta = self._status_intervals[1]
             else:
                 if not server_status.all_up or server_status.limited_access:
@@ -264,7 +265,7 @@ class PaladinsAPI(DataCache):
             Any exceptions raised by the callback function, will be logged by the library's logger,
             and ultimately ignored otherwise. If you'd be interested in those, try either
             catching and processing those yourself (within the callback),
-            or hooking up a logger handler and setting the logger to at least `ERROR` level.
+            or hooking up a logger handler and setting the logger to at least ``ERROR`` level.
 
         Parameters
         ----------
@@ -279,7 +280,7 @@ class PaladinsAPI(DataCache):
             Passing `None` stops the checking loop.
         check_interval : timedelta
             The length of the interval used between Operational
-            (all servers up, no limited access) server status checks.\n
+            (all servers up, no limited access, not including PTS) server status checks.\n
             The default check interval is 3 minutes.
         recheck_interval : timedelta
             The length of the interval used between non-Operational
@@ -319,8 +320,8 @@ class PaladinsAPI(DataCache):
                 ret = callback(*args)  # type: ignore
                 if is_coro:
                     await ret
-            except Exception as e:  # pragma: no cover
-                logger.exception("Exception in the server status callback", exc_info=e)
+            except Exception:  # pragma: no cover
+                logger.exception("Exception in the server status callback")
                 raise  # raise up to the wrapping task
 
         if self._status_task is not None:

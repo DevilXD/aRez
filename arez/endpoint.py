@@ -5,8 +5,8 @@ import asyncio
 import logging
 from hashlib import md5
 from random import gauss
-from typing import Optional, Union
 from datetime import datetime, timedelta
+from typing import Any, Optional, Union, List, Dict
 
 from .exceptions import HTTPException, Unauthorized, Unavailable, LimitReached
 
@@ -165,7 +165,7 @@ class Endpoint:
                         raise Unavailable
                     # Raise for any other error code
                     response.raise_for_status()
-                    res_data: Union[list, dict] = await response.json()
+                    res_data: Union[List[Dict[str, Any]], Dict[str, Any]] = await response.json()
 
                 # handle some ret_msg errors, if possible
                 if res_data:
@@ -223,5 +223,5 @@ class Endpoint:
 
         # we've run out of tries, so ¯\_(ツ)_/¯
         # we shouldn't ever end up here, this is a fail-safe
-        logger.error("Ran out of retries", exc_info=last_exc)  # pragma: no cover
+        logger.exception("Ran out of retries", exc_info=last_exc)  # pragma: no cover
         raise HTTPException(last_exc)  # pragma: no cover
