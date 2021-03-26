@@ -45,7 +45,7 @@
         {
             "label": "Reinstall dev library",
             "type": "shell",
-            "command": "pip install --force-reinstall git+file:///${workspaceFolder}@dev",
+            "command": "pip install --force-reinstall --user git+file:///${workspaceFolder}@dev",
             "problemMatcher": [],
             "presentation": {
                 "echo": true,
@@ -59,7 +59,7 @@
         {
             "label": "Reinstall master library",
             "type": "shell",
-            "command": "pip install --force-reinstall git+file:///${workspaceFolder}@master",
+            "command": "pip install --force-reinstall --user git+file:///${workspaceFolder}@master",
             "problemMatcher": [],
             "presentation": {
                 "echo": true,
