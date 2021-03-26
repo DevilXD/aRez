@@ -35,7 +35,7 @@
                 "focus": false,
                 "panel": "shared",
                 "showReuseMessage": false,
-                "clear": true
+                "clear": false
             },
             "group": {
                 "kind": "build",
