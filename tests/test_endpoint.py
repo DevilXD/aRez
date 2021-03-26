@@ -57,3 +57,10 @@ async def test_404(api: arez.PaladinsAPI):
 async def test_503(api: arez.PaladinsAPI):
     with pytest.raises(arez.Unavailable):
         await api.request("unavailable")
+
+
+# test limit reached
+@pytest.mark.dependency(depends=["test_session"])
+async def test_limit_reached(api: arez.PaladinsAPI):
+    with pytest.raises(arez.LimitReached):
+        await api.request("limitreached")

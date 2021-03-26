@@ -205,11 +205,13 @@ class Endpoint:
                 raise HTTPException(exc)
             # For the case where 'createsession' raises it recursively,
             # or the Hi-Rez API is down - just pass it along
-            except (Unauthorized, Unavailable) as exc:  # pragma: no branch
+            except (Unauthorized, Unavailable, LimitReached) as exc:  # pragma: no branch
+                if isinstance(exc, Unavailable):
+                    logger.warning("Hi-Rez API is Unavailable")
                 if isinstance(exc, Unauthorized):
                     logger.error("You are Unauthorized")
-                elif isinstance(exc, Unavailable):  # pragma: no branch
-                    logger.warning("Hi-Rez API is Unavailable")
+                elif isinstance(exc, LimitReached):  # pragma: no branch
+                    logger.error("Daily request limit reached")
                 raise
             # Some other exception happened, so just wrap it and propagate along
             except Exception as exc:  # pragma: no cover

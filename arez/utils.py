@@ -108,7 +108,7 @@ def _convert_map_name(map_name: str) -> str:
         The converted map name.
     """
     map_name = map_name.strip()
-    for prefix in ("LIVE", "Ranked", "Practice", "WIP"):
+    for prefix in ("LIVE", "Ranked", "Practice", "WIP"):  # pragma: no branch
         if map_name.startswith(prefix):
             map_name = map_name[len(prefix):]
             break
