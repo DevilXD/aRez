@@ -181,9 +181,6 @@ class PaladinsAPI(DataCache):
                 (s for s in api_status if s["environment"] == "pts"), None
             ):
                 pts_dict["platform"] = pts_dict["environment"]
-            # process "status" into "up" as a bool
-            for status_data in api_status:
-                status_data["up"] = status_data["status"] == "UP"
 
             # fetch from the StatusPage
             group: Optional[ComponentGroup]

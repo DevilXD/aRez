@@ -154,7 +154,7 @@ class Status:
             self.incidents = comp.incidents
             self.maintenances = comp.maintenances
         self.up, self.limited_access, self.status, self.color = _convert_status(
-            status_data["up"], status_data["limited_access"], *status_color
+            status_data["status"] == "UP", status_data["limited_access"], *status_color
         )
 
     def __repr__(self) -> str:
