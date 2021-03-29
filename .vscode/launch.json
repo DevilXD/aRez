@@ -23,7 +23,7 @@
             "type": "python",
             "request": "launch",
             "module": "pytest",
-            "args": ["-v"]
+            "args": ["-v", "-x"]
         },
         {
             "name": "Run Tests - Fast",
@@ -39,6 +39,7 @@
             "module": "pytest",
             "args": [
                 "-v",
+                "-x",
                 "--cov=arez",
                 "--cov-branch",
                 "--cov-config=coverage.ini",
