@@ -1,5 +1,10 @@
 # flake8: noqa
 
+# Define those first, so we can import them during library initialization
+__author__ = "DevilXD"
+__version__ = "0.1.7"
+
+
 from .cache import *
 from .enums import *
 from .items import *
@@ -15,7 +20,3 @@ from .api import PaladinsAPI
 from .endpoint import Endpoint
 from .statuspage import StatusPage
 from .utils import Lookup, Duration
-
-
-__author__ = "DevilXD"
-__version__ = "0.1.7"

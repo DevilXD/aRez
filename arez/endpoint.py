@@ -5,9 +5,11 @@ import asyncio
 import logging
 from hashlib import md5
 from random import gauss
+from platform import python_version
 from datetime import datetime, timedelta
 from typing import Any, Optional, Union, List, Dict
 
+from . import __version__, __author__
 from .exceptions import HTTPException, Unauthorized, Unavailable, LimitReached
 
 
@@ -15,6 +17,7 @@ __all__ = ["Endpoint"]
 session_lifetime = timedelta(minutes=15)
 timeout = aiohttp.ClientTimeout(total=20, connect=5)
 logger = logging.getLogger(__package__)
+USER_AGENT = f"Python {python_version()}: aRez {__version__} by {__author__}"
 
 
 class Endpoint:
@@ -60,7 +63,9 @@ class Endpoint:
         self._session_key = ''
         self._session_lock = asyncio.Lock()
         self._session_expires = datetime.utcnow()
-        self._http_session = aiohttp.ClientSession(timeout=timeout, loop=loop)
+        self._http_session = aiohttp.ClientSession(
+            headers={"User-Agent": USER_AGENT}, timeout=timeout, loop=loop
+        )
         self.__dev_id = str(dev_id)
         self.__auth_key = auth_key.upper()
 
