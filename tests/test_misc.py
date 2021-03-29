@@ -231,11 +231,16 @@ async def test_get_server_status(api: arez.PaladinsAPI):
     # empty api response, but statuspage returns
     current_status = await api.get_server_status(force_refresh=True)
     assert "epic" in current_status.statuses
+    # api response but empty statuspage, not all up but bug workaround
+    current_status2 = await api.get_server_status(force_refresh=True)
+    assert current_status is current_status2
+    assert api._status_stale
     # api response but empty statuspage, not all up
     current_status = await api.get_server_status(force_refresh=True)
     assert "epic" not in current_status.statuses
     assert not current_status.all_up
     assert not current_status.limited_access
+    assert not api._status_stale
     # both available, all up but limited access
     current_status = await api.get_server_status(force_refresh=True)
     assert isinstance(current_status, arez.ServerStatus)
@@ -248,11 +253,10 @@ async def test_get_server_status(api: arez.PaladinsAPI):
     current_status2 = await api.get_server_status(force_refresh=True)
     assert current_status2 is current_status
     # test attributes
-    keys = set(("pc", "ps4", "xbox", "switch", "epic", "pts"))
+    keys = ("pc", "ps4", "xbox", "switch", "epic", "pts")
     assert (
-        len(current_status.statuses)
-        == len(keys.intersection(current_status.statuses))
-        == len(keys)
+        len(keys) == len(current_status.statuses)
+        and all(k in current_status.statuses for k in keys)
     )
     # repr
     repr(current_status)
@@ -261,16 +265,16 @@ async def test_get_server_status(api: arez.PaladinsAPI):
     # test callback loop
     n = 0
     can_continue = Event()
-    one_second = timedelta(seconds=1)
+    half_second = timedelta(seconds=0.5)
 
     async def test_callback(callback, *, double_register=False):
         nonlocal n
         n = 0
         can_continue.clear()
-        api.register_status_callback(callback, one_second, one_second)
+        api.register_status_callback(callback, half_second, half_second)
         if double_register:
-            api.register_status_callback(callback, one_second, one_second)
-        await wait_for(can_continue.wait(), timeout=2.5)
+            api.register_status_callback(callback, half_second, half_second)
+        await wait_for(can_continue.wait(), timeout=2)
         api.register_status_callback(None)
 
     # normal function, one argument
@@ -283,7 +287,7 @@ async def test_get_server_status(api: arez.PaladinsAPI):
     await test_callback(callback, double_register=True)
 
     # normal function, two arguments
-    def callback(before, after):  # type: ignore
+    def callback(before, after):  # type: ignore[no-redef]
         nonlocal n
         assert before != after
         n += 1
@@ -294,7 +298,7 @@ async def test_get_server_status(api: arez.PaladinsAPI):
     api.register_status_callback(None)
 
     # async function, one argument
-    async def callback(after):  # type: ignore
+    async def callback(after):  # type: ignore[no-redef]
         nonlocal n
         n += 1
         if n >= 2:  # count two calls
@@ -302,7 +306,7 @@ async def test_get_server_status(api: arez.PaladinsAPI):
     await test_callback(callback)
 
     # async function, two arguments
-    async def callback(before, after):  # type: ignore
+    async def callback(before, after):  # type: ignore[no-redef]
         nonlocal n
         assert before != after
         n += 1
