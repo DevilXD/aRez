@@ -231,16 +231,11 @@ async def test_get_server_status(api: arez.PaladinsAPI):
     # empty api response, but statuspage returns
     current_status = await api.get_server_status(force_refresh=True)
     assert "epic" in current_status.statuses
-    # api response but empty statuspage, not all up but bug workaround
-    current_status2 = await api.get_server_status(force_refresh=True)
-    assert current_status is current_status2
-    assert api._status_stale
     # api response but empty statuspage, not all up
     current_status = await api.get_server_status(force_refresh=True)
     assert "epic" not in current_status.statuses
     assert not current_status.all_up
     assert not current_status.limited_access
-    assert not api._status_stale
     # both available, all up but limited access
     current_status = await api.get_server_status(force_refresh=True)
     assert isinstance(current_status, arez.ServerStatus)

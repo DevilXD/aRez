@@ -63,13 +63,15 @@ class PaladinsAPI(DataCache):
 
     .. note::
 
-        In addition to the exceptions specified below, each API request can result
+        In addition to the exceptions specified for each method, each API request can result
         in two additional exceptions being raised:
 
         `Unavailable`
             The API is currently unavailable.
+        `LimitReached`
+            Your daily limit of requests has been reached.
         `HTTPException`
-            Fetching the information requested failed due to connection problems.
+            Fetching the information requested failed due to connection or API problems.
 
     Parameters
     ----------
@@ -113,7 +115,6 @@ class PaladinsAPI(DataCache):
         self._statuspage = StatusPage("http://status.hirezstudios.com", loop=loop)
         self._statuspage_group = "Paladins"
         self._server_status: Optional[ServerStatus] = None
-        self._status_stale: bool = False
         self._status_callback: Optional[
             Callable[[ServerStatus, ServerStatus], Awaitable[Any]]
         ] = None
@@ -211,37 +212,23 @@ class PaladinsAPI(DataCache):
                 )
                 return self._server_status
 
-            # pack it and handle the callback
+            # pack it and cache
             logger.info(f"api.get_server_status({force_refresh=}) -> fetching successful")
-            old_status = self._server_status
-            new_status = ServerStatus(api_status, group)
-            if old_status is None:
-                # we have no previous information, so just cache it and move on
-                self._server_status = new_status
-            else:
-                # Now, we need to work around the API bug, where it may return all servers
-                # being down for about 30s, reverting back to all of them being up afterwards.
-                # We use the cached status to see if the servers were down last time too - if so,
-                # we can process the callback. If not, we hold off on doing so this time,
-                # and set the stale flag.
-                if not self._status_stale and old_status.all_up and not new_status.all_up:
-                    self._status_stale = True
-                    new_status = old_status  # return the cached status instead
-                else:
-                    self._status_stale = False
-                    self._server_status = new_status  # cache only when not stale
-                    if (
-                        old_status != new_status
-                        and self._status_callback is not None
-                    ):
-                        self._loop.create_task(self._status_callback(old_status, new_status))
-        return new_status
+            self._server_status = ServerStatus(api_status, group)
+        return self._server_status
 
     async def _status_loop(self):
         while True:
             delay_delta = self._status_intervals[0]  # normal check interval
             try:
-                server_status = await self.get_server_status(force_refresh=True)
+                old_status = self._server_status
+                new_status = await self.get_server_status(force_refresh=True)
+                if (
+                    old_status is not None
+                    and old_status != new_status
+                    and self._status_callback is not None
+                ):
+                    self._loop.create_task(self._status_callback(old_status, new_status))
             except NotFound:  # pragma: no cover
                 # just skip it this time, use recheck interval
                 delay_delta = self._status_intervals[1]
@@ -250,11 +237,8 @@ class PaladinsAPI(DataCache):
                 logger.exception("Exception in the server status loop")
                 delay_delta = self._status_intervals[1]
             else:
-                if not server_status.all_up or server_status.limited_access:
+                if not new_status.all_up or new_status.limited_access:
                     # there is trouble, use recheck interval
-                    delay_delta = self._status_intervals[1]
-                elif self._status_stale:
-                    # the status we've got is stale, use recheck interval
                     delay_delta = self._status_intervals[1]
             await asyncio.sleep(delay_delta.total_seconds())
 
@@ -276,24 +260,21 @@ class PaladinsAPI(DataCache):
 
         .. note::
 
-            The callback is wrapped inside a task, to prevent it from delaying the checking loop.
-            Please make sure that it's execution time is shorter than the check interval,
+            - The checking loop will call `get_server_status` with ``force_refresh`` \
+            set to `True`, to handle the refreshing. To avoid wasting request, \
+            it's recommended to use intervals at least 1 minute long, \
+            and not set ``force_refresh`` to `True` anywhere else in your code, \
+            relying on the cached status being refreshed by the loop.
+
+            - The callback is wrapped inside a task, to prevent it from \
+            delaying the checking loop. Please make sure that it's execution time \
+            is shorter than the check / recheck intervals, \
             otherwise you may end up with two callbacks running at once.
 
-        .. note::
-
-            Any exceptions raised by the callback function, will be logged by the library's logger,
-            and ultimately ignored otherwise. If you'd be interested in those, try either
-            catching and processing those yourself (within the callback),
+            - Any exceptions raised by the callback function, will be logged by the library's \
+            logger, and ultimately ignored otherwise. If you'd be interested in those, \
+            try either catching and processing those yourself (within the callback), \
             or hooking up a logger handler and setting the logger to at least ``ERROR`` level.
-
-        .. warning::
-
-            Due to an API bug, it's highly recommended to have both intervals set to at least
-            30 seconds, otherwise you may end up with your callback being called with
-            inconsistent data. Setting the ``recheck_interval`` too high may also introduce
-            a delay between the servers going down, and the callback reporting such occurence
-            - just keep this in mind.
 
         Parameters
         ----------
