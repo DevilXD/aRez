@@ -21,10 +21,12 @@ from typing import (
     AsyncGenerator,
     Literal,
     NoReturn,
+    cast,
     overload,
     TYPE_CHECKING,
 )
 
+from . import responses
 from .cache import DataCache
 from .bounty import BountyItem
 from .status import ServerStatus
@@ -173,7 +175,6 @@ class PaladinsAPI(DataCache):
                 return self._server_status
             logger.info(f"api.get_server_status({force_refresh=}) -> fetching new")
             # fetch from the official API
-            api_status: List[Dict[str, Any]]
             try:
                 api_status = await self.request("gethirezserverstatus")
             except (HTTPException, Unavailable, LimitReached):  # pragma: no cover
@@ -185,7 +186,7 @@ class PaladinsAPI(DataCache):
             if pts_dict := next(  # pragma: no branch
                 (s for s in api_status if s["environment"] == "pts"), None
             ):
-                pts_dict["platform"] = pts_dict["environment"]
+                pts_dict["platform"] = pts_dict["environment"]  # type: ignore[arg-type]
 
             # fetch from the StatusPage
             group: Optional[ComponentGroup]
@@ -527,7 +528,9 @@ class PaladinsAPI(DataCache):
                 ))
             ):
                 return PartialPlayer(
-                    self, id=match.group(2), platform=match.group(1), private=True
+                    self, id=cast(responses.IntStr, match.group(2)),
+                    platform=match.group(1),
+                    private=True,
                 )
             raise Private
         return Player(self, player_data)
@@ -595,7 +598,11 @@ class PaladinsAPI(DataCache):
                     chunk_players.append(Player(self, p))
                 elif return_private and (match := re.search(r'playerId=([0-9]+)', ret_msg)):
                     # Pack up a private player object
-                    chunk_players.append(PartialPlayer(self, id=match.group(1), private=True))
+                    chunk_players.append(
+                        PartialPlayer(
+                            self, id=cast(responses.IntStr, match.group(1)), private=True
+                        )
+                    )
             chunk_players.sort(key=lambda p: chunk_ids.index(p.id))
             player_list.extend(chunk_players)
         return player_list
@@ -665,7 +672,7 @@ class PaladinsAPI(DataCache):
                 "platform argument has to be None or of arez.Platform type, "
                 f"got {type(platform)!r}"
             )
-        list_response: List[Dict[str, Any]]
+        list_response: List[responses.PartialPlayerObject]
         if exact and platform is not None:
             # Specific platform
             logger.info(
@@ -860,10 +867,8 @@ class PaladinsAPI(DataCache):
         matches: List[Match] = []
         players: Dict[int, Player] = {}
         for chunk_ids in chunk(ids_list, 10):  # chunk the IDs into groups of 10
-            response = await self.request("getMatchDetailsBatch", ','.join(map(str, chunk_ids)))
-            bunched_matches: Dict[int, List[Dict[str, Any]]] = group_by(
-                response, lambda mpd: mpd["Match"]
-            )
+            response = await self.request("getmatchdetailsbatch", ','.join(map(str, chunk_ids)))
+            bunched_matches = group_by(response, lambda mpd: mpd["Match"])
             if expand_players:
                 player_ids = []
                 for p in response:
@@ -984,12 +989,12 @@ class PaladinsAPI(DataCache):
         # Use the generated date and hour values to iterate over and fetch matches
         players: Dict[int, Player] = {}
         for date, hour in _date_gen(start, end, reverse=reverse):  # pragma: no branch
-            response = await self.request("getmatchidsbyqueue", queue.value, date, hour)
+            queue_response = await self.request("getmatchidsbyqueue", queue.value, date, hour)
             processed: List[Tuple[int, datetime]] = sorted(
                 (
-                    (int(e["Match"]), _convert_timestamp(e["Entry_Datetime"]))
-                    for e in response
-                    if e["Active_Flag"] == 'n'
+                    (int(match_info["Match"]), _convert_timestamp(match_info["Entry_Datetime"]))
+                    for match_info in queue_response
+                    if match_info["Active_Flag"] == 'n'
                 ),
                 key=itemgetter(1),
                 reverse=reverse,
@@ -1008,15 +1013,13 @@ class PaladinsAPI(DataCache):
                     if stamp >= start:
                         match_ids.append(mid)
             for chunk_ids in chunk(match_ids, 10):  # pragma: no branch
-                response = await self.request(
-                    "getMatchDetailsBatch", ','.join(map(str, chunk_ids))
+                matches_response = await self.request(
+                    "getmatchdetailsbatch", ','.join(map(str, chunk_ids))
                 )
-                bunched_matches: Dict[int, List[Dict[str, Any]]] = group_by(
-                    response, lambda mpd: mpd["Match"]
-                )
+                bunched_matches = group_by(matches_response, lambda mpd: mpd["Match"])
                 if expand_players:
                     player_ids = []
-                    for p in response:
+                    for p in matches_response:
                         try:
                             pid = int(p["playerId"])
                         except TypeError as exc:  # pragma: no cover
@@ -1078,7 +1081,7 @@ class PaladinsAPI(DataCache):
             This can happen if the bounty store is unavailable for a long time.
         """
         cache_entry = await self._ensure_entry(language)
-        response = await self.request("getBountyItems")
+        response = await self.request("getbountyitems")
         if not response:
             raise NotFound("Bounty items")
         items = [BountyItem(self, cache_entry, d) for d in response]

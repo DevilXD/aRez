@@ -3,8 +3,9 @@ from __future__ import annotations
 from math import nan
 from datetime import datetime
 from abc import ABC, abstractmethod
-from typing import Any, Optional, Union, List, Dict, Tuple, Literal, TYPE_CHECKING
+from typing import Optional, Union, List, Tuple, Literal, cast, TYPE_CHECKING
 
+from . import responses
 from .enums import Queue, Region
 
 if TYPE_CHECKING:
@@ -240,22 +241,26 @@ class MatchMixin:
     winning_team : Literal[1, 2]
         The winning team of this match.
     """
-    def __init__(self, match_data: Dict[str, Any]):
+    def __init__(
+        self, match_data: Union[responses.MatchPlayerObject, responses.HistoryMatchObject]
+    ):
         self.id: int = match_data["Match"]
         if "hasReplay" in match_data:
             # we're in a full match data
+            match_data = cast(responses.MatchPlayerObject, match_data)
             stamp = match_data["Entry_Datetime"]
             queue = match_data["match_queue_id"]
             score = (match_data["Team1Score"], match_data["Team2Score"])
         else:
             # we're in a partial (player history) match data
+            match_data = cast(responses.HistoryMatchObject, match_data)
             stamp = match_data["Match_Time"]
             queue = match_data["Match_Queue_Id"]
             my_team = match_data["TaskForce"]
             other_team = 1 if my_team == 2 else 2
             score = (
-                match_data[f"Team{my_team}Score"],
-                match_data[f"Team{other_team}Score"],
+                match_data[f"Team{my_team}Score"],  # type: ignore[misc]
+                match_data[f"Team{other_team}Score"],  # type: ignore[misc]
             )
         self.queue = Queue(queue, return_default=True)
         self.region = Region(match_data["Region"], return_default=True)
@@ -327,17 +332,19 @@ class MatchPlayerMixin(KDAMixin, CacheClient):
         self,
         player: Union[Player, PartialPlayer],
         cache_entry: Optional[CacheEntry],
-        match_data: Dict[str, Any],
+        match_data: Union[responses.MatchPlayerObject, responses.HistoryMatchObject],
     ):
         CacheClient.__init__(self, player._api)
         if "hasReplay" in match_data:
             # we're in a full match data
+            match_data = cast(responses.MatchPlayerObject, match_data)
             creds = match_data["Gold_Earned"]
             kills = match_data["Kills_Player"]
             damage = match_data["Damage_Done_Physical"]
             champion_name = match_data["Reference_Name"]
         else:
             # we're in a partial (player history) match data
+            match_data = cast(responses.HistoryMatchObject, match_data)
             creds = match_data["Gold"]
             kills = match_data["Kills"]
             damage = match_data["Damage"]
@@ -374,13 +381,13 @@ class MatchPlayerMixin(KDAMixin, CacheClient):
         self.objective_time: int = match_data["Objective_Assists"]
         self.multikill_max: int = match_data["Multi_kill_Max"]
         self.team_number: Literal[1, 2] = match_data["TaskForce"]
-        self.team_score: int = match_data[f"Team{self.team_number}Score"]
+        self.team_score: int = match_data[f"Team{self.team_number}Score"]  # type: ignore[misc]
         self.winner: bool = self.team_number == match_data["Winning_TaskForce"]
 
         from .items import MatchLoadout, MatchItem  # cyclic imports
         self.items: List[MatchItem] = []
         for i in range(1, 5):
-            item_id = match_data[f"ActiveId{i}"]
+            item_id = match_data[f"ActiveId{i}"]  # type: ignore[misc]
             if not item_id:
                 continue
             item: Optional[Union[Device, CacheObject]] = None
@@ -389,17 +396,17 @@ class MatchPlayerMixin(KDAMixin, CacheClient):
             if item is None:
                 if "hasReplay" in match_data:
                     # we're in a full match data
-                    item_name = match_data[f"Item_Active_{i}"]
+                    item_name = match_data[f"Item_Active_{i}"]  # type: ignore[misc]
                 else:
                     # we're in a partial (player history) match data
-                    item_name = match_data[f"Active_{i}"]
+                    item_name = match_data[f"Active_{i}"]  # type: ignore[misc]
                 item = CacheObject(id=item_id, name=item_name)
             if "hasReplay" in match_data:
                 # we're in a full match data
-                level = match_data[f"ActiveLevel{i}"] + 1
+                level = match_data[f"ActiveLevel{i}"] + 1  # type: ignore[misc]
             else:
                 # we're in a partial (player history) match data
-                level = match_data[f"ActiveLevel{i}"] // 4 + 1
+                level = match_data[f"ActiveLevel{i}"] // 4 + 1  # type: ignore[misc]
             self.items.append(MatchItem(item, level))
         self.loadout = MatchLoadout(cache_entry, match_data)
 

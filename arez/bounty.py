@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional, Union, Dict, Any, Literal, TYPE_CHECKING
+from typing import Optional, Union, Literal, TYPE_CHECKING
 
 from .utils import _convert_timestamp
 from .mixins import CacheClient, CacheObject
 
 if TYPE_CHECKING:
+    from . import responses
     from .champion import Champion
     from .cache import DataCache, CacheEntry
 
@@ -43,7 +44,9 @@ class BountyItem(CacheClient):
         All active deals have their prices hidden, and remaining quantity is missing altogether.
         This is a limitation of the Hi-Rez API, not the library.
     """
-    def __init__(self, api: DataCache, cache_entry: Optional[CacheEntry], data: Dict[str, Any]):
+    def __init__(
+        self, api: DataCache, cache_entry: Optional[CacheEntry], data: responses.BountyItemObject
+    ):
         super().__init__(api)
         self.active: bool = data["active"] == 'y'
         self.item = CacheObject(id=data["bounty_item_id2"], name=data["bounty_item_name"])

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Optional, Union, List, Dict, Tuple, Literal, cast, TYPE_CHECKING
+from typing import Optional, Union, List, Dict, Tuple, Literal, cast, TYPE_CHECKING
 
 from .statuspage import colors
 from .mixins import CacheClient
@@ -10,6 +10,7 @@ from .exceptions import ArezException
 from .match import LiveMatch, _get_players
 
 if TYPE_CHECKING:
+    from . import responses
     from .enums import Language
     from .player import PartialPlayer, Player
     from .statuspage import Component, ComponentGroup, Incident, Maintenance
@@ -132,7 +133,9 @@ class Status:
         A list of scheduled maintenances that will (or are)
         affect this server status in the future.
     """
-    def __init__(self, status_data: Dict[str, Any], components: Dict[str, Component]):
+    def __init__(
+        self, status_data: responses.ServerStatusObject, components: Dict[str, Component]
+    ):
         self.up: bool
         self.limited_access: bool
         self.status: str
@@ -222,7 +225,9 @@ class ServerStatus(CacheClient):
     maintenances : List[Maintenance]
         A list of maintenances that will (or are) affect the server status in the future.
     """
-    def __init__(self, api_status: List[Dict[str, Any]], group: Optional[ComponentGroup]):
+    def __init__(
+        self, api_status: List[responses.ServerStatusObject], group: Optional[ComponentGroup]
+    ):
         self.timestamp = datetime.utcnow()
         self.all_up: bool
         self.limited_access: bool
@@ -327,7 +332,9 @@ class PlayerStatus(CacheClient):
     status : Activity
         An enum representing the current player status.
     """
-    def __init__(self, player: Union[PartialPlayer, Player], status_data: Dict[str, Any]):
+    def __init__(
+        self, player: Union[PartialPlayer, Player], status_data: responses.PlayerStatusObject
+    ):
         super().__init__(player._api)
         self.player = player
         self.live_match_id: Optional[int] = status_data["Match"] or None

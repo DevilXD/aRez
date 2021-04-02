@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from datetime import datetime
 from functools import cached_property
-from typing import Optional, Union, List, SupportsInt, TYPE_CHECKING
+from typing import Optional, Union, List, Sequence, SupportsInt, TYPE_CHECKING
 
 from .items import Loadout
 from .match import PartialMatch
@@ -15,6 +15,7 @@ from .enums import Language, Platform, Region, Queue
 from .stats import Stats, RankedStats, ChampionStats
 
 if TYPE_CHECKING:
+    from . import responses
     from .cache import DataCache
 
 
@@ -285,6 +286,7 @@ class PartialPlayer(Expandable, CacheClient):
             language = self._api._default_language
         cache_entry = await self._api._ensure_entry(language)
         logger.info(f"Player(id={self._id}).get_champion_stats(language={language.name})")
+        response: Sequence[Union[responses.ChampionRankObject, responses.ChampionQueueRankObject]]
         if queue is None:
             response = await self._api.request("getgodranks", self._id)
         else:
@@ -329,7 +331,7 @@ class PartialPlayer(Expandable, CacheClient):
         response = await self._api.request("getmatchhistory", self._id)
         if not response or response and response[0]["ret_msg"]:
             return []
-        return [PartialMatch(self, language, cache_entry, m) for m in response]
+        return [PartialMatch(self, language, cache_entry, match_data) for match_data in response]
 
 
 class Player(PartialPlayer):

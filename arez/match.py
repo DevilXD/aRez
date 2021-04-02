@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from itertools import count
-from typing import Any, Optional, Union, List, Dict, Iterable, Generator, TYPE_CHECKING
+from typing import Optional, Union, List, Dict, Iterable, Generator, TYPE_CHECKING
 
 from .exceptions import NotFound
 from .enums import Queue, Region, Rank
@@ -12,6 +12,7 @@ from .mixins import (
 )
 
 if TYPE_CHECKING:
+    from . import responses
     from .enums import Language
     from .champion import Champion, Skin
     from .cache import DataCache, CacheEntry
@@ -127,7 +128,7 @@ class PartialMatch(MatchPlayerMixin, MatchMixin, Expandable):
         player: Union[PartialPlayer, Player],
         language: Language,
         cache_entry: Optional[CacheEntry],
-        match_data: Dict[str, Any],
+        match_data: responses.HistoryMatchObject,
     ):
         MatchPlayerMixin.__init__(self, player, cache_entry, match_data)
         MatchMixin.__init__(self, match_data)
@@ -251,7 +252,7 @@ class MatchPlayer(MatchPlayerMixin):
         self,
         match: Match,
         cache_entry: Optional[CacheEntry],
-        player_data: Dict[str, Any],
+        player_data: responses.MatchPlayerObject,
         parties: Dict[int, int],
         players: Dict[int, Player],
     ):
@@ -338,7 +339,7 @@ class Match(CacheClient, MatchMixin):
         self,
         api: DataCache,
         cache_entry: Optional[CacheEntry],
-        match_data: List[Dict[str, Any]],
+        match_data: List[responses.MatchPlayerObject],
         players: Dict[int, Player],
     ):
         CacheClient.__init__(self, api)
@@ -348,7 +349,7 @@ class Match(CacheClient, MatchMixin):
         self.replay_available: bool = first_player["hasReplay"] == "y"
         self.bans: List[Union[Champion, CacheObject]] = []
         for i in range(1, 5):
-            ban_id: int = first_player[f"BanId{i}"]
+            ban_id: int = first_player[f"BanId{i}"]  # type: ignore[misc]
             # skip 0s
             if not ban_id:
                 continue
@@ -356,7 +357,9 @@ class Match(CacheClient, MatchMixin):
             if cache_entry is not None:
                 ban_champ = cache_entry.champions.get(ban_id)
             if ban_champ is None:
-                ban_champ = CacheObject(id=ban_id, name=first_player[f"Ban_{i}"])
+                ban_champ = CacheObject(
+                    id=ban_id, name=first_player[f"Ban_{i}"]  # type: ignore[misc]
+                )
             self.bans.append(ban_champ)
         self.team1: List[MatchPlayer] = []
         self.team2: List[MatchPlayer] = []
@@ -448,7 +451,7 @@ class LivePlayer(WinLoseMixin, CacheClient):
         self,
         match: LiveMatch,
         cache_entry: Optional[CacheEntry],
-        player_data: Dict[str, Any],
+        player_data: responses.LivePlayerObject,
         players: Dict[int, Player],
     ):
         CacheClient.__init__(self, match._api)
@@ -529,7 +532,7 @@ class LiveMatch(CacheClient):
         self,
         api: DataCache,
         cache_entry: Optional[CacheEntry],
-        match_data: List[Dict[str, Any]],
+        match_data: List[responses.LivePlayerObject],
         players: Dict[int, Player],
     ):
         super().__init__(api)

@@ -7,8 +7,9 @@ from hashlib import md5
 from random import gauss
 from platform import python_version
 from datetime import datetime, timedelta
-from typing import Any, Optional, Union, List, Dict
+from typing import Any, Optional, Union, List, Dict, Literal, overload
 
+from . import responses
 from . import __version__, __author__
 from .exceptions import HTTPException, Unauthorized, Unavailable, LimitReached
 
@@ -18,6 +19,7 @@ session_lifetime = timedelta(minutes=15)
 timeout = aiohttp.ClientTimeout(total=20, connect=5)
 logger = logging.getLogger(__package__)
 USER_AGENT = f"Python {python_version()}: aRez {__version__} by {__author__}"
+DataType = Union[str, int]
 
 
 class Endpoint:
@@ -93,7 +95,159 @@ class Endpoint:
             ''.join((self.__dev_id, method_name, self.__auth_key, timestamp)).encode()
         ).hexdigest()
 
-    async def request(self, method_name: str, *data: Union[int, str]):
+    # API ping
+    @overload
+    async def request(self, method_name: Literal["ping"], /) -> str:
+        ...
+
+    # session creation
+    @overload
+    async def request(self, method_name: Literal["createsession"], /) -> responses.SessionObject:
+        ...
+
+    # server status
+    @overload
+    async def request(
+        self, method_name: Literal["gethirezserverstatus"], /,
+    ) -> List[responses.ServerStatusObject]:
+        ...
+
+    # champions data
+    @overload
+    async def request(
+        self, method_name: Literal["getgods", "getchampions"], language_value: DataType, /,
+    ) -> List[responses.ChampionObject]:
+        ...
+
+    # items / devices data
+    @overload
+    async def request(
+        self, method_name: Literal["getitems"], language_value: DataType, /,
+    ) -> List[responses.DeviceObject]:
+        ...
+
+    # champion skins data
+    @overload
+    async def request(
+        self,
+        method_name: Literal["getchampionskins"],
+        champion_id: DataType,
+        language_value: DataType,
+        /,
+    ) -> List[responses.ChampionSkinObject]:
+        ...
+
+    # player information
+    @overload
+    async def request(
+        self, method_name: Literal["getplayer", "getplayerbatch"], name_or_id: Union[int, str], /,
+    ) -> List[responses.PlayerObject]:
+        ...
+
+    # match information
+    @overload
+    async def request(
+        self,
+        method_name: Literal["getmatchdetails", "getmatchdetailsbatch"],
+        match_ids: Union[int, str],  # single or comma-delimited string
+        /,
+    ) -> List[responses.MatchPlayerObject]:
+        ...
+
+    # live match information
+    @overload
+    async def request(
+        self, method_name: Literal["getmatchplayerdetails"], match_id: Union[int, str], /,
+    ) -> List[responses.LivePlayerObject]:
+        ...
+
+    # partial players - PC platform only
+    @overload
+    async def request(
+        self, method_name: Literal["getplayeridbyname"], name: str, /,
+    ) -> List[responses.PartialPlayerObject]:
+        ...
+
+    # partial players - console platforms only
+    @overload
+    async def request(
+        self,
+        method_name: Literal["getplayeridsbygamertag", "getplayeridbyportaluserid"],
+        portal_id: int,
+        name_or_id: DataType,
+        /,
+    ) -> List[responses.PartialPlayerObject]:
+        ...
+
+    # searching players
+    @overload
+    async def request(
+        self, method_name: Literal["searchplayers"], name: str, /,
+    ) -> List[responses.PlayerSearchObject]:
+        ...
+
+    # getting match IDs by queue
+    @overload
+    async def request(
+        self,
+        method_name: Literal["getmatchidsbyqueue"],
+        queue_value: int,
+        date: str,
+        hour: str,
+        /,
+    ) -> List[responses.MatchSearchObject]:
+        ...
+
+    # bounty items
+    @overload
+    async def request(
+        self, method_name: Literal["getbountyitems"], /,
+    ) -> List[responses.BountyItemObject]:
+        ...
+
+    # player status
+    @overload
+    async def request(
+        self, method_name: Literal["getplayerstatus"], player_id: DataType, /,
+    ) -> List[responses.PlayerStatusObject]:
+        ...
+
+    # player friends
+    @overload
+    async def request(
+        self, method_name: Literal["getfriends"], player_id: DataType, /,
+    ) -> List[responses.PlayerFriendObject]:
+        ...
+
+    # player's champion loadouts
+    @overload
+    async def request(
+        self, method_name: Literal["getplayerloadouts"], player_id: DataType, /,
+    ) -> List[responses.ChampionLoadoutObject]:
+        ...
+
+    # overall god / champion stats
+    @overload
+    async def request(
+        self, method_name: Literal["getgodranks", "getchampionranks"], player_id: DataType, /,
+    ) -> List[responses.ChampionRankObject]:
+        ...
+
+    # per-queue champion stats
+    @overload
+    async def request(
+        self, method_name: Literal["getqueuestats"], player_id: DataType, queue_value: int, /,
+    ) -> List[responses.ChampionQueueRankObject]:
+        ...
+
+    # player's history matches
+    @overload
+    async def request(
+        self, method_name: Literal["getmatchhistory"], player_id: DataType, /,
+    ) -> List[responses.HistoryMatchObject]:
+        ...
+
+    async def request(self, method_name: str, /, *data: DataType) -> Any:
         """
         Makes a direct request to the HiRez API.
 
@@ -107,12 +261,12 @@ class Endpoint:
             added for you.
         *data : Union[int, str]
             Method parameters requested to add at the end of the request, if applicable.
-            Those should be either integers or strings.
+            These should be either integers or strings.
 
         Returns
         -------
-        Union[list, dict]
-            A raw server's response as a list or a dictionary.
+        Union[str, Dict[str, Any], List[Dict[str, Any]]]
+            A raw server's response as a string, list or a dictionary (depending on the endpoint).
 
         Raises
         ------
@@ -208,8 +362,7 @@ class Endpoint:
             except aiohttp.ClientResponseError as exc:
                 logger.exception("Got a response error")
                 raise HTTPException(exc)
-            # For the case where 'createsession' raises it recursively,
-            # or the Hi-Rez API is down - just pass it along
+            # Log and pass those along
             except (Unauthorized, Unavailable, LimitReached) as exc:  # pragma: no branch
                 if isinstance(exc, Unavailable):
                     logger.warning("Hi-Rez API is Unavailable")

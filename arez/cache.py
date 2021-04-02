@@ -15,6 +15,7 @@ from .exceptions import Unavailable, HTTPException
 from .utils import group_by, Lookup, WeakValueDefaultDict
 
 if TYPE_CHECKING:
+    from . import responses
     from .champion import Ability
 
 
@@ -269,9 +270,9 @@ class CacheEntry:
         cache: DataCache,
         language: Language,
         expires_at: datetime,
-        champions_data: List[Dict[str, Any]],
-        items_data: List[Dict[str, Any]],
-        skins_data: List[Dict[str, Any]],
+        champions_data: List[responses.ChampionObject],
+        items_data: List[responses.DeviceObject],
+        skins_data: List[responses.ChampionSkinObject],
     ):
         self._cache = cache
         self.language = language
@@ -299,9 +300,7 @@ class CacheEntry:
         self.talents: Lookup[Device] = Lookup(talents)
         self.devices: Lookup[Device] = Lookup(chain(items, talents, cards))
         # pre-process skins (sort per champion)
-        skins: Dict[int, List[Dict[str, Any]]] = group_by(
-            skins_data, key=lambda s: s["champion_id"]
-        )
+        skins = group_by(skins_data, key=lambda s: s["champion_id"])
         # process champions
         self.champions: Lookup[Champion] = Lookup(
             Champion(

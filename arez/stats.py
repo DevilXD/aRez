@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Optional, Union, Dict, Literal, TYPE_CHECKING
+from typing import Any, Optional, Union, Dict, Literal, cast, TYPE_CHECKING
 
+from . import responses
 from .enums import Rank
 from .utils import Duration, _convert_timestamp
 from .mixins import CacheObject, WinLoseMixin, KDAMixin
@@ -125,7 +126,7 @@ class ChampionStats(WinLoseMixin, KDAMixin):
         self,
         player: Union[PartialPlayer, Player],
         cache_entry: Optional[CacheEntry],
-        stats_data: Dict[str, Any],
+        stats_data: Union[responses.ChampionRankObject, responses.ChampionQueueRankObject],
         queue: Optional[Queue] = None,
     ):
         WinLoseMixin.__init__(
@@ -142,9 +143,11 @@ class ChampionStats(WinLoseMixin, KDAMixin):
         self.player: Union[PartialPlayer, Player] = player
         self.queue: Optional[Queue] = queue
         if queue is None:
+            stats_data = cast(responses.ChampionRankObject, stats_data)
             champion_id = int(stats_data["champion_id"])
             champion_name = stats_data["champion"]
         else:
+            stats_data = cast(responses.ChampionQueueRankObject, stats_data)
             champion_id = int(stats_data["ChampionId"])
             champion_name = stats_data["Champion"]
         champion: Optional[Union[Champion, CacheObject]] = None
@@ -154,8 +157,8 @@ class ChampionStats(WinLoseMixin, KDAMixin):
             champion = CacheObject(id=champion_id, name=champion_name)
         self.champion: Union[Champion, CacheObject] = champion
         self.last_played: datetime = _convert_timestamp(stats_data["LastPlayed"])
-        self.level = stats_data.get("Rank", 0)
-        self.experience = stats_data.get("Worshippers", 0)
+        self.level = stats_data.get("Rank", 0)  # type: ignore[misc]
+        self.experience = stats_data.get("Worshippers", 0)  # type: ignore[misc]
         self.credits_earned = stats_data["Gold"]
         self.playtime = Duration(minutes=stats_data["Minutes"])
         # "MinionKills"  # kills_bot

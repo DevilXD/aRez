@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import re
-from typing import Any, List, Dict, Literal, TYPE_CHECKING
+from typing import List, Dict, Literal, cast, TYPE_CHECKING
 
 from .utils import Lookup
 from .mixins import CacheClient, CacheObject
 from .enums import DeviceType, AbilityType, Rarity
 
 if TYPE_CHECKING:
+    from . import responses
     from .items import Device
     from .enums import Language
     from .cache import DataCache
@@ -54,7 +55,7 @@ class Ability(CacheObject):
     """
     _desc_pattern = re.compile(r" ?<br>(?:<br>)? ?")  # replace the <br> tags with a new line
 
-    def __init__(self, champion: Champion, ability_data: Dict[str, Any]):
+    def __init__(self, champion: Champion, ability_data: responses.AbilityObject):
         super().__init__(id=ability_data["Id"], name=ability_data["Summary"])
         self.champion = champion
         desc = ability_data["Description"].strip().replace('\r', '')
@@ -86,7 +87,7 @@ class Skin(CacheObject):
     rarity : Rarity
         The skin's rarity.
     """
-    def __init__(self, champion: Champion, skin_data: Dict[str, Any]):
+    def __init__(self, champion: Champion, skin_data: responses.ChampionSkinObject):
         # pre-process champion and skin name
         self.champion: Champion = champion
         skin_name = skin_data["skin_name"]
@@ -180,17 +181,18 @@ class Champion(CacheObject, CacheClient):
         self,
         cache: DataCache,
         language: Language,
-        champion_data: Dict[str, Any],
+        champion_data: responses.ChampionObject,
         devices: List[Device],
-        skins_data: List[Dict[str, Any]],
+        skins_data: List[responses.ChampionSkinObject],
     ):
         CacheClient.__init__(self, cache)
         CacheObject.__init__(self, id=champion_data["id"], name=champion_data["Name"])
         self._language = language
         self.title: str = champion_data["Title"]
-        self.role: Literal[
-            "Front Line", "Support", "Damage", "Flank"
-        ] = champion_data["Roles"][9:].replace("er", "")
+        self.role = cast(
+            Literal["Front Line", "Support", "Damage", "Flank"],
+            champion_data["Roles"][9:].replace("er", ""),
+        )
         self.icon_url: str = champion_data["ChampionIcon_URL"]
         self.lore: str = champion_data["Lore"]
         self.health: int = champion_data["Health"]
@@ -199,15 +201,15 @@ class Champion(CacheObject, CacheClient):
         # Abilities
         abilities = []
         for i in range(1, 6):
-            ability_data = champion_data[f"Ability_{i}"]
+            ability_data = champion_data[f"Ability_{i}"]  # type: ignore[misc]
             # see if this is a composite ability
             match = self._name_pattern.match(ability_data["Summary"])
             if match:
                 # yes - we need to split the data into two sets
-                composites: Dict[str, Dict[str, Any]] = {}
+                composites: Dict[str, responses.AbilityObject] = {}
                 name1, name2 = match.groups()
-                composites[name1] = {"Summary": name1}
-                composites[name2] = {"Summary": name2}
+                composites[name1] = {"Summary": name1}  # type: ignore[typeddict-item]
+                composites[name2] = {"Summary": name2}  # type: ignore[typeddict-item]
                 descs = self._desc_pattern.findall(ability_data["Description"])
                 for ability_name, ability_desc in descs:
                     ability_dict = composites.get(ability_name)
@@ -269,6 +271,6 @@ class Champion(CacheObject, CacheClient):
         """
         response = await self._api.request("getchampionskins", self.id, self._language.value)
         self.skins = Lookup(sorted(
-            (Skin(self, d) for d in response), key=lambda s: s.rarity.value
+            (Skin(self, skin_data) for skin_data in response), key=lambda s: s.rarity.value
         ))
         return list(self.skins)
