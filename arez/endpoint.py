@@ -365,14 +365,17 @@ class Endpoint:
             except aiohttp.ClientResponseError as exc:
                 logger.exception("Got a response error")
                 raise HTTPException(exc)
-            # Log and pass those along
-            except (Unauthorized, Unavailable, LimitReached) as exc:  # pragma: no branch
+            # When "createsession" raises these recursively - log and pass those along
+            except (
+                HTTPException, Unauthorized, Unavailable, LimitReached
+            ) as exc:  # pragma: no branch
                 if isinstance(exc, Unavailable):
                     logger.warning("Hi-Rez API is Unavailable")
                 if isinstance(exc, Unauthorized):
                     logger.error("You are Unauthorized")
                 elif isinstance(exc, LimitReached):  # pragma: no branch
                     logger.error("Daily request limit reached")
+                # don't log HTTPExceptions here
                 raise
             # Some other exception happened, so just wrap it and propagate along
             except Exception as exc:  # pragma: no cover
