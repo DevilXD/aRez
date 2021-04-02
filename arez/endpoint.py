@@ -19,7 +19,6 @@ session_lifetime = timedelta(minutes=15)
 timeout = aiohttp.ClientTimeout(total=20, connect=5)
 logger = logging.getLogger(__package__)
 USER_AGENT = f"Python {python_version()}: aRez {__version__} by {__author__}"
-DataType = Union[str, int]
 
 
 class Endpoint:
@@ -115,14 +114,14 @@ class Endpoint:
     # champions data
     @overload
     async def request(
-        self, method_name: Literal["getgods", "getchampions"], language_value: DataType, /,
+        self, method_name: Literal["getgods", "getchampions"], language_value: int, /,
     ) -> List[responses.ChampionObject]:
         ...
 
     # items / devices data
     @overload
     async def request(
-        self, method_name: Literal["getitems"], language_value: DataType, /,
+        self, method_name: Literal["getitems"], language_value: int, /,
     ) -> List[responses.DeviceObject]:
         ...
 
@@ -131,8 +130,8 @@ class Endpoint:
     async def request(
         self,
         method_name: Literal["getchampionskins"],
-        champion_id: DataType,
-        language_value: DataType,
+        champion_id: int,
+        language_value: int,
         /,
     ) -> List[responses.ChampionSkinObject]:
         ...
@@ -157,7 +156,7 @@ class Endpoint:
     # live match information
     @overload
     async def request(
-        self, method_name: Literal["getmatchplayerdetails"], match_id: Union[int, str], /,
+        self, method_name: Literal["getmatchplayerdetails"], match_id: int, /,
     ) -> List[responses.LivePlayerObject]:
         ...
 
@@ -174,7 +173,7 @@ class Endpoint:
         self,
         method_name: Literal["getplayeridsbygamertag", "getplayeridbyportaluserid"],
         portal_id: int,
-        name_or_id: DataType,
+        name_or_id: Union[str, int],
         /,
     ) -> List[responses.PartialPlayerObject]:
         ...
@@ -208,46 +207,50 @@ class Endpoint:
     # player status
     @overload
     async def request(
-        self, method_name: Literal["getplayerstatus"], player_id: DataType, /,
+        self, method_name: Literal["getplayerstatus"], player_id: int, /,
     ) -> List[responses.PlayerStatusObject]:
         ...
 
     # player friends
     @overload
     async def request(
-        self, method_name: Literal["getfriends"], player_id: DataType, /,
+        self, method_name: Literal["getfriends"], player_id: int, /,
     ) -> List[responses.PlayerFriendObject]:
         ...
 
     # player's champion loadouts
     @overload
     async def request(
-        self, method_name: Literal["getplayerloadouts"], player_id: DataType, /,
+        self,
+        method_name: Literal["getplayerloadouts"],
+        player_id: int,
+        language_value: int,
+        /,
     ) -> List[responses.ChampionLoadoutObject]:
         ...
 
     # overall god / champion stats
     @overload
     async def request(
-        self, method_name: Literal["getgodranks", "getchampionranks"], player_id: DataType, /,
+        self, method_name: Literal["getgodranks", "getchampionranks"], player_id: int, /,
     ) -> List[responses.ChampionRankObject]:
         ...
 
     # per-queue champion stats
     @overload
     async def request(
-        self, method_name: Literal["getqueuestats"], player_id: DataType, queue_value: int, /,
+        self, method_name: Literal["getqueuestats"], player_id: int, queue_value: int, /,
     ) -> List[responses.ChampionQueueRankObject]:
         ...
 
     # player's history matches
     @overload
     async def request(
-        self, method_name: Literal["getmatchhistory"], player_id: DataType, /,
+        self, method_name: Literal["getmatchhistory"], player_id: int, /,
     ) -> List[responses.HistoryMatchObject]:
         ...
 
-    async def request(self, method_name: str, /, *data: DataType) -> Any:
+    async def request(self, method_name: str, /, *data: Union[str, int]) -> Any:
         """
         Makes a direct request to the HiRez API.
 
