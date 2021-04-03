@@ -44,6 +44,8 @@ class PartialPlayer(Expandable, CacheClient):
 
         `Unavailable`
             The API is currently unavailable.
+        `LimitReached`
+            Your daily limit of requests has been reached.
         `HTTPException`
             Fetching the information requested failed due to connection problems.
     """
@@ -351,12 +353,13 @@ class Player(PartialPlayer):
         The current active player between merged profiles.\n
         `None` if the current profile is the active profile.
     merged_players : List[PartialPlayer]
-        A list of all merged profiles.
+        A list of all merged profiles.\n
+        Only ID and platform are present.
     created_at : Optional[datetime.datetime]
         A timestamp of the profile's creation date.\n
         This can be `None` for accounts that are really old.
     last_login : Optional[datetime.datetime]
-        A timestamp of the profile's last successful in-game login.
+        A timestamp of the profile's last successful in-game login.\n
         This can be `None` for accounts that are really old.
     platform_name : str
         The platform name of this profile. This is usually identical to `name`, except in cases
