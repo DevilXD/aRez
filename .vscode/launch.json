@@ -62,6 +62,22 @@
                 "--cov-config=coverage.ini",
                 "--cov-report=xml:coverage.xml",
             ]
+        },
+        {
+            "name": "Lint with MyPy",
+            "type": "python",
+            "request": "launch",
+            "module": "mypy",
+            "args": [
+                "-p",
+                "arez",
+                "--no-implicit-optional",
+                "--check-untyped-defs",
+                "--disallow-any-generics",
+                "--warn-redundant-casts",
+                "--warn-unused-ignores",
+                "--show-error-codes"
+            ]
         }
     ]
 }
