@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Optional, Union, Dict, Literal, cast, TYPE_CHECKING
+from typing import Optional, Union, Literal, cast, TYPE_CHECKING
 
 from . import responses
 from .enums import Rank
@@ -37,7 +37,7 @@ class Stats(WinLoseMixin):
     leaves : int
         The amount of times player left / disconnected from a match.
     """
-    def __init__(self, stats_data: Dict[str, Any]):
+    def __init__(self, stats_data: Union[responses.PlayerObject, responses.RankedStatsObject]):
         super().__init__(
             wins=stats_data["Wins"],
             losses=stats_data["Losses"],
@@ -71,7 +71,9 @@ class RankedStats(Stats):
     season : int
         The current ranked season.
     """
-    def __init__(self, type_name: Literal["Keyboard", "Controller"], stats_data: Dict[str, Any]):
+    def __init__(
+        self, type_name: Literal["Keyboard", "Controller"], stats_data: responses.RankedStatsObject
+    ):
         super().__init__(stats_data)
         self.type = type_name
         self.rank = Rank(stats_data["Tier"])

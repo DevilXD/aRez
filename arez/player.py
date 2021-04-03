@@ -365,13 +365,15 @@ class Player(PartialPlayer):
         The platform name of this profile. This is usually identical to `name`, except in cases
         where the platform allows nicknames (Steam profiles).
     title : str
-        The player's currently equipped title.
+        The player's currently equipped title.\n
+        This will be an empty string without any title equipped.
     avatar_id : int
         The player's curremtly equipped avatar ID.
     avatar_url : str
         The player's currently equipped avatar URL.
     loading_frame : str
-        The player's currently equipped loading frame name.
+        The player's currently equipped loading frame name.\n
+        This will be an empty string without any loading frame equipped.
     level : int
         The in-game level of this profile.
     playtime : Duration
@@ -392,15 +394,15 @@ class Player(PartialPlayer):
     ranked_controller : RankedStats
         Player's ranked controller statistics.
     """
-    def __init__(self, api: DataCache, player_data):
+    def __init__(self, api: DataCache, player_data: responses.PlayerObject):
         # delay super() to pre-process player names
-        player_name: str = player_data["hz_player_name"]
-        gamer_tag: str = player_data["hz_gamer_tag"]
+        player_name: Optional[str] = player_data["hz_player_name"]
+        gamer_tag: Optional[str] = player_data["hz_gamer_tag"]
         name: str = player_data["Name"]
         self.platform_name: str = name
-        if player_name:
+        if player_name is not None:
             name = player_name
-        elif gamer_tag:  # pragma: no branch
+        elif gamer_tag is not None:  # pragma: no branch
             name = gamer_tag
         super().__init__(
             api,
@@ -413,7 +415,7 @@ class Player(PartialPlayer):
         if player_data["ActivePlayerId"] != self._id:  # pragma: no cover
             self.active_player = PartialPlayer(api, id=player_data["ActivePlayerId"])
         self.merged_players: List[PartialPlayer] = []
-        if player_data["MergedPlayers"]:
+        if player_data["MergedPlayers"] is not None:
             for p in player_data["MergedPlayers"]:
                 self.merged_players.append(
                     PartialPlayer(api, id=p["playerId"], platform=p["portalId"])
@@ -425,16 +427,16 @@ class Player(PartialPlayer):
         if login_stamp := player_data["Last_Login_Datetime"]:
             self.last_login = _convert_timestamp(login_stamp)
         self.level: int = player_data["Level"]
-        self.title: str = player_data["Title"]
+        self.title: str = player_data["Title"] or ''
         self.avatar_id: int = player_data["AvatarId"]
         self.avatar_url: str = (
             player_data["AvatarURL"]
             or "https://hirez-api-docs.herokuapp.com/paladins/avatar/0"  # patch null here
         )
-        self.loading_frame: str = player_data["LoadingFrame"]
+        self.loading_frame: str = player_data["LoadingFrame"] or ''
         self.playtime = Duration(minutes=player_data["MinutesPlayed"])
         self.champion_count: int = player_data["MasteryLevel"]
-        self.region = Region(player_data["Region"], return_default=True)
+        self.region = Region(player_data["Region"], _return_default=True)
         self.total_achievements: int = player_data["Total_Achievements"]
         self.total_experience: int = player_data["Total_Worshippers"]
         self.casual = Stats(player_data)
