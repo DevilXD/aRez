@@ -19,13 +19,16 @@
                 "showReuseMessage": false,
                 "clear": true
             },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         },
         {
             "label": "Show Documentation",
             "type": "shell",
             "command": "view",
             "problemMatcher": [],
-            "dependsOn": ["Build Documentation"],
             "options": {
                 "cwd": "./docs"
             },
@@ -36,10 +39,6 @@
                 "panel": "shared",
                 "showReuseMessage": false,
                 "clear": false
-            },
-            "group": {
-                "kind": "build",
-                "isDefault": true
             }
         },
         {
