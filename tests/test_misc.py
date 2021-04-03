@@ -149,6 +149,12 @@ def test_enum_meta():
     with pytest.raises(AttributeError):
         NoDefault.Two = "test"
     assert isinstance(NoDefault.Two, NoDefault)
+    # Can't create new members
+    e = None
+    with pytest.raises(TypeError):
+        e = NoDefault("Four", 4)
+    assert e is None
+    assert not hasattr(NoDefault, "Four")
 
 
 @pytest.mark.base()

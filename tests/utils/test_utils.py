@@ -4,7 +4,7 @@ import arez
 import pytest
 
 
-_TestItem = namedtuple("TestItem", ["id", "name", "item"])
+_TestItem = namedtuple("_TestItem", ["id", "name", "item"])
 
 zero = _TestItem(0, "zero", None)
 

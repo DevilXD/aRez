@@ -24,10 +24,12 @@ def is_descriptor(obj):
 
 
 class EnumMeta(type):
+    # Purely for MyPy
     _name_mapping: Dict[str, EnumMeta]
     _value_mapping: Dict[int, EnumMeta]
     _member_mapping: Dict[str, EnumMeta]
     _default_value: int
+    _initialized: bool
 
     def __new__(
         meta_cls,
@@ -39,6 +41,7 @@ class EnumMeta(type):
     ):
         new_attrs = {k: attrs.pop(k) for k in attrs.copy() if k.startswith("__")}
         cls = super().__new__(meta_cls, name, bases, new_attrs)
+        setattr(cls, "_initialized", False)
 
         # Create enum members
         name_mapping: Dict[str, EnumMeta] = {}
@@ -68,6 +71,7 @@ class EnumMeta(type):
         setattr(cls, "_value_mapping", value_mapping)
         setattr(cls, "_member_mapping", member_mapping)
         setattr(cls, "_default_value", default_value)
+        setattr(cls, "_initialized", True)
         return cls
 
     # Add our special enum member constructor
@@ -79,6 +83,8 @@ class EnumMeta(type):
         return_default: bool = False,
     ) -> Optional[Union[EnumMeta, int, str]]:
         if value is not None:
+            if cls._initialized:
+                raise TypeError("Cannot extend enums")
             # new member creation
             return cls.__new__(cls, name_or_value, value)  # type: ignore
         else:
