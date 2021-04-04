@@ -104,6 +104,16 @@ class Endpoint:
     async def request(self, method_name: Literal["createsession"], /) -> responses.SessionObject:
         ...
 
+    # session testing
+    @overload
+    async def request(self, method_name: Literal["testsession"], /) -> str:
+        ...
+
+    # patch info
+    @overload
+    async def request(self, method_name: Literal["getpatchinfo"], /) -> responses.PatchInfoObject:
+        ...
+
     # server status
     @overload
     async def request(

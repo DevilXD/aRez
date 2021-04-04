@@ -17,6 +17,10 @@ class SessionObject(TypedDict):
     timestamp: str
 
 
+class PatchInfoObject(RetMsg):
+    version_string: str
+
+
 class ServerStatusObject(RetMsg):
     entry_datetime: Optional[str]
     environment: Literal["live", "pts"]
