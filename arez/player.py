@@ -64,7 +64,7 @@ class PartialPlayer(Expandable, CacheClient):
         self._hash: Optional[int] = None
         if isinstance(platform, str) and platform.isdecimal():
             platform = int(platform)
-        self._platform = Platform(platform, return_default=True)
+        self._platform = Platform(platform, _return_default=True)
         self._private = bool(private)
         logger.debug(
             f"Player(id={self._id}, name={self._name}, platform={self._platform.name}, "

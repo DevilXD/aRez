@@ -269,7 +269,7 @@ class MatchPlayer(MatchPlayerMixin):
         super().__init__(player, cache_entry, player_data)
         self.rank: Optional[Rank]
         if match.queue.is_ranked():
-            self.rank = Rank(player_data["League_Tier"], return_default=True)
+            self.rank = Rank(player_data["League_Tier"], _return_default=True)
         else:
             self.rank = None
         self.points_captured: int = player_data["Kills_Gold_Fury"]
@@ -492,7 +492,7 @@ class LivePlayer(WinLoseMixin, CacheClient):
         # Other
         self.rank: Optional[Rank]
         if match.queue.is_ranked():  # pragma: no cover
-            self.rank = Rank(player_data["Tier"], return_default=True)
+            self.rank = Rank(player_data["Tier"], _return_default=True)
         else:
             self.rank = None
         self.account_level: int = player_data["Account_Level"]
@@ -539,8 +539,8 @@ class LiveMatch(CacheClient):
         first_player = match_data[0]
         self.id: int = first_player["Match"]
         self.map_name: str = _convert_map_name(first_player["mapGame"])
-        self.queue = Queue(int(first_player["Queue"]), return_default=True)
-        self.region = Region(first_player["playerRegion"], return_default=True)
+        self.queue = Queue(int(first_player["Queue"]), _return_default=True)
+        self.region = Region(first_player["playerRegion"], _return_default=True)
         self.team1: List[LivePlayer] = []
         self.team2: List[LivePlayer] = []
         for player_data in match_data:

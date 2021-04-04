@@ -60,7 +60,7 @@ class Ability(CacheObject):
         self.champion = champion
         desc = ability_data["Description"].strip().replace('\r', '')
         self.description: str = self._desc_pattern.sub('\n', desc)
-        self.type = AbilityType(ability_data["damageType"], return_default=True)
+        self.type = AbilityType(ability_data["damageType"], _return_default=True)
         self.cooldown: int = ability_data["rechargeSeconds"]
         self.icon_url: str = ability_data["URL"]
 
@@ -97,7 +97,7 @@ class Skin(CacheObject):
         rarity: str = skin_data["rarity"]
         self.rarity: Rarity
         if rarity:  # not an empty string
-            self.rarity = Rarity(rarity, return_default=True)
+            self.rarity = Rarity(rarity, _return_default=True)
         else:
             self.rarity = Rarity.Default
 

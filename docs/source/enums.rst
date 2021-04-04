@@ -32,17 +32,17 @@ if the attribute they're accessed from has them:
 
     Trying to construct an enum member from incorrect input will result in `None`
     being returned instead of the enum member. This allows you to easily handle
-    user input validation and conversion, assuming you will expect to get `None` there.
+    user input validation and conversion, checking for `None` in the assigned variable.
     You can easily test for the matched member with a simple if statement:
 
     .. code-block:: py
 
+        user_input: str
         platform = arez.Platform(user_input)
-        if platform is not None:
-            # the platform matched and you now have it's memeber stored
-            # under the `platform` variable
+        if platform is None:
+            print("Incorrect platform!")
         else:
-            # the platform didn't match any of the known ones
+            # the platform matched and you now have it stored under the `platform` variable
 
 .. currentmodule:: arez.enums
 

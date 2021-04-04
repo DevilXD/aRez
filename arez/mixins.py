@@ -262,8 +262,8 @@ class MatchMixin:
                 match_data[f"Team{my_team}Score"],  # type: ignore[misc]
                 match_data[f"Team{other_team}Score"],  # type: ignore[misc]
             )
-        self.queue = Queue(queue, return_default=True)
-        self.region = Region(match_data["Region"], return_default=True)
+        self.queue = Queue(queue, _return_default=True)
+        self.region = Region(match_data["Region"], _return_default=True)
         from .utils import _convert_timestamp, _convert_map_name, Duration  # circular imports
         self.timestamp: datetime = _convert_timestamp(stamp)
         self.duration = Duration(seconds=match_data["Time_In_Match_Seconds"])

@@ -1,7 +1,7 @@
 ﻿from __future__ import annotations
 
 from enum import IntEnum
-from typing import Any, Optional, Union, Dict, Tuple, TYPE_CHECKING
+from typing import Any, Iterator, Optional, Union, Dict, Tuple, Protocol, cast, TYPE_CHECKING
 
 
 __all__ = [
@@ -18,21 +18,28 @@ __all__ = [
 ]
 
 
-# For special methods defined on enums
-def is_descriptor(obj):
-    return hasattr(obj, "__get__")
+class _EnumProt(Protocol):
+    """
+    An internal protocol, describing how the resulting enum class will look like.
+    """
+    _name_mapping: Dict[str, _EnumBase]
+    _value_mapping: Dict[int, _EnumBase]
+    _member_mapping: Dict[str, _EnumBase]
+    _default_value: int
+    _immutable: bool
+
+    def __new__(  # type: ignore[misc]
+        cls: _EnumProt, name: str, value: int
+    ) -> Optional[Union[_EnumBase, int, str]]:
+        ...
+
+    def __call__(self, name: str, value: int) -> _EnumBase:
+        ...
 
 
 class EnumMeta(type):
-    # Purely for MyPy
-    _name_mapping: Dict[str, EnumMeta]
-    _value_mapping: Dict[int, EnumMeta]
-    _member_mapping: Dict[str, EnumMeta]
-    _default_value: int
-    _initialized: bool
-
     def __new__(
-        meta_cls,
+        meta_cls: type,
         name: str,
         bases: Tuple[type, ...],
         attrs: Dict[str, Any],
@@ -40,53 +47,53 @@ class EnumMeta(type):
         default_value: Optional[int] = None,
     ):
         new_attrs = {k: attrs.pop(k) for k in attrs.copy() if k.startswith("__")}
-        cls = super().__new__(meta_cls, name, bases, new_attrs)
-        setattr(cls, "_initialized", False)
+        cls = cast(_EnumProt, type.__new__(meta_cls, name, bases, new_attrs))
+        # as long as this attribute exists, the enum can be mutated
+        type.__setattr__(cls, "_immutable", False)
 
         # Create enum members
-        name_mapping: Dict[str, EnumMeta] = {}
-        value_mapping: Dict[int, EnumMeta] = {}
-        member_mapping: Dict[str, EnumMeta] = {}
+        name_mapping: Dict[str, _EnumBase] = {}
+        value_mapping: Dict[int, _EnumBase] = {}
+        member_mapping: Dict[str, _EnumBase] = {}
         for k, v in attrs.items():
-            if k.startswith("__") or is_descriptor(v):
+            if k.startswith("__") or hasattr(v, "__get__"):
                 # special attribute or descriptor, pass unchanged
-                setattr(cls, k, v)
+                type.__setattr__(cls, k, v)
                 continue
             if v in value_mapping:
                 # existing value, just read it back
                 member = value_mapping[v]
             else:
                 # create a new value
-                # ensure we won't end up with underscores in the name
-                member = cls(k.replace('_', ' '), v)
+                member = cls(k, v)
                 value_mapping[v] = member
                 member_mapping[k] = member
-                setattr(cls, k, member)
+                type.__setattr__(cls, k, member)
             k_lower = k.lower()
             name_mapping[k_lower] = member
             if '_' in k:
                 # generate a second alias with spaces instead of underscores
                 name_mapping[k_lower.replace('_', ' ')] = member
-        setattr(cls, "_name_mapping", name_mapping)
-        setattr(cls, "_value_mapping", value_mapping)
-        setattr(cls, "_member_mapping", member_mapping)
-        setattr(cls, "_default_value", default_value)
-        setattr(cls, "_initialized", True)
+        type.__setattr__(cls, "_name_mapping", name_mapping)
+        type.__setattr__(cls, "_value_mapping", value_mapping)
+        type.__setattr__(cls, "_member_mapping", member_mapping)
+        type.__setattr__(cls, "_default_value", default_value)
+        delattr(cls, "_immutable")  # finish enum initialization
         return cls
 
     # Add our special enum member constructor
-    def __call__(  # type: ignore
-        cls: EnumMeta,
+    def __call__(  # type: ignore[override]
+        cls: _EnumProt,
         name_or_value: Union[str, int],
         value: Optional[int] = None,
         /, *,
-        return_default: bool = False,
-    ) -> Optional[Union[EnumMeta, int, str]]:
+        _return_default: bool = False,
+    ) -> Optional[Union[_EnumBase, int, str]]:
         if value is not None:
-            if cls._initialized:
+            if getattr(cls, "_immutable", True):
                 raise TypeError("Cannot extend enums")
             # new member creation
-            return cls.__new__(cls, name_or_value, value)  # type: ignore
+            return cls.__new__(cls, cast(str, name_or_value), value)
         else:
             # our special lookup
             if isinstance(name_or_value, str):
@@ -97,7 +104,7 @@ class EnumMeta(type):
                 member = None
             if member is not None:
                 return member
-            if return_default:
+            if _return_default:
                 default = cls._default_value
                 if default is not None and default in cls._value_mapping:
                     # return the default enum value, if defined
@@ -105,21 +112,24 @@ class EnumMeta(type):
                 return name_or_value  # return the input unchanged
             return None
 
-    def __iter__(cls):
+    def __iter__(cls: _EnumProt) -> Iterator[_EnumBase]:
         return iter(cls._member_mapping.values())
 
-    def __delattr__(cls, name: str):
-        raise AttributeError(f"Cannot delete Enum member: {name}")
+    def __delattr__(cls: _EnumProt, name: str):
+        if getattr(cls, "_immutable", True):
+            raise AttributeError(f"Cannot delete Enum member: {name}")
+        type.__delattr__(cls, name)
 
-    def __setattr__(cls, name: str, value: Any):
-        if hasattr(cls, "_member_mapping") and name in cls._member_mapping:
+    def __setattr__(cls: _EnumProt, name: str, value: Any):
+        # it'll not exist when setting it for the first time, duh
+        if getattr(cls, "_immutable", True):
             raise AttributeError(f"Cannot reassign Enum member: {name}")
-        super().__setattr__(name, value)
+        type.__setattr__(cls, name, value)
 
 
 # Generate additional aliases for ranks
 class _RankMeta(EnumMeta):
-    def __new__(cls, *args, **kwargs):
+    def __new__(meta_cls, *args, **kwargs):
         roman_numerals = {
             "i": 1,
             "ii": 2,
@@ -127,10 +137,10 @@ class _RankMeta(EnumMeta):
             "iv": 4,
             "v": 5,
         }
-        new_cls: EnumMeta = super().__new__(cls, *args, **kwargs)
-        more_aliases: Dict[str, EnumMeta] = {}
+        cls: _EnumProt = super().__new__(meta_cls, *args, **kwargs)
+        more_aliases: Dict[str, _EnumBase] = {}
         # generate additional aliases
-        for k, v in new_cls._name_mapping.items():
+        for k, v in cls._name_mapping.items():
             if ' ' in k or '_' not in k:
                 # skip the already-existing aliases with spaces
                 # skip members with no underscores in them
@@ -141,8 +151,8 @@ class _RankMeta(EnumMeta):
             more_aliases[f"{name} {level_int}"] = v  # same but with a space
             more_aliases[f"{name}{level_int}"] = v  # no delimiter
         # add the aliases
-        new_cls._name_mapping.update(more_aliases)
-        return new_cls
+        cls._name_mapping.update(more_aliases)
+        return cls
 
 
 class _EnumBase(int):
@@ -151,13 +161,10 @@ class _EnumBase(int):
 
     def __new__(cls, name: str, value: int) -> _EnumBase:
         self = super().__new__(cls, value)
-        self._name = name
+        # ensure we won't end up with underscores in the name
+        self._name = name.replace('_', ' ')
         self._value = value
         return self
-
-    # For typing purposes only
-    def __init__(self, name_or_value: Union[str, int]):
-        ...
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}.{self._name.replace(' ', '_')}: {self._value}>"
@@ -200,11 +207,11 @@ class _EnumBase(int):
 if TYPE_CHECKING:
     # For typing purposes only
     class Enum(IntEnum):
-        def __init__(self, name_or_value: Union[str, int], *, return_default: bool = False):
+        def __init__(self, name_or_value: Union[str, int], *, _return_default: bool = False):
             ...
 
     class _RankEnum(IntEnum):
-        def __init__(self, name_or_value: Union[str, int], *, return_default: bool = False):
+        def __init__(self, name_or_value: Union[str, int], *, _return_default: bool = False):
             ...
 else:
     class Enum(_EnumBase, metaclass=EnumMeta):
@@ -239,8 +246,7 @@ class Platform(Enum, default_value=0):
     Attributes
     ----------
     Unknown
-        Unknown platform. You can sometimes get this when the information either isn't available,
-        or the returned value didn't match any of the existing ones.
+        Unknown platform. You can sometimes get this when the information isn't available.
     PC
         Aliases: ``hirez``, ``standalone``.
     Steam
@@ -296,8 +302,7 @@ class Region(Enum, default_value=0):
     Attributes
     ----------
     Unknown
-        Unknown region. You can sometimes get this when the information either isn't available,
-        or the returned value didn't match any of the existing ones.
+        Unknown region. You can sometimes get this when the information isn't available.
     North_America
         Aliases: ``na``.
     Europe
@@ -418,8 +423,7 @@ class Queue(Enum, default_value=0):
     Attributes
     ----------
     Unknown
-        Unknown queue. You can sometimes get this when the information either isn't available,
-        or the returned value didn't match any of the existing ones.
+        Unknown queue. You can sometimes get this when the information isn't available.
     Casual_Siege
         Aliases: ``casual``, ``siege``.
     Team_Deathmatch

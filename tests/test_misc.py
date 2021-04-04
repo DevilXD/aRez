@@ -136,10 +136,10 @@ def test_enum_meta():
     e = WithDefault("1234")
     assert e is None
     # Default for unknown input
-    e = WithDefault("1234", return_default=True)
+    e = WithDefault("1234", _return_default=True)
     assert e is WithDefault.Unknown
     # If no default value is set - return unchanged
-    e = NoDefault("1234", return_default=True)
+    e = NoDefault("1234", _return_default=True)
     assert e == "1234"
     # Can't delete attributes
     with pytest.raises(AttributeError):
@@ -149,6 +149,10 @@ def test_enum_meta():
     with pytest.raises(AttributeError):
         NoDefault.Two = "test"
     assert isinstance(NoDefault.Two, NoDefault)
+    # Can't assign other attributes
+    with pytest.raises(AttributeError):
+        NoDefault.test = "test"
+    assert not hasattr(NoDefault, "test")
     # Can't create new members
     e = None
     with pytest.raises(TypeError):
