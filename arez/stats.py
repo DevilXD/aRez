@@ -159,8 +159,8 @@ class ChampionStats(WinLoseMixin, KDAMixin):
             champion = CacheObject(id=champion_id, name=champion_name)
         self.champion: Union[Champion, CacheObject] = champion
         self.last_played: datetime = _convert_timestamp(stats_data["LastPlayed"])
-        self.level = stats_data.get("Rank", 0)  # type: ignore[misc]
-        self.experience = stats_data.get("Worshippers", 0)  # type: ignore[misc]
+        self.level = stats_data.get("Rank", 0)
+        self.experience = stats_data.get("Worshippers", 0)
         self.credits_earned = stats_data["Gold"]
         self.playtime = Duration(minutes=stats_data["Minutes"])
         # "MinionKills"  # kills_bot
