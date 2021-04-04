@@ -28,7 +28,7 @@ from typing import (
     overload,
 )
 
-from .mixins import CacheObject, Expandable
+from .mixins import CacheObject as CacheObject_, Expandable
 
 
 __all__ = [
@@ -43,14 +43,14 @@ __all__ = [
     "WeakValueDefaultDict",
 ]
 # Type variable for internal utils typing
-X = TypeVar("X")
-Y = TypeVar("Y")
+_X = TypeVar("_X")
+_Y = TypeVar("_Y")
 
 
-LookupType = TypeVar("LookupType", bound=CacheObject)
+CacheObject = TypeVar("CacheObject", bound=CacheObject_)
 
 
-def _deduplicate(iterable: Iterable[X], *to_remove: X) -> List[X]:
+def _deduplicate(iterable: Iterable[_X], *to_remove: _X) -> List[_X]:
     """
     Removes duplicates from an iterable and returns a list. Optimised for speed.
     Optionally, also removes the value(s) specified entirely.
@@ -69,7 +69,7 @@ def _deduplicate(iterable: Iterable[X], *to_remove: X) -> List[X]:
     """
     if not isinstance(iterable, Iterable):
         raise TypeError(f"Expected an iterable, got {type(iterable)}")
-    no_dups: List[X] = list(OrderedDict.fromkeys(iterable))
+    no_dups: List[_X] = list(OrderedDict.fromkeys(iterable))
     for value in to_remove:
         if value in no_dups:
             no_dups.remove(value)
@@ -219,7 +219,7 @@ def _date_gen(
             start += ten_minutes
 
 
-def get(iterable: Iterable[X], **attrs) -> Optional[X]:
+def get(iterable: Iterable[_X], **attrs) -> Optional[_X]:
     """
     Returns the first object from the ``iterable`` which attributes match the
     keyword arguments passed.
@@ -256,7 +256,7 @@ def get(iterable: Iterable[X], **attrs) -> Optional[X]:
     return None
 
 
-def group_by(iterable: Iterable[X], key: Callable[[X], Y]) -> Dict[Y, List[X]]:
+def group_by(iterable: Iterable[_X], key: Callable[[_X], _Y]) -> Dict[_Y, List[_X]]:
     """
     A helper function for grouping elements of an iterable into a dictionary, where each key
     represents a common value, and the value represents a list of elements having said
@@ -275,7 +275,7 @@ def group_by(iterable: Iterable[X], key: Callable[[X], Y]) -> Dict[Y, List[X]]:
     Dict[Y, List[X]]
         A mapping of groups to lists of grouped elements.
     """
-    item_map: Dict[Y, List[X]] = {}
+    item_map: Dict[_Y, List[_X]] = {}
     for item in iterable:
         group = key(item)
         if group not in item_map:
@@ -284,7 +284,7 @@ def group_by(iterable: Iterable[X], key: Callable[[X], Y]) -> Dict[Y, List[X]]:
     return item_map
 
 
-class Lookup(Sequence[LookupType]):
+class Lookup(Sequence[CacheObject]):
     """
     A helper class utilizing an internal list and two dictionaries, allowing for easy indexing
     and lookup of `CacheObject` and it's subclasses, based on the Name and ID attributes.
@@ -294,10 +294,10 @@ class Lookup(Sequence[LookupType]):
     ``__getitem__``, ``__contains__``, ``__reversed__``, ``index`` and ``count``
     special methods for ease of use.
     """
-    def __init__(self, iterable: Iterable[LookupType]):
-        self._list_lookup: List[LookupType] = []
-        self._id_lookup: Dict[int, LookupType] = {}
-        self._name_lookup: Dict[str, LookupType] = {}
+    def __init__(self, iterable: Iterable[CacheObject]):
+        self._list_lookup: List[CacheObject] = []
+        self._id_lookup: Dict[int, CacheObject] = {}
+        self._name_lookup: Dict[str, CacheObject] = {}
         for e in iterable:
             self._list_lookup.append(e)
             self._id_lookup[e.id] = e
@@ -309,33 +309,33 @@ class Lookup(Sequence[LookupType]):
     def __len__(self) -> int:
         return len(self._list_lookup)
 
-    def __iter__(self) -> Iterator[LookupType]:
+    def __iter__(self) -> Iterator[CacheObject]:
         return iter(self._list_lookup)
 
     @overload
-    def __getitem__(self, index: int) -> LookupType:
+    def __getitem__(self, index: int) -> CacheObject:
         ...
 
     @overload
-    def __getitem__(self, index: slice) -> List[LookupType]:
+    def __getitem__(self, index: slice) -> List[CacheObject]:
         ...
 
-    def __getitem__(self, index: Union[int, slice]) -> Union[LookupType, List[LookupType]]:
+    def __getitem__(self, index: Union[int, slice]) -> Union[CacheObject, List[CacheObject]]:
         return self._list_lookup[index]
 
     def __contains__(self, item: object) -> bool:
         return item in self._list_lookup
 
-    def __reversed__(self) -> Iterator[LookupType]:
+    def __reversed__(self) -> Iterator[CacheObject]:
         return reversed(self._list_lookup)
 
-    def index(self, item: LookupType, start: int = 0, stop: int = sys.maxsize) -> int:
+    def index(self, item: CacheObject, start: int = 0, stop: int = sys.maxsize) -> int:
         return self._list_lookup.index(item, start, stop)
 
-    def count(self, item: LookupType) -> int:
+    def count(self, item: CacheObject) -> int:
         return self._list_lookup.count(item)
 
-    def get(self, name_or_id: Union[int, str]) -> Optional[LookupType]:
+    def get(self, name_or_id: Union[int, str]) -> Optional[CacheObject]:
         """
         Allows you to quickly lookup an element by it's Name or ID.
 
@@ -366,18 +366,18 @@ class Lookup(Sequence[LookupType]):
         limit: int = 3,
         cutoff: float = 0.6,
         with_scores: Literal[False] = False,
-    ) -> List[LookupType]:
+    ) -> List[CacheObject]:
         ...
 
     @overload
     def get_fuzzy_matches(
         self, name: str, *, limit: int = 3, cutoff: float = 0.6, with_scores: Literal[True]
-    ) -> List[Tuple[LookupType, float]]:
+    ) -> List[Tuple[CacheObject, float]]:
         ...
 
     def get_fuzzy_matches(
         self, name: str, *, limit: int = 3, cutoff: float = 0.6, with_scores: bool = False
-    ) -> Union[List[LookupType], List[Tuple[LookupType, float]]]:
+    ) -> Union[List[CacheObject], List[Tuple[CacheObject, float]]]:
         """
         Performs a fuzzy lookup of an element by it's name,
         by calculating the similarity score between each item. Case-insensitive.\n
@@ -443,7 +443,7 @@ class Lookup(Sequence[LookupType]):
             return [(self._name_lookup[key], score) for key, score in scores[:limit]]
         return [self._name_lookup[key] for key, score in scores[:limit]]
 
-    def get_fuzzy(self, name: str, *, cutoff: float = 0.6) -> Optional[LookupType]:
+    def get_fuzzy(self, name: str, *, cutoff: float = 0.6) -> Optional[CacheObject]:
         """
         Simplified version of `get_fuzzy_matches`, allowing you to search for a single element,
         or receive `None` if no matching element was found.
@@ -475,7 +475,7 @@ class Lookup(Sequence[LookupType]):
         return None
 
 
-def chunk(list_to_chunk: List[X], chunk_length: int) -> Generator[List[X], None, None]:
+def chunk(list_to_chunk: List[_X], chunk_length: int) -> Generator[List[_X], None, None]:
     """
     A helper generator that divides the input list into chunks of ``chunk_length`` length.
     The last chunk may be shorter than specified.
@@ -491,7 +491,7 @@ def chunk(list_to_chunk: List[X], chunk_length: int) -> Generator[List[X], None,
         yield list_to_chunk[i:i + chunk_length]
 
 
-async def expand_partial(iterable: Iterable[X]) -> AsyncGenerator[X, None]:
+async def expand_partial(iterable: Iterable[_X]) -> AsyncGenerator[_X, None]:
     """
     A helper async generator that can be used to automatically expand partial objects for you.
     Any other object found in the ``iterable`` is passed unchanged.
@@ -775,16 +775,16 @@ class Duration:
         return Duration(seconds=self._total_seconds)
 
 
-class WeakValueDefaultDict(WeakValueDictionary, Mapping[X, Y]):  # type: ignore
+class WeakValueDefaultDict(WeakValueDictionary, Mapping[_X, _Y]):  # type: ignore[type-arg]
     def __init__(
         self,
         default_factory: Optional[Callable[[], Any]] = None,
-        mapping_or_iterable: Union[Mapping[X, Y], Iterable[Tuple[X, Y]]] = {},
+        mapping_or_iterable: Union[Mapping[_X, _Y], Iterable[Tuple[_X, _Y]]] = {},
     ):
         self.default_factory = default_factory
         super().__init__(mapping_or_iterable)
 
-    def __getitem__(self, key: X) -> Y:
+    def __getitem__(self, key: _X) -> _Y:
         try:
             return super().__getitem__(key)
         except KeyError:
