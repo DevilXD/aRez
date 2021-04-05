@@ -49,6 +49,7 @@ class EnumMeta(type):
         new_attrs = {k: attrs.pop(k) for k in attrs.copy() if k.startswith("__")}
         cls = cast(_EnumProt, type.__new__(meta_cls, name, bases, new_attrs))
         # as long as this attribute exists, the enum can be mutated
+        # use supertype to bypass the check
         type.__setattr__(cls, "_immutable", False)
 
         # Create enum members
@@ -58,7 +59,7 @@ class EnumMeta(type):
         for k, v in attrs.items():
             if k.startswith("__") or hasattr(v, "__get__"):
                 # special attribute or descriptor, pass unchanged
-                type.__setattr__(cls, k, v)
+                setattr(cls, k, v)
                 continue
             if v in value_mapping:
                 # existing value, just read it back
@@ -68,16 +69,16 @@ class EnumMeta(type):
                 member = cls(k, v)
                 value_mapping[v] = member
                 member_mapping[k] = member
-                type.__setattr__(cls, k, member)
+                setattr(cls, k, member)
             k_lower = k.lower()
             name_mapping[k_lower] = member
             if '_' in k:
                 # generate a second alias with spaces instead of underscores
                 name_mapping[k_lower.replace('_', ' ')] = member
-        type.__setattr__(cls, "_name_mapping", name_mapping)
-        type.__setattr__(cls, "_value_mapping", value_mapping)
-        type.__setattr__(cls, "_member_mapping", member_mapping)
-        type.__setattr__(cls, "_default_value", default_value)
+        setattr(cls, "_name_mapping", name_mapping)
+        setattr(cls, "_value_mapping", value_mapping)
+        setattr(cls, "_member_mapping", member_mapping)
+        setattr(cls, "_default_value", default_value)
         delattr(cls, "_immutable")  # finish enum initialization
         return cls
 
@@ -121,7 +122,6 @@ class EnumMeta(type):
         type.__delattr__(cls, name)
 
     def __setattr__(cls: _EnumProt, name: str, value: Any):
-        # it'll not exist when setting it for the first time, duh
         if getattr(cls, "_immutable", True):
             raise AttributeError(f"Cannot reassign Enum member: {name}")
         type.__setattr__(cls, name, value)
