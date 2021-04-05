@@ -861,19 +861,19 @@ class PaladinsAPI(DataCache):
         players: Dict[int, Player] = {}
         for chunk_ids in chunk(ids_list, 10):  # chunk the IDs into groups of 10
             response = await self.request("getmatchdetailsbatch", ','.join(map(str, chunk_ids)))
+            # see if there are any API errors
+            for mpd in response:
+                if mpd["ret_msg"]:  # pragma: no cover
+                    raise HTTPException(description=(
+                        "Error in the 'getmatchdetailsbatch' endpoint!\n"
+                        f"Match IDs: {','.join(map(str, chunk_ids))}\n"
+                        f"Details: '{mpd['ret_msg']}'"
+                    ))
             bunched_matches = group_by(response, lambda mpd: mpd["Match"])
             if expand_players:
                 player_ids = []
                 for p in response:
-                    try:
-                        pid = int(p["playerId"])
-                    except TypeError as exc:  # pragma: no cover
-                        # this usually happens when the API returns an error in ret_msg
-                        raise HTTPException(exc, (
-                            "Error in the `getMatchDetailsBatch` endpoint!\n"
-                            f"Match IDs: {','.join(map(str, chunk_ids))}\n"
-                            f"Details: {p['ret_msg']}"
-                        ))
+                    pid = int(p["playerId"])
                     if pid not in players:  # pragma: no branch
                         player_ids.append(pid)
                 players_list = await self.get_players(player_ids)
@@ -1009,19 +1009,19 @@ class PaladinsAPI(DataCache):
                 matches_response = await self.request(
                     "getmatchdetailsbatch", ','.join(map(str, chunk_ids))
                 )
+                # see if there are any API errors
+                for mpd in matches_response:
+                    if mpd["ret_msg"]:  # pragma: no cover
+                        raise HTTPException(description=(
+                            "Error in the 'getmatchdetailsbatch' endpoint!\n"
+                            f"Match IDs: {','.join(map(str, chunk_ids))}\n"
+                            f"Details: '{mpd['ret_msg']}'"
+                        ))
                 bunched_matches = group_by(matches_response, lambda mpd: mpd["Match"])
                 if expand_players:
                     player_ids = []
                     for p in matches_response:
-                        try:
-                            pid = int(p["playerId"])
-                        except TypeError as exc:  # pragma: no cover
-                            # this usually happens when the API returns an error in ret_msg
-                            raise HTTPException(exc, (
-                                "Error in the `getMatchDetailsBatch` endpoint!\n"
-                                f"Match IDs: {','.join(map(str, chunk_ids))}\n"
-                                f"Details: {p['ret_msg']}"
-                            ))
+                        pid = int(p["playerId"])
                         if pid not in players:  # pragma: no branch
                             player_ids.append(pid)
                     players_dict = await _get_players(self, player_ids)
