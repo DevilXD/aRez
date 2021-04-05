@@ -270,16 +270,21 @@ async def test_get_server_status(api: arez.PaladinsAPI):
     # test callback loop
     n = 0
     can_continue = Event()
-    half_second = timedelta(seconds=0.5)
+    check_interval = timedelta(seconds=0.5)
 
-    async def test_callback(callback, *, double_register=False):
+    async def test_callback(callback, *, extended=False):
         nonlocal n
         n = 0
         can_continue.clear()
-        api.register_status_callback(callback, half_second, half_second)
-        if double_register:
-            api.register_status_callback(callback, half_second, half_second)
-        await wait_for(can_continue.wait(), timeout=2)
+        api.register_status_callback(callback, check_interval, check_interval)
+        timeout_times = 2
+        if extended:
+            # double register
+            api.register_status_callback(callback, check_interval, check_interval)
+            # use longer timeout to accomodate for the non-changing status
+            timeout_times = 3
+        timeout = check_interval * (timeout_times - 0.5)
+        await wait_for(can_continue.wait(), timeout=timeout.total_seconds())
         api.register_status_callback(None)
 
     # normal function, one argument
@@ -289,7 +294,7 @@ async def test_get_server_status(api: arez.PaladinsAPI):
         if n >= 2:  # count two calls
             can_continue.set()
     # double register
-    await test_callback(callback, double_register=True)
+    await test_callback(callback, extended=True)
 
     # normal function, two arguments
     def callback(before, after):  # type: ignore[no-redef]
