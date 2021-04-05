@@ -299,6 +299,7 @@ class MatchPlayer(MatchPlayerMixin):
 class Match(CacheClient, MatchMixin):
     """
     Represents already-played full match information.
+
     You can get this from the `PaladinsAPI.get_match` and `PaladinsAPI.get_matches` methods,
     as well as from upgrading a `PartialMatch` object.
 
