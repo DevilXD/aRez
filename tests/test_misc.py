@@ -324,6 +324,27 @@ async def test_get_server_status(api: arez.PaladinsAPI):
 @pytest.mark.vcr()
 @pytest.mark.base()
 @pytest.mark.asyncio()
+@pytest.mark.dependency(depends=["tests/test_endpoint.py::test_session"], scope="session")
+async def test_data_used(api: arez.PaladinsAPI):
+    data = await api.get_data_used()
+    assert isinstance(data, arez.DataUsed)
+    assert data.active_sessions_remaining == data.active_sessions_limit - data.active_sessions_used
+    assert data.active_sessions_usage == data.active_sessions_used / data.active_sessions_limit
+    assert data.active_sessions_remaining_usage == (
+        data.active_sessions_remaining / data.active_sessions_limit
+    )
+    assert data.sessions_remaining == data.sessions_limit - data.sessions_used
+    assert data.sessions_usage == data.sessions_used / data.sessions_limit
+    assert data.sessions_remaining_usage == data.sessions_remaining / data.sessions_limit
+    assert data.requests_remaining == data.requests_limit - data.requests_used
+    assert data.requests_usage == data.requests_used / data.requests_limit
+    assert data.requests_remaining_usage == data.requests_remaining / data.requests_limit
+
+
+@pytest.mark.api()
+@pytest.mark.vcr()
+@pytest.mark.base()
+@pytest.mark.asyncio()
 @pytest.mark.dependency(depends=["test_enum"])
 @pytest.mark.dependency(depends=["tests/test_endpoint.py::test_session"], scope="session")
 async def test_cache(api: arez.PaladinsAPI):

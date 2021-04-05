@@ -21,6 +21,16 @@ class PatchInfoObject(RetMsg):
     version_string: str
 
 
+class DataUsedObject(RetMsg):
+    Active_Sessions: int
+    Concurrent_Sessions: int  # 50 by default
+    Request_Limit_Daily: int  # 7500 by default
+    Session_Cap: int  # 500 by default
+    Session_Time_Limit: int  # 15 (minutes) by default
+    Total_Requests_Today: int
+    Total_Sessions_Today: int
+
+
 class ServerStatusObject(RetMsg):
     entry_datetime: Optional[str]
     environment: Literal["live", "pts"]

@@ -114,6 +114,13 @@ class Endpoint:
     async def request(self, method_name: Literal["getpatchinfo"], /) -> responses.PatchInfoObject:
         ...
 
+    # API usage stats
+    @overload
+    async def request(
+        self, method_name: Literal["getdataused"], /,
+    ) -> List[responses.DataUsedObject]:
+        ...
+
     # server status
     @overload
     async def request(

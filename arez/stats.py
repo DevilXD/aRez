@@ -16,10 +16,143 @@ if TYPE_CHECKING:
 
 
 __all__ = [
+    "DataUsed",
     "Stats",
     "RankedStats",
     "ChampionStats",
 ]
+
+
+class DataUsed:
+    """
+    Represents API usage statistics.
+
+    You can get this from the `PaladinsAPI.get_data_used` method.
+
+    .. note::
+
+        API sessions are automatically managed by the wrapper.
+        The data provided here is meant solely for the API usage tracking purposes.
+
+    .. note::
+
+        The statistics are calculated over a rolling 24 hours window, meaning that each time
+        you use one request, you will be getting it back exactly 24 hours later.
+        Thus, there is no particular time at which these stats reset.
+
+    Attributes
+    ----------
+    timestamp : datetime.datetime
+        A timestamp of when these statistics were fetched.
+    active_sessions_used : int
+        The amount of active sessions currently being used.
+    active_sessions_limit : int
+        The maximum amount of active sessions you're allowed to have at the same time.\n
+        The default value is ``50``.
+    sessions_used : int
+        The amount of sessions used within the last 24 hours.
+    sessions_limit : int
+        The maximum amount of sessions you're allowed to use within 24 hours.\n
+        The default value is ``500``.
+    sessions_lifetime : int
+        The amount of time, in minutes, that needs to pass since your last request,
+        for the session to be closed. Your next request is going to start another session.
+    requests_used : int
+        The amount of requests used within the last 24 hours.
+    requests_limit : int
+        The maximum amount of requests you're allowed to use within 24 hours.\n
+        The default value is ``7500``.
+    """
+    def __init__(self, data: responses.DataUsedObject):
+        self.timestamp = datetime.utcnow()
+        self.active_sessions_used: int = data["Active_Sessions"]
+        self.active_sessions_limit: int = data["Concurrent_Sessions"]
+        self.sessions_used: int = data["Total_Sessions_Today"]
+        self.sessions_limit: int = data["Session_Cap"]
+        self.sessions_lifetime: int = data["Session_Time_Limit"]
+        self.requests_used: int = data["Total_Requests_Today"]
+        self.requests_limit: int = data["Request_Limit_Daily"]
+
+    @property
+    def active_sessions_remaining(self) -> int:
+        """
+        The amount of active sessions remaining.
+
+        :type: int
+        """
+        return self.active_sessions_limit - self.active_sessions_used
+
+    @property
+    def sessions_remaining(self) -> int:
+        """
+        The amount of sessions remaining.
+
+        :type: int
+        """
+        return self.sessions_limit - self.sessions_used
+
+    @property
+    def requests_remaining(self) -> int:
+        """
+        The amount of requests remaining.
+
+        :type: int
+        """
+        return self.requests_limit - self.requests_used
+
+    @property
+    def active_sessions_usage(self) -> float:
+        """
+        The percentage of active sessions used.
+
+        :type: float
+        """
+        return self.active_sessions_used / self.active_sessions_limit
+
+    @property
+    def sessions_usage(self) -> float:
+        """
+        The percentage of sessions used.
+
+        :type: float
+        """
+        return self.sessions_used / self.sessions_limit
+
+    @property
+    def requests_usage(self) -> float:
+        """
+        The percentage of requests used.
+
+        :type: float
+        """
+        return self.requests_used / self.requests_limit
+
+    @property
+    def active_sessions_remaining_usage(self) -> float:
+        """
+        The percentage of active sessions remaining.
+
+        :type: float
+        """
+        return self.active_sessions_remaining / self.active_sessions_limit
+
+    @property
+    def sessions_remaining_usage(self) -> float:
+        """
+        The percentage of sessions remaining.
+
+        :type: float
+        """
+        return self.sessions_remaining / self.sessions_limit
+
+    @property
+    def requests_remaining_usage(self) -> float:
+        """
+        The percentage of requests remaining.
+
+        :type: float
+        """
+        return self.requests_remaining / self.requests_limit
 
 
 class Stats(WinLoseMixin):

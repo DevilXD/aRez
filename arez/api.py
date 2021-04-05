@@ -27,6 +27,7 @@ from typing import (
 )
 
 from . import responses
+from .stats import DataUsed
 from .cache import DataCache
 from .bounty import BountyItem
 from .status import ServerStatus
@@ -44,7 +45,6 @@ if TYPE_CHECKING:
 
 __all__ = ["PaladinsAPI"]
 logger = logging.getLogger(__package__)
-
 _CHECK_INTERVAL = timedelta(minutes=3)
 _RECHECK_INTERVAL = timedelta(minutes=1)
 
@@ -138,6 +138,18 @@ class PaladinsAPI(DataCache):
         if self._status_task is not None:  # pragma: no cover
             self._status_task.cancel()
         await asyncio.gather(super().close(), self._statuspage.close())
+
+    async def get_data_used(self) -> DataUsed:
+        """
+        Allows you to check API usage statistics.
+
+        Returns
+        -------
+        DataUsed
+            An object describing API usage.
+        """
+        response = await self.request("getdataused")
+        return DataUsed(response[0])
 
     async def get_server_status(self, *, force_refresh: bool = False) -> ServerStatus:
         """
