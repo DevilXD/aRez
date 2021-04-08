@@ -455,3 +455,27 @@ class Player(PartialPlayer):
         if self.ranked_controller.rank == self.ranked_keyboard.rank:
             return max(self.ranked_keyboard, self.ranked_controller, key=lambda r: r.winrate)
         return max(self.ranked_keyboard, self.ranked_controller, key=lambda r: r.rank)
+
+    @cached_property
+    def calculated_level(self) -> int:
+        """
+        The calculated level of this profile.
+
+        This uses `total_experience` to calculate the player's level, instead of relying on the
+        value returned from the API.
+        It also allows you to calculate the theorethical level beyond the 999th level cap.
+
+        :type: int
+        """
+        # Players start at level 1, with 40k EXP needed to reach level 2. Afterwards,
+        # the requirement grows by 20k per level, until reaching 1M EXP at level 50. After that,
+        # each consecutive level consistently needs 1M EXP to advance.
+        lvl_threshold = 25_480_000  # amount of EXP needed for lvl 50
+        if self.total_experience < lvl_threshold:
+            s = 0
+            for lvl in range(2, 51):
+                if (s := s + lvl * 20_000) > self.total_experience:
+                    return lvl - 1
+            return 50  # pragma: no cover  # failsafe, this will never run
+        else:
+            return ((self.total_experience - lvl_threshold) // 1_000_000) + 50

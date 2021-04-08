@@ -164,3 +164,18 @@ async def test_player_history(
     # no privacy flag private
     history = await no_flag_private_player.get_match_history()
     assert len(history) == 0
+
+
+@pytest.mark.vcr()
+@pytest.mark.player()
+@pytest.mark.asyncio()
+@pytest.mark.dependency(depends=["tests/test_player.py::test_player_expand"], scope="session")
+async def test_player_dynamic_attributes(player: arez.PartialPlayer):
+    # test ranked_best
+    player1 = await player
+    player2 = await player
+    assert isinstance(player1.ranked_best, arez.RankedStats)
+    assert isinstance(player2.ranked_best, arez.RankedStats)
+    # test calculated_level
+    assert player1.calculated_level == 10
+    assert player2.calculated_level == 683

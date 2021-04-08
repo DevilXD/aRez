@@ -515,14 +515,3 @@ async def test_hashable(
     hash(player)
     hash(player)  # hash again for a cache hit
     hash(private_player)
-
-
-@pytest.mark.vcr()
-@pytest.mark.player()
-@pytest.mark.asyncio()
-@pytest.mark.dependency(depends=["tests/test_player.py::test_player_expand"], scope="session")
-async def test_player_ranked_best(player: arez.PartialPlayer):
-    player1 = await player
-    assert isinstance(player1.ranked_best, arez.RankedStats)
-    player2 = await player
-    assert isinstance(player2.ranked_best, arez.RankedStats)
