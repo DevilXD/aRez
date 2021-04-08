@@ -46,7 +46,7 @@ async def _get_players(cache: DataCache, player_ids: Iterable[int]) -> Dict[int,
     return players_dict
 
 
-class PartialMatch(MatchPlayerMixin, MatchMixin, Expandable):
+class PartialMatch(MatchPlayerMixin, MatchMixin, Expandable["Match"]):
     """
     Represents a match from a single player's perspective only.
 

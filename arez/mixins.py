@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from math import nan
+from functools import wraps
 from datetime import datetime
-from abc import ABC, abstractmethod
-from typing import Optional, Union, List, Tuple, Literal, cast, TYPE_CHECKING
+from typing import (
+    Optional, Union, List, Tuple, Generator, Awaitable, TypeVar, Literal, cast, TYPE_CHECKING
+)
 
 from . import responses
 from .enums import Queue, Region
@@ -24,6 +26,7 @@ __all__ = [
     "MatchMixin",
     "MatchPlayerMixin",
 ]
+_A = TypeVar("_A")
 
 
 class CacheClient:
@@ -82,7 +85,7 @@ class CacheObject:
         return self._hash
 
 
-class Expandable(ABC):
+class Expandable(Awaitable[_A]):
     """
     An abstract class that can be used to make partial objects "expandable" to their full version.
 
@@ -92,19 +95,17 @@ class Expandable(ABC):
     # Subclasses will have their `_expand` method doc linked as the `__await__` doc.
     def __init_subclass__(cls):
         # Create a new await method
-        def __await__(self):
-            return self._expand().__await__()
         # Copy over the docstring and annotations
-        __await__.__doc__ = cls._expand.__doc__
-        __await__.__annotations__ = cls._expand.__annotations__
+        @wraps(cls._expand)
+        def __await__(self: Expandable[_A]):
+            return self._expand().__await__()
         # Attach the method to the subclass
         setattr(cls, "__await__", __await__)
 
     # solely to satisfy MyPy
-    def __await__(self):
-        ...
+    def __await__(self) -> Generator[_A, None, _A]:
+        raise NotImplementedError
 
-    @abstractmethod
     async def _expand(self):
         raise NotImplementedError
 

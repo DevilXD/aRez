@@ -23,7 +23,7 @@ __all__ = ["PartialPlayer", "Player"]
 logger = logging.getLogger(__package__)
 
 
-class PartialPlayer(Expandable, CacheClient):
+class PartialPlayer(Expandable["Player"], CacheClient):
     """
     This object stores basic information about a player, such as their Player ID, Player Name
     and their Platform. Depending on the way it was created, only the Player ID is guaranteed
