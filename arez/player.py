@@ -438,7 +438,7 @@ class Player(PartialPlayer):
         self.champion_count: int = player_data["MasteryLevel"]
         self.region = Region(player_data["Region"], _return_default=True)
         self.total_achievements: int = player_data["Total_Achievements"]
-        self.total_experience: int = player_data["Total_Worshippers"]
+        self.total_experience: int = player_data["Total_XP"]
         self.casual = Stats(player_data)
         self.ranked_keyboard = RankedStats("Keyboard", player_data["RankedKBM"])
         self.ranked_controller = RankedStats("Controller", player_data["RankedController"])

@@ -89,8 +89,8 @@ class PlayerObject(RetMsg):
     Tier_RankedKBM: int
     Title: Optional[str]
     Total_Achievements: int
-    Total_Worshippers: int
-    Total_XP: int
+    Total_Worshippers: int  # Smite EXP
+    Total_XP: int  # Paladins EXP
     Wins: int
     hz_gamer_tag: Optional[str]
     hz_player_name: Optional[str]
