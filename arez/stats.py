@@ -56,7 +56,8 @@ class DataUsed:
         The default value is ``500``.
     sessions_lifetime : int
         The amount of time, in minutes, that needs to pass since your last request,
-        for the session to be closed. Your next request is going to start another session.
+        for the session to be closed.\n
+        Your next request is going to automatically start another session.
     requests_used : int
         The amount of requests used within the last 24 hours.
     requests_limit : int

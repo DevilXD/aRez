@@ -3,6 +3,9 @@ Statistics
 
 .. currentmodule:: arez
 
+.. autoclass:: DataUsed()
+    :members:
+
 .. autoclass:: Stats()
     :members:
     :inherited-members:
