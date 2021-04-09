@@ -46,10 +46,18 @@ class EnumMeta(type):
         *,
         default_value: Optional[int] = None,
     ):
-        new_attrs = {k: attrs.pop(k) for k in attrs.copy() if k.startswith("__")}
+        # Preprocess special attributes
+        new_attrs: Dict[str, Any] = {}
+        for k, v in attrs.copy().items():
+            if k.startswith("__") or hasattr(v, "__get__"):
+                # special attribute or descriptor, pass unchanged
+                # remove from attrs, so we don't treat them as members later
+                new_attrs[k] = attrs.pop(k)
+
+        # Instance our enum
         cls = cast(_EnumProt, type.__new__(meta_cls, name, bases, new_attrs))
-        # as long as this attribute exists, the enum can be mutated
-        # use supertype to bypass the check
+        # As long as this attribute exists, the enum can be mutated
+        # Use supertype to bypass the check
         type.__setattr__(cls, "_immutable", False)
 
         # Create enum members
@@ -57,10 +65,6 @@ class EnumMeta(type):
         value_mapping: Dict[int, _EnumBase] = {}
         member_mapping: Dict[str, _EnumBase] = {}
         for k, v in attrs.items():
-            if k.startswith("__") or hasattr(v, "__get__"):
-                # special attribute or descriptor, pass unchanged
-                setattr(cls, k, v)
-                continue
             if v in value_mapping:
                 # existing value, just read it back
                 member = value_mapping[v]
