@@ -3,6 +3,7 @@ from __future__ import annotations
 from math import nan
 from functools import wraps
 from datetime import datetime
+from abc import abstractmethod
 from typing import (
     Optional, Union, List, Tuple, Generator, Awaitable, TypeVar, Literal, cast, TYPE_CHECKING
 )
@@ -33,8 +34,8 @@ class CacheClient:
     """
     Abstract base class that has to be met by most (if not all) objects that interact with the API.
 
-    Provides access to the core of this wrapper, that is the `.request` method and `.get_*`
-    methods from the cache system.
+    Provides access to the core of this wrapper, that is the `.request` method
+    and the cache system.
     """
     def __init__(self, api: DataCache):
         self._api = api
@@ -106,6 +107,7 @@ class Expandable(Awaitable[_A]):
     def __await__(self) -> Generator[_A, None, _A]:
         raise NotImplementedError
 
+    @abstractmethod
     async def _expand(self):
         raise NotImplementedError
 
