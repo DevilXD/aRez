@@ -300,6 +300,8 @@ class Endpoint:
         Unavailable
             When the Hi-Rez API switches to emergency mode, and no data could be returned
             at this time.
+        LimitReached
+            Your daily limit of requests has been reached.
         """
         last_exc = None
         method_name = method_name.lower()
