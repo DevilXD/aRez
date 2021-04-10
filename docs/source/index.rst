@@ -6,6 +6,15 @@
 Welcome to aRez's documentation!
 ================================
 
+Introduction
+------------
+
+.. toctree::
+    :maxdepth: 1
+
+    install
+    tipsntricks
+
 Models
 ------
 
