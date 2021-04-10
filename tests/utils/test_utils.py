@@ -6,12 +6,12 @@ import pytest
 
 _TestItem = namedtuple("_TestItem", ["id", "name", "item"])
 
-zero = _TestItem(0, "zero", None)
+_zero = _TestItem(0, "zero", None)
 
 _test_list = [
-    _TestItem(1, "one", zero),
-    _TestItem(2, "two", zero),
-    _TestItem(3, "three", zero),
+    _TestItem(1, "one", _zero),
+    _TestItem(2, "two", _zero),
+    _TestItem(3, "three", _zero),
     _TestItem(4, "four", _TestItem(5, "five", None)),
 ]
 
