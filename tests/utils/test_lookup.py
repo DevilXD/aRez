@@ -27,7 +27,6 @@ original = [
 lcp = Lookup(original)
 
 
-@pytest.mark.dependency(scope="session")
 def test_lookup():
     assert str(lcp) == (
         "Lookup([Element(1, One), Element(3, Three), Element(2, Two), "

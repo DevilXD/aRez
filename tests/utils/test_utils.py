@@ -37,7 +37,7 @@ def test_get():
 
 @pytest.mark.vcr()
 @pytest.mark.asyncio()
-@pytest.mark.dependency(depends=["tests/test_player.py::test_player_history"], scope="session")
+@pytest.mark.order(after="test_player.test_player_history")
 async def test_expand_partial(player: arez.PartialPlayer):
     expand_partial = arez.utils.expand_partial
     history = await player.get_match_history()

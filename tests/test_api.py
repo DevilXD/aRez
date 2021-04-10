@@ -22,15 +22,12 @@ pytestmark = [
     pytest.mark.api,
     pytest.mark.vcr,
     pytest.mark.asyncio,
-    pytest.mark.dependency(
-        depends=["tests/test_misc.py::test_enum", "tests/test_misc.py::test_cache"],
-        scope="session",
-    )
+    pytest.mark.order(after="test_misc.test_enum test_misc.test_cache")
 ]
 
 
 @pytest.mark.slow()
-@pytest.mark.dependency(depends=["tests/utils/test_lookup.py::test_lookup"], scope="session")
+@pytest.mark.order(after="utils.test_lookup.test_lookup")
 @pytest.mark.parametrize("lang_num", [
     0,   # Nothing returned
     1,   # English
@@ -231,7 +228,7 @@ async def test_get_matches(api: arez.PaladinsAPI):
 
 
 @pytest.mark.slow()
-@pytest.mark.dependency(depends=["tests/utils/test_date_gen.py::test_date_gen"], scope="session")
+@pytest.mark.order(after="utils.test_date_gen.test_date_gen")
 async def test_get_matches_for_queue(api: arez.PaladinsAPI):
     queue = arez.Queue.Casual_Siege
     start = BASE_DATETIME + timedelta(minutes=2)
