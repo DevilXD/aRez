@@ -72,8 +72,8 @@ class CacheObject:
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}: {self._name}({self._id})"
 
-    def __eq__(self, other) -> bool:
-        if type(other) is CacheObject or isinstance(other, self.__class__):
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, self.__class__):
             if self._id != 0 and other._id != 0:
                 return self._id == other._id
             elif self._name != "Unknown" and other._name != "Unknown":
