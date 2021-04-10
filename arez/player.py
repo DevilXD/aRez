@@ -40,7 +40,7 @@ class PartialPlayer(Expandable["Player"], CacheClient):
     .. note::
 
         In addition to the exceptions specified below, each API request can result
-        in two additional exceptions being raised:
+        in the following exceptions being raised:
 
         `Unavailable`
             The API is currently unavailable.
@@ -301,6 +301,11 @@ class PartialPlayer(Expandable["Player"], CacheClient):
 
         Uses up a single request.
 
+        .. note::
+
+            The returned list can be empty (or contain less elements) if the player haven't played
+            any matches yet, or their last played match is over 30 days old.
+
         Parameters
         ----------
         language : Optional[Language]
@@ -310,10 +315,7 @@ class PartialPlayer(Expandable["Player"], CacheClient):
         Returns
         -------
         List[PartialMatch]
-            A list of up to 50 partial matches, containing statistics for
-            the current player only.\n
-            The list can be empty or contain less elements if the player haven't played
-            any matches yet, or their last played match is over 30 days old.
+            A list of up to 50 partial matches, containing statistics for the current player only.
 
         Raises
         ------

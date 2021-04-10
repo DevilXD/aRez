@@ -64,7 +64,7 @@ class PaladinsAPI(DataCache):
     .. note::
 
         In addition to the exceptions specified for each method, each API request can result
-        in two additional exceptions being raised:
+        in the following exceptions being raised:
 
         `Unavailable`
             The API is currently unavailable.
