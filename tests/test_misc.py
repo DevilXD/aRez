@@ -93,8 +93,6 @@ async def test_type_errors(api: arez.PaladinsAPI, player: arez.Player):
 
 # test enum creation and casting
 @pytest.mark.base()
-@pytest.mark.dependency()
-@pytest.mark.dependency(scope="session")
 def test_enum_meta():
     if TYPE_CHECKING:
         class Enum(IntEnum):
@@ -162,8 +160,7 @@ def test_enum_meta():
 
 
 @pytest.mark.base()
-@pytest.mark.dependency(depends=["test_enum_meta"])
-@pytest.mark.dependency(scope="session")
+@pytest.mark.order(after="test_enum_meta")
 def test_enum():
     # rank special aliases
     r = arez.Rank("bronze5")
@@ -183,7 +180,6 @@ def test_enum():
 
 
 @pytest.mark.api()
-@pytest.mark.dependency()
 def test_server_status_merge():
     cs = arez.status._convert_status
     colors = arez.statuspage.colors
@@ -232,8 +228,7 @@ def test_server_status_merge():
 @pytest.mark.vcr()
 @pytest.mark.slow()
 @pytest.mark.asyncio()
-@pytest.mark.dependency(depends=["test_server_status_merge"])
-@pytest.mark.dependency(depends=["tests/test_endpoint.py::test_session"], scope="session")
+@pytest.mark.order(after="test_server_status_merge test_endpoint.test_session")
 async def test_get_server_status(api: arez.PaladinsAPI):
     # empty responses from both
     with pytest.raises(arez.NotFound):
@@ -329,7 +324,7 @@ async def test_get_server_status(api: arez.PaladinsAPI):
 @pytest.mark.vcr()
 @pytest.mark.base()
 @pytest.mark.asyncio()
-@pytest.mark.dependency(depends=["tests/test_endpoint.py::test_session"], scope="session")
+@pytest.mark.order(after="test_endpoint.test_session")
 async def test_data_used(api: arez.PaladinsAPI):
     data = await api.get_data_used()
     assert isinstance(data, arez.DataUsed)
@@ -350,8 +345,7 @@ async def test_data_used(api: arez.PaladinsAPI):
 @pytest.mark.vcr()
 @pytest.mark.base()
 @pytest.mark.asyncio()
-@pytest.mark.dependency(depends=["test_enum"])
-@pytest.mark.dependency(depends=["tests/test_endpoint.py::test_session"], scope="session")
+@pytest.mark.order(after="test_enum test_endpoint.test_session")
 async def test_cache(api: arez.PaladinsAPI):
     # set default language
     api.set_default_language(arez.Language.English)
@@ -388,18 +382,15 @@ async def test_cache(api: arez.PaladinsAPI):
 @pytest.mark.vcr()
 @pytest.mark.base()
 @pytest.mark.asyncio()
-@pytest.mark.dependency(depends=["test_cache"])
-@pytest.mark.dependency(
-    depends=[
-        "tests/test_api.py::test_bounty",
-        "tests/test_api.py::test_get_match",
-        "tests/test_match.py::test_live_match",
-        "tests/test_player.py::test_player_history",
-        "tests/test_player.py::test_player_loadouts",
-        "tests/test_player.py::test_player_champion_stats",
-    ],
-    scope="session",
-)
+@pytest.mark.order(after=(
+    "test_cache "
+    "test_api.test_bounty "
+    "test_api.test_get_match "
+    "test_match.test_live_match "
+    "test_player.test_player_history "
+    "test_player.test_player_loadouts "
+    "test_player.test_player_champion_stats"
+))
 async def test_cache_disabled(api: arez.PaladinsAPI, player: arez.Player):
     # temporarly disable the cache, and make sure no cached entry exists
     api.cache_enabled = False  # disable cache
@@ -448,8 +439,7 @@ async def test_cache_disabled(api: arez.PaladinsAPI, player: arez.Player):
 @pytest.mark.match()
 @pytest.mark.player()
 @pytest.mark.asyncio()
-@pytest.mark.dependency(depends=["test_cache"])
-@pytest.mark.dependency(depends=["tests/test_player.py::test_player_history"], scope="session")
+@pytest.mark.order(after="test_cache test_player.test_player_history")
 async def test_comparisons(
     api: arez.PaladinsAPI, player: arez.PartialPlayer, private_player: arez.PartialPlayer
 ):

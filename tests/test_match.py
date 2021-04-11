@@ -10,14 +10,11 @@ pytestmark = [
     pytest.mark.vcr,
     pytest.mark.match,
     pytest.mark.asyncio,
-    pytest.mark.dependency(
-        depends=["tests/test_misc.py::test_enum", "tests/test_misc.py::test_cache"],
-        scope="session",
-    )
+    pytest.mark.order(after="test_misc.test_enum test_misc.test_cache")
 ]
 
 
-@pytest.mark.dependency(depends=["tests/test_player.py::test_player_history"], scope="session")
+@pytest.mark.order(after="test_player.test_player_history")
 async def test_match_expand(player: arez.PartialPlayer):
     # fetch the history here
     history = await player.get_match_history()
@@ -61,13 +58,10 @@ async def test_match_expand(player: arez.PartialPlayer):
         assert partial_card == mp_card
 
 
-@pytest.mark.dependency(
-    depends=[
-        "tests/test_api.py::test_get_match",
-        "tests/test_player.py::test_player_history",
-    ],
-    scope="session",
-)
+@pytest.mark.order(after=(
+    "test_api.test_get_match "
+    "test_player.test_player_history"
+))
 async def test_match_disconnected(api: arez.PaladinsAPI, player: arez.PartialPlayer):
     # fetch the history here
     history = await player.get_match_history()
@@ -80,7 +74,7 @@ async def test_match_disconnected(api: arez.PaladinsAPI, player: arez.PartialPla
     assert all(not mp.disconnected for mp in match.players)
 
 
-@pytest.mark.dependency(depends=["tests/test_player.py::test_player_status"], scope="session")
+@pytest.mark.order(after="test_player.test_player_status")
 async def test_live_match(player: arez.PartialPlayer):
     # no live match
     status = await player.get_status()

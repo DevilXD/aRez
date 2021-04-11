@@ -9,7 +9,6 @@ from ..conftest import BASE_DATETIME
 @pytest.mark.api()
 @pytest.mark.base()
 @pytest.mark.slow()
-@pytest.mark.dependency(scope="session")
 def test_date_gen():
     # helpful time intervals
     one_day = timedelta(days=1)

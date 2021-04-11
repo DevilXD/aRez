@@ -6,10 +6,7 @@ pytestmark = [
     pytest.mark.vcr,
     pytest.mark.player,
     pytest.mark.asyncio,
-    pytest.mark.dependency(
-        depends=["tests/test_misc.py::test_enum", "tests/test_misc.py::test_cache"],
-        scope="session"
-    )
+    pytest.mark.order(after="test_misc.test_enum test_misc.test_cache")
 ]
 
 
@@ -169,7 +166,7 @@ async def test_player_history(
 @pytest.mark.vcr()
 @pytest.mark.player()
 @pytest.mark.asyncio()
-@pytest.mark.dependency(depends=["tests/test_player.py::test_player_expand"], scope="session")
+@pytest.mark.order(after="test_player_expand")
 async def test_player_dynamic_attributes(player: arez.PartialPlayer):
     # test ranked_best
     player1 = await player
