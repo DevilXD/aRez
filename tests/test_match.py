@@ -10,7 +10,7 @@ pytestmark = [
     pytest.mark.vcr,
     pytest.mark.match,
     pytest.mark.asyncio,
-    pytest.mark.order(after="test_misc.test_enum test_misc.test_cache")
+    pytest.mark.order(after=["test_misc.test_enum", "test_misc.test_cache"])
 ]
 
 
@@ -58,10 +58,10 @@ async def test_match_expand(player: arez.PartialPlayer):
         assert partial_card == mp_card
 
 
-@pytest.mark.order(after=(
-    "test_api.test_get_match "
-    "test_player.test_player_history"
-))
+@pytest.mark.order(after=[
+    "test_api.test_get_match",
+    "test_player.test_player_history",
+])
 async def test_match_disconnected(api: arez.PaladinsAPI, player: arez.PartialPlayer):
     # fetch the history here
     history = await player.get_match_history()

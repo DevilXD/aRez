@@ -22,7 +22,7 @@ pytestmark = [
     pytest.mark.api,
     pytest.mark.vcr,
     pytest.mark.asyncio,
-    pytest.mark.order(after="test_misc.test_enum test_misc.test_cache")
+    pytest.mark.order(after=["test_misc.test_enum", "test_misc.test_cache"])
 ]
 
 
