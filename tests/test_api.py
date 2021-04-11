@@ -55,7 +55,7 @@ async def test_champion_info(api: arez.PaladinsAPI, lang_num: int):
         with pytest.raises(TypeError):
             champion_info = await api.get_champion_info("test")  # type: ignore
         return  # if the above passes, end here
-    champion_info = await api.get_champion_info(arez.Language(lang_num), cache=False)
+    champion_info = await api.get_champion_info(arez.Language(lang_num), cache=(lang_num == 1))
     assert champion_info is not None
     champion_count = len(champion_info.champions)
     # repr
