@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+import re
+from typing import TYPE_CHECKING
 from datetime import datetime, timedelta, timezone
 
 import arez
@@ -17,6 +21,9 @@ from .conftest import (
     INVALID_PLATFORM,
 )
 
+if TYPE_CHECKING:
+    from _pytest.fixtures import SubRequest
+
 
 pytestmark = [
     pytest.mark.api,
@@ -26,62 +33,74 @@ pytestmark = [
 ]
 
 
-@pytest.mark.slow()
-@pytest.mark.order(after="utils.test_lookup.test_lookup")
-@pytest.mark.parametrize("lang_num", [
-    0,   # Nothing returned
-    1,   # English
-    2,   # German
-    3,   # French
-    pytest.param(5, marks=pytest.mark.xfail),  # Chinese
-    9,   # Spanish
-    10,  # Portuguese
-    11,  # Russian
-    12,  # Polish
-    13,  # Turkish
-])
-async def test_champion_info(api: arez.PaladinsAPI, lang_num: int):
-    if lang_num == 0:
-        # hack - ensure no cache exists
-        if arez.Language.English in api._cache:
-            del api._cache[arez.Language.English]
-        # nothing is returned, expect an exception
-        with pytest.raises(arez.NotFound):
-            champion_info = await api.get_champion_info()
-        # check TypeError
-        with pytest.raises(TypeError):
-            champion_info = await api.get_champion_info("test")  # type: ignore
-        return  # if the above passes, end here
-    champion_info = await api.get_champion_info(arez.Language(lang_num), cache=(lang_num == 1))
-    assert champion_info is not None
-    champion_count = len(champion_info.champions)
-    # repr
-    repr(champion_info)
-    # verify all 3 device categories separately
-    assert len(champion_info.items) == 4 * 4, "Missing shop items!"
-    try:
-        assert len(champion_info.cards) == champion_count * 16, "Missing cards!"
-    except AssertionError:
-        # there is a chance only one champion is missing those - narrow it down
-        if len(champion_info.cards) != (champion_count - 1) * 16:
-            raise
-        # lets see who is it
-        for champion in champion_info.champions:
-            assert champion.cards, f"Champion {champion.name} is missing cards!"
-    try:
-        assert len(champion_info.talents) == champion_count * 3, "Missing talents!"
-    except AssertionError:
-        if len(champion_info.talents) != (champion_count - 1) * 3:
-            raise
-        for champion in champion_info.champions:
-            assert champion.talents, f"Champion {champion.name} is missing talents!"
-    # verify we have all devices:
-    # • 16 cards per champion
-    # • 3 talents per champion
-    # 4 categories of 4 shop items
-    assert len(champion_info.devices) == champion_count * (16 + 3) + 4 * 4, "Missing devices!"
-    # verify all champions are valid
-    assert all(c for c in champion_info.champions), "Not all champions appear to be valid!"
+class TestChampionInfo:
+    _name_pattern = re.compile(r'test_champion_info\[(\d{1,2})-(False|True|None)\]')
+
+    # we overwrite this here, to provide custom cassette naming
+    # we reduce the parametrization to just '[N]' instead of '[N-(False|True|None)],
+    # mostly just to reuse the english language cassette
+    @pytest.fixture()
+    def default_cassette_name(self, request: SubRequest) -> str:
+        return self._name_pattern.sub(r"test_champion_info[\1]", request.node.name)
+
+    @pytest.mark.slow()
+    @pytest.mark.order(after="utils.test_lookup.test_lookup")
+    @pytest.mark.parametrize(["lang_num", "cache"], [
+        (0, False),   # Nothing returned
+        (1, None),    # English - don't pass anything
+        (1, False),   # English - don't cache
+        (1, True),    # English - do cache
+        (2, False),   # German
+        (3, False),   # French
+        pytest.param(5, False, marks=pytest.mark.xfail),  # Chinese
+        (9, False),   # Spanish
+        (10, False),  # Portuguese
+        (11, False),  # Russian
+        (12, False),  # Polish
+        (13, False),  # Turkish
+    ])
+    async def test_champion_info(self, api: arez.PaladinsAPI, lang_num: int, cache: bool):
+        if lang_num == 0:
+            # hack - ensure no cache exists
+            if arez.Language.English in api._cache:
+                del api._cache[arez.Language.English]
+            # nothing is returned, expect an exception
+            with pytest.raises(arez.NotFound):
+                champion_info = await api.get_champion_info()
+            # check TypeError
+            with pytest.raises(TypeError):
+                champion_info = await api.get_champion_info("test")  # type: ignore
+            return  # if the above passes, end here
+        champion_info = await api.get_champion_info(arez.Language(lang_num), cache=cache)
+        assert champion_info is not None
+        champion_count = len(champion_info.champions)
+        # repr
+        repr(champion_info)
+        # verify all 3 device categories separately
+        assert len(champion_info.items) == 4 * 4, "Missing shop items!"
+        try:
+            assert len(champion_info.cards) == champion_count * 16, "Missing cards!"
+        except AssertionError:
+            # there is a chance only one champion is missing those - narrow it down
+            if len(champion_info.cards) != (champion_count - 1) * 16:
+                raise
+            # lets see who is it
+            for champion in champion_info.champions:
+                assert champion.cards, f"Champion {champion.name} is missing cards!"
+        try:
+            assert len(champion_info.talents) == champion_count * 3, "Missing talents!"
+        except AssertionError:
+            if len(champion_info.talents) != (champion_count - 1) * 3:
+                raise
+            for champion in champion_info.champions:
+                assert champion.talents, f"Champion {champion.name} is missing talents!"
+        # verify we have all devices:
+        # • 16 cards per champion
+        # • 3 talents per champion
+        # 4 categories of 4 shop items
+        assert len(champion_info.devices) == champion_count * (16 + 3) + 4 * 4, "Missing devices!"
+        # verify all champions are valid
+        assert all(c for c in champion_info.champions), "Not all champions appear to be valid!"
 
 
 async def test_get_player(api: arez.PaladinsAPI):
