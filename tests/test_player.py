@@ -6,7 +6,7 @@ pytestmark = [
     pytest.mark.vcr,
     pytest.mark.player,
     pytest.mark.asyncio,
-    pytest.mark.order(after=["test_misc.test_enum", "test_misc.test_cache"])
+    pytest.mark.order(after=["test_misc.py::test_enum", "test_misc.py::test_cache"])
 ]
 
 

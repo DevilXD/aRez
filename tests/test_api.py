@@ -29,7 +29,7 @@ pytestmark = [
     pytest.mark.api,
     pytest.mark.vcr,
     pytest.mark.asyncio,
-    pytest.mark.order(after=["test_misc.test_enum", "test_misc.test_cache"])
+    pytest.mark.order(after=["test_misc.py::test_enum", "test_misc.py::test_cache"])
 ]
 
 
@@ -44,7 +44,7 @@ class TestChampionInfo:
         return self._name_pattern.sub(r"test_champion_info[\1]", request.node.name)
 
     @pytest.mark.slow()
-    @pytest.mark.order(after="utils.test_lookup.test_lookup")
+    @pytest.mark.order(after="utils/test_lookup.py::test_lookup")
     @pytest.mark.parametrize(["lang_num", "cache"], [
         (0, False),   # Nothing returned
         (1, None),    # English - don't pass anything
@@ -247,7 +247,7 @@ async def test_get_matches(api: arez.PaladinsAPI):
 
 
 @pytest.mark.slow()
-@pytest.mark.order(after="utils.test_date_gen.test_date_gen")
+@pytest.mark.order(after="utils/test_date_gen.py::test_date_gen")
 async def test_get_matches_for_queue(api: arez.PaladinsAPI):
     queue = arez.Queue.Casual_Siege
     start = BASE_DATETIME + timedelta(minutes=2)

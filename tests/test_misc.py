@@ -228,7 +228,7 @@ def test_server_status_merge():
 @pytest.mark.vcr()
 @pytest.mark.slow()
 @pytest.mark.asyncio()
-@pytest.mark.order(after="test_server_status_merge test_endpoint.test_session")
+@pytest.mark.order(after=["test_server_status_merge", "test_endpoint.py::test_session"])
 async def test_get_server_status(api: arez.PaladinsAPI):
     # empty responses from both
     with pytest.raises(arez.NotFound):
@@ -324,7 +324,7 @@ async def test_get_server_status(api: arez.PaladinsAPI):
 @pytest.mark.vcr()
 @pytest.mark.base()
 @pytest.mark.asyncio()
-@pytest.mark.order(after="test_endpoint.test_session")
+@pytest.mark.order(after="test_endpoint.py::test_session")
 async def test_data_used(api: arez.PaladinsAPI):
     data = await api.get_data_used()
     assert isinstance(data, arez.DataUsed)
@@ -345,7 +345,7 @@ async def test_data_used(api: arez.PaladinsAPI):
 @pytest.mark.vcr()
 @pytest.mark.base()
 @pytest.mark.asyncio()
-@pytest.mark.order(after=["test_enum", "test_endpoint.test_session"])
+@pytest.mark.order(after=["test_enum", "test_endpoint.py::test_session"])
 async def test_cache(api: arez.PaladinsAPI):
     # set default language
     api.set_default_language(arez.Language.English)
@@ -384,12 +384,12 @@ async def test_cache(api: arez.PaladinsAPI):
 @pytest.mark.asyncio()
 @pytest.mark.order(after=[
     "test_cache",
-    "test_api.test_bounty",
-    "test_api.test_get_match",
-    "test_match.test_live_match",
-    "test_player.test_player_history",
-    "test_player.test_player_loadouts",
-    "test_player.test_player_champion_stats",
+    "test_api.py::test_bounty",
+    "test_api.py::test_get_match",
+    "test_match.py::test_live_match",
+    "test_player.py::test_player_history",
+    "test_player.py::test_player_loadouts",
+    "test_player.py::test_player_champion_stats",
 ])
 async def test_cache_disabled(api: arez.PaladinsAPI, player: arez.Player):
     # temporarly disable the cache, and make sure no cached entry exists
@@ -439,7 +439,7 @@ async def test_cache_disabled(api: arez.PaladinsAPI, player: arez.Player):
 @pytest.mark.match()
 @pytest.mark.player()
 @pytest.mark.asyncio()
-@pytest.mark.order(after=["test_cache", "test_player.test_player_history"])
+@pytest.mark.order(after=["test_cache", "test_player.py::test_player_history"])
 async def test_comparisons(
     api: arez.PaladinsAPI, player: arez.PartialPlayer, private_player: arez.PartialPlayer
 ):
