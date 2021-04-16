@@ -34,6 +34,9 @@ async def test_session(api: arez.PaladinsAPI):
     api._session_expires = datetime.utcnow() - timedelta(seconds=30)
     # test normal session
     await api.request("testsession")
+    # test explicit session
+    response = await api.request("testsession", api._session_key)
+    assert api._session_key in response
 
 
 # test unexpected exception

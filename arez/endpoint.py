@@ -105,8 +105,9 @@ class Endpoint:
         ...
 
     # session testing
+    # note - session_key is optional, internal session is used if not provided
     @overload
-    async def request(self, method_name: Literal["testsession"], /) -> str:
+    async def request(self, method_name: Literal["testsession"], session_key: str = '', /) -> str:
         ...
 
     # patch info
@@ -315,6 +316,14 @@ class Endpoint:
                     req_stack.extend(
                         (self.__dev_id, self._get_signature(method_name, timestamp), timestamp)
                     )
+                elif method_name == "testsession" and len(data) == 1 and data[0]:
+                    timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+                    req_stack.extend((
+                        self.__dev_id,
+                        self._get_signature(method_name, timestamp),
+                        str(data[0]),
+                        timestamp,
+                    ))
                 elif method_name != "ping":
                     async with self._session_lock:
                         now = datetime.utcnow()
@@ -333,8 +342,8 @@ class Endpoint:
                         self._session_key,
                         timestamp,
                     ))
-                if data:
-                    req_stack.extend(map(str, data))
+                    if data:
+                        req_stack.extend(map(str, data))
                 req_url = '/'.join(req_stack)
                 logger.debug(f"endpoint.request: {method_name}: {req_url}")
 
