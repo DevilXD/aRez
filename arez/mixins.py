@@ -108,7 +108,7 @@ class Expandable(Awaitable[_A]):
         raise NotImplementedError
 
     @abstractmethod
-    async def _expand(self):
+    async def _expand(self) -> _A:
         raise NotImplementedError
 
 
