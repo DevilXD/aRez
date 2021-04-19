@@ -270,6 +270,18 @@ class PaladinsAPI(DataCache):
         will then be called with the new status (and optionally the previous one) passed as the
         arguments, like so: ``callback(after)`` or ``callback(before, after)``.
 
+        This can be used to easily setup server status monitoring and notifications systems:
+
+        .. code-block:: py
+
+            api: arez.PaladinsAPI  # wrapper instance
+
+            async def notify(after: arez.ServerStatus):
+                # do anything when the status changes - in this case, just print a message
+                print(f"Current server status: {after.status}")
+
+            api.register_status_callback(notify)
+
         .. note::
 
             - The checking loop will call `get_server_status` with ``force_refresh`` \
@@ -294,7 +306,7 @@ class PaladinsAPI(DataCache):
                 Callable[[ServerStatus], Union[Awaitable[Any], Any]],\
                 Callable[[ServerStatus, ServerStatus], Union[Awaitable[Any], Any]]]
             The callback function you want to register. This can be either a normal function
-            or an async one, accepting either ``1`` or ``2`` positional arguments,
+            or an async one, accepting either ``1`` or ``2`` positional-only arguments,
             with any return type.\n
             Passing a new callback function, while one is already running,
             will overwrite the previous one and reset the timer.\n
