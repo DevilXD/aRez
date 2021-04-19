@@ -268,6 +268,11 @@ class Endpoint:
     ) -> List[responses.HistoryMatchObject]:
         ...
 
+    # general case
+    @overload
+    async def request(self, method_name: str, /, *data: Union[str, int]) -> Any:
+        ...
+
     async def request(self, method_name: str, /, *data: Union[str, int]) -> Any:
         """
         Makes a direct request to the HiRez API.
