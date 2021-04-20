@@ -5,8 +5,8 @@ from setuptools import setup, find_packages
 
 # Parse the version string out of the init file
 version: Optional[str] = None
-with open("arez/__init__.py", 'r') as f:
-    match = re.search(r'__version__ = "(\d+\.\d+\.\d+)"', f.read())
+with open("arez/__init__.py", 'r', encoding="utf8") as f:
+    match = re.search(r'__version__ = "(\d+\.\d+\.\d+(?:\.dev\d+)?)"', f.read())
     if match:
         version = match.group(1)
 if not version:
