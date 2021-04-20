@@ -131,15 +131,13 @@ def test_enum_meta():
     # Iteration
     for i, e in enumerate(WithDefault):
         assert i == e.value
-    # None for unknown input
-    e = WithDefault("1234")
-    assert e is None
+    # None for unknown input - regardless of the default
+    assert WithDefault("1234") is None
+    assert NoDefault("1234") is None
     # Default for unknown input
-    e = WithDefault("1234", _return_default=True)
-    assert e is WithDefault.Unknown
+    assert WithDefault("1234", _return_default=True) is WithDefault.Unknown
     # If no default value is set - return unchanged
-    e = NoDefault("1234", _return_default=True)
-    assert e == "1234"
+    assert NoDefault("1234", _return_default=True) == "1234"
     # Can't delete attributes
     with pytest.raises(AttributeError):
         del NoDefault.One
@@ -158,6 +156,14 @@ def test_enum_meta():
         e = NoDefault("Four", 4)
     assert e is None
     assert not hasattr(NoDefault, "Four")
+    # Can't modify members' name or value
+    e = WithDefault.NoSpace
+    with pytest.raises(AttributeError):
+        e.name = "Test"
+    assert e.name == "NoSpace"
+    with pytest.raises(AttributeError):
+        e.value = 5
+    assert e.value == 1
 
 
 @pytest.mark.base()

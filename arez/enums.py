@@ -1,7 +1,7 @@
 ﻿from __future__ import annotations
 
 from enum import IntEnum
-from typing import Any, Iterator, Optional, Union, Dict, Tuple, Protocol, cast, TYPE_CHECKING
+from typing import Any, Iterator, Optional, Union, Dict, Tuple, Protocol, Type, cast, TYPE_CHECKING
 
 
 __all__ = [
@@ -16,6 +16,55 @@ __all__ = [
     "AbilityType",
     "PC_PLATFORMS",
 ]
+
+
+class _EnumBase(int):
+    _name: str
+    _value: int
+
+    def __new__(cls, name: str, value: int) -> _EnumBase:
+        self = super().__new__(cls, value)
+        # ensure we won't end up with underscores in the name
+        self._name = name.replace('_', ' ')
+        self._value = value
+        return self
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__}.{self._name.replace(' ', '_')}: {self._value}>"
+
+    @property
+    def name(self) -> str:
+        """
+        The name of the enum member.
+
+        :type: str
+        """
+        return self._name
+
+    @property
+    def value(self) -> int:
+        """
+        The value of the enum member.
+
+        :type: int
+        """
+        return self._value
+
+    def __str__(self) -> str:
+        """
+        Same as accessing the `name` attribute.
+
+        :type: str
+        """
+        return self._name
+
+    def __int__(self) -> int:
+        """
+        Same as accessing the `value` attribute.
+
+        :type: int
+        """
+        return self._value
 
 
 class _EnumProt(Protocol):
@@ -39,7 +88,7 @@ class _EnumProt(Protocol):
 
 class EnumMeta(type):
     def __new__(
-        meta_cls: type,
+        meta_cls: Type[EnumMeta],
         name: str,
         bases: Tuple[type, ...],
         attrs: Dict[str, Any],
@@ -55,10 +104,10 @@ class EnumMeta(type):
                 new_attrs[k] = attrs.pop(k)
 
         # Instance our enum
-        cls = cast(_EnumProt, type.__new__(meta_cls, name, bases, new_attrs))
+        cls = cast(_EnumProt, super().__new__(meta_cls, name, bases, new_attrs))
         # As long as this attribute exists, the enum can be mutated
         # Use supertype to bypass the check
-        type.__setattr__(cls, "_immutable", False)
+        super().__setattr__(cls, "_immutable", False)
 
         # Create enum members
         name_mapping: Dict[str, _EnumBase] = {}
@@ -133,7 +182,7 @@ class EnumMeta(type):
 
 # Generate additional aliases for ranks
 class _RankMeta(EnumMeta):
-    def __new__(meta_cls, *args, **kwargs):
+    def __new__(meta_cls: Type[_RankMeta], *args, **kwargs):
         roman_numerals = {
             "i": 1,
             "ii": 2,
@@ -157,55 +206,6 @@ class _RankMeta(EnumMeta):
         # add the aliases
         cls._name_mapping.update(more_aliases)
         return cls
-
-
-class _EnumBase(int):
-    _name: str
-    _value: int
-
-    def __new__(cls, name: str, value: int) -> _EnumBase:
-        self = super().__new__(cls, value)
-        # ensure we won't end up with underscores in the name
-        self._name = name.replace('_', ' ')
-        self._value = value
-        return self
-
-    def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}.{self._name.replace(' ', '_')}: {self._value}>"
-
-    @property
-    def name(self) -> str:
-        """
-        The name of the enum member.
-
-        :type: str
-        """
-        return self._name
-
-    @property
-    def value(self) -> int:
-        """
-        The value of the enum member.
-
-        :type: int
-        """
-        return self._value
-
-    def __str__(self) -> str:
-        """
-        Same as accessing the `name` attribute.
-
-        :type: str
-        """
-        return self._name
-
-    def __int__(self) -> int:
-        """
-        Same as accessing the `value` attribute.
-
-        :type: int
-        """
-        return self._value
 
 
 if TYPE_CHECKING:
