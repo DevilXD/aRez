@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 
 import arez
 import pytest
+from _pytest.logging import LogCaptureFixture
 
 from .conftest import MATCH
 
@@ -229,7 +230,7 @@ def test_server_status_merge():
 @pytest.mark.slow()
 @pytest.mark.asyncio()
 @pytest.mark.order(after=["test_server_status_merge", "test_endpoint.py::test_session"])
-async def test_get_server_status(api: arez.PaladinsAPI):
+async def test_get_server_status(api: arez.PaladinsAPI, caplog: LogCaptureFixture):
     # empty responses from both
     with pytest.raises(arez.NotFound):
         current_status = await api.get_server_status(force_refresh=True)
@@ -278,8 +279,16 @@ async def test_get_server_status(api: arez.PaladinsAPI):
             api.register_status_callback(callback, check_interval, check_interval)
             # use longer timeout to accomodate for the non-changing status
             timeout_times = 3
+            # enable exceptions logging
+            caplog.set_level("ERROR")
         timeout = check_interval * (timeout_times - 0.5)
         await wait_for(can_continue.wait(), timeout=timeout.total_seconds())
+        if extended:
+            # see if we logged the exception
+            assert (
+                "Exception in the server status callback" in caplog.text
+                and "raise RuntimeError" in caplog.text
+            )
         api.register_status_callback(None)
 
     # normal function, one argument
@@ -288,6 +297,7 @@ async def test_get_server_status(api: arez.PaladinsAPI):
         n += 1
         if n >= 2:  # count two calls
             can_continue.set()
+            raise RuntimeError  # test exception catching
     # double register
     await test_callback(callback, extended=True)
 

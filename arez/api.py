@@ -353,7 +353,7 @@ class PaladinsAPI(DataCache):
                 ret = callback(*args)  # type: ignore
                 if is_coro:
                     await ret
-            except Exception:  # pragma: no cover
+            except Exception:
                 logger.exception("Exception in the server status callback")
                 raise  # raise up to the wrapping task
 
