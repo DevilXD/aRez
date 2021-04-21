@@ -17,8 +17,9 @@ sys.path.insert(0, os.path.abspath("../.."))
 
 # -- Project information -----------------------------------------------------
 
+from datetime import date  # noqa
 project = "aRez"
-copyright = "2020, DevilXD"
+copyright = f"{date.today().year}, DevilXD"
 author = "DevilXD"
 
 
