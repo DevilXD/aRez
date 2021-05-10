@@ -377,7 +377,7 @@ class Endpoint:
                             self._session_expires = datetime.utcnow()
                             continue
                         # Daily limit reached
-                        elif error == "Daily request limit reached.":
+                        elif error == "Daily request limit reached":
                             raise LimitReached
 
                 return res_data
