@@ -102,4 +102,4 @@ class LimitReached(ArezException):
     Inherits from `ArezException`.
     """
     def __init__(self):
-        super().__init__("Daily request limit reached.")
+        super().__init__("Daily request limit reached!")
