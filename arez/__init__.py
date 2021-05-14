@@ -2,7 +2,7 @@
 
 # Define those first, so we can import them during library initialization
 __author__ = "DevilXD"
-__version__ = "0.2.2"
+__version__ = "0.2.3.dev0"
 
 
 from .cache import *
