@@ -105,7 +105,7 @@ class PaladinsAPI(DataCache):
         if loop is None:  # pragma: no branch
             loop = asyncio.get_event_loop()
         super().__init__(
-            "http://api.paladins.com/paladinsapi.svc",
+            "https://api.paladins.com/paladinsapi.svc",
             dev_id,
             auth_key,
             loop=loop,
