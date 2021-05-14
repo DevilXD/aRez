@@ -11,8 +11,8 @@ from .champion import Champion, Skin
 from .endpoint import Endpoint
 from .mixins import CacheClient
 from .enums import Language, DeviceType
-from .exceptions import Unavailable, HTTPException
 from .utils import group_by, Lookup, WeakValueDefaultDict
+from .exceptions import HTTPException, Unavailable, LimitReached
 
 if TYPE_CHECKING:
     from . import responses
@@ -140,7 +140,8 @@ class DataCache(Endpoint, CacheClient):
         logger.info(f"cache.initialize(language={language.name})")
         try:
             entry = await self._fetch_entry(language, force_refresh=True, cache=True)
-        except (HTTPException, Unavailable):  # pragma: no cover
+        # allow Unauthorized to bubble up here; NotFound doesn't apply
+        except (HTTPException, Unavailable, LimitReached):  # pragma: no cover
             return False
         return bool(entry)
 
