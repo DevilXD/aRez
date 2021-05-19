@@ -245,7 +245,7 @@ class CacheEntry:
             # get a particular champion by their name
             champion = entry.champions.get("Androxus")
             # fuzzy name matching
-            champion = entry.champions.get("makoa", fuzzy=True)
+            champion = entry.champions.get_fuzzy("andro")
 
     Attributes
     ----------
