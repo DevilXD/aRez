@@ -482,10 +482,15 @@ def chunk(list_to_chunk: List[_X], chunk_length: int) -> Generator[List[_X], Non
 
     Parameters
     ----------
-    list_to_chunk : list
+    list_to_chunk : List[X]
         The list you want to divide into chunks.
     chunk_length : int
         The length of each chunk.
+
+    Returns
+    -------
+    Generator[List[X], None, None]
+        A generator yielding chunks of the given length.
     """
     for i in range(0, len(list_to_chunk), chunk_length):
         yield list_to_chunk[i:i + chunk_length]
