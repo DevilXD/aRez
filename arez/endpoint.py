@@ -13,12 +13,52 @@ from . import responses
 from . import __version__, __author__
 from .exceptions import HTTPException, Unauthorized, Unavailable, LimitReached
 
-
 __all__ = ["Endpoint"]
-session_lifetime = timedelta(minutes=15)
-timeout = aiohttp.ClientTimeout(total=20, connect=5)
+
+
 logger = logging.getLogger(__package__)
+SESSION_LIFETIME = timedelta(minutes=15)
 USER_AGENT = f"Python {python_version()}: aRez {__version__} by {__author__}"
+
+
+def _timeout(total: int) -> aiohttp.ClientTimeout:
+    return aiohttp.ClientTimeout(total=total, connect=5)
+
+
+_BASE_TIMEOUTS: Dict[int, aiohttp.ClientTimeout] = {
+    5: _timeout(5),
+    10: _timeout(10),
+    20: _timeout(20),
+    30: _timeout(30),
+}
+DEFAULT_TIMEOUT = _BASE_TIMEOUTS[5]
+
+TIMEOUTS: Dict[str, aiohttp.ClientTimeout] = {
+    # default timeout is 5s
+    "getgods": _BASE_TIMEOUTS[10],
+    "getitems": _BASE_TIMEOUTS[10],
+    "getchampions": _BASE_TIMEOUTS[10],
+    "searchplayers": _BASE_TIMEOUTS[10],
+    "getqueuestats": _BASE_TIMEOUTS[10],
+    "getbountyitems": _BASE_TIMEOUTS[10],
+    "getmatchdetails": _BASE_TIMEOUTS[10],
+    "getmatchhistory": _BASE_TIMEOUTS[10],
+    "getplayeridbyname": _BASE_TIMEOUTS[10],
+    "getplayerloadouts": _BASE_TIMEOUTS[10],
+    "getmatchplayerdetails": _BASE_TIMEOUTS[10],
+    "getplayeridsbygamertag": _BASE_TIMEOUTS[10],
+    "getplayeridbyportaluserid": _BASE_TIMEOUTS[10],
+    "getfriends": _BASE_TIMEOUTS[20],
+    "getplayerbatch": _BASE_TIMEOUTS[20],
+    "getmatchidsbyqueue": _BASE_TIMEOUTS[20],
+    "getmatchdetailsbatch": _BASE_TIMEOUTS[20],
+    # hopefully long enough for the backend to process the data
+    "getchampionskins": _BASE_TIMEOUTS[30],
+}
+
+
+def _get_timeout(method_name: str) -> aiohttp.ClientTimeout:
+    return TIMEOUTS.get(method_name, DEFAULT_TIMEOUT)
 
 
 class Endpoint:
@@ -65,7 +105,7 @@ class Endpoint:
         self._session_lock = asyncio.Lock()
         self._session_expires = datetime.utcnow()
         self._http_session = aiohttp.ClientSession(
-            headers={"User-Agent": USER_AGENT}, timeout=timeout, loop=loop
+            headers={"User-Agent": USER_AGENT}, timeout=DEFAULT_TIMEOUT, loop=loop
         )
         self.__dev_id = str(dev_id)
         self.__auth_key = auth_key.upper()
@@ -338,7 +378,7 @@ class Endpoint:
                             if not session_id:
                                 raise Unauthorized
                             self._session_key = session_id
-                        self._session_expires = now + session_lifetime
+                        self._session_expires = now + SESSION_LIFETIME
                     # reacquire the current time
                     timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
                     req_stack.extend((
@@ -353,7 +393,9 @@ class Endpoint:
                 logger.debug(f"endpoint.request: {method_name}: {req_url}")
 
                 # request
-                async with self._http_session.get(req_url) as response:
+                async with self._http_session.get(
+                    req_url, timeout=_get_timeout(method_name)
+                ) as response:
                     # Handle special HTTP status codes
                     if response.status == 503:
                         # '503: Service Unavailable'
