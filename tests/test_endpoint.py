@@ -43,25 +43,25 @@ async def test_session(api: arez.PaladinsAPI):
 @pytest.mark.order(after="test_session")
 async def test_unexpected(api: arez.PaladinsAPI):
     with pytest.raises(arez.HTTPException):
-        await api.request("unexpected")  # type: ignore[call-overload]
+        await api.request("unexpected")
 
 
 # test error handling
 @pytest.mark.order(after="test_session")
 async def test_404(api: arez.PaladinsAPI):
     with pytest.raises(arez.HTTPException):
-        await api.request("nonexistent_endpoint")  # type: ignore[call-overload]
+        await api.request("nonexistent_endpoint")
 
 
 # test unavailable
 @pytest.mark.order(after="test_session")
 async def test_503(api: arez.PaladinsAPI):
     with pytest.raises(arez.Unavailable):
-        await api.request("unavailable")  # type: ignore[call-overload]
+        await api.request("unavailable")
 
 
 # test limit reached
 @pytest.mark.order(after="test_session")
 async def test_limit_reached(api: arez.PaladinsAPI):
     with pytest.raises(arez.LimitReached):
-        await api.request("limitreached")  # type: ignore[call-overload]
+        await api.request("limitreached")

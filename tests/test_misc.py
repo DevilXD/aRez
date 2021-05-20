@@ -111,7 +111,7 @@ def test_enum_meta():
         Two = 2
         Three = 3
 
-    e = WithDefault("nospace")  # fuzzy string member getting
+    e = WithDefault("nospace")  # type: ignore  # fuzzy string member getting
     assert e is WithDefault.NoSpace  # identity and attribute access
     assert isinstance(e, WithDefault)  # isinstance
     assert str(e) == "NoSpace"  # str cast
