@@ -39,11 +39,11 @@ pytest_plugins = ["asyncio", "recording", "pytest_cov", "pytest_order"]
 #####################
 
 # base datetime - has to be within the last 3-30 days, date only
-BASE_DATETIME = datetime(2021, 2, 15)
+BASE_DATETIME = datetime(2021, 5, 15)
 
 # match IDs - at least one private player
-MATCH         = 1065720250  # Ranked Siege
-MATCH_TDM     = 1066210958  # TDM
+MATCH         = 1092255984  # Ranked Siege
+MATCH_TDM     = 1092270072  # TDM
 INVALID_MATCH = 1234        # invalid
 
 # named tuple for player data storage
@@ -151,6 +151,8 @@ def vcr_config():
     }
 
 
+# TODO: Remove the below, since it's not longer needed after moving
+# from pytest-dependency to pytest-order, assuming pytest-order can do this already
 Scope = Literal["module", "session"]
 
 
