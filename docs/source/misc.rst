@@ -11,9 +11,11 @@ Miscellaneous
 .. autoclass:: Duration
     :members:
 
-.. autoclass:: Lookup
+.. autoclass:: Lookup(iterable, *, key=lambda item: item)
     :members:
     :exclude-members: index, count
+
+.. autoclass:: LookupGroup(iterable, *, key=lambda item: item)
 
 .. autofunction:: get
 

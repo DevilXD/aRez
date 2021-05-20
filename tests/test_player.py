@@ -79,23 +79,35 @@ async def test_player_loadouts(
     no_flag_private_player: arez.PartialPlayer,
 ):
     # standard
-    loadouts = await player.get_loadouts()
-    assert all(isinstance(l, arez.Loadout) for l in loadouts)
+    loadouts_lookup = await player.get_loadouts()
+    assert all(isinstance(l, arez.Loadout) for l in loadouts_lookup)
+    # get per champion
+    loadouts_list = loadouts_lookup.get("Androxus")
+    assert (
+        isinstance(loadouts_list, list)
+        and all(isinstance(l, arez.Loadout) for l in loadouts_list)
+    )
+    # fuzzy
+    loadouts_list = loadouts_lookup.get_fuzzy("andro")
+    assert (
+        isinstance(loadouts_list, list)
+        and all(isinstance(l, arez.Loadout) for l in loadouts_list)
+    )
     # repr of a loadout and a loadout card
-    if len(loadouts) > 0:
-        loadout = loadouts[0]
+    if len(loadouts_lookup) > 0:
+        loadout = loadouts_lookup[0]
         repr(loadout)
         if loadout.cards:
             repr(loadout.cards[0])
     # private
     with pytest.raises(arez.Private):
-        loadouts = await private_player.get_loadouts()
+        loadouts_lookup = await private_player.get_loadouts()
     # invalid + explicit language
-    loadouts = await invalid_player.get_loadouts(language=arez.Language.English)
-    assert len(loadouts) == 0
+    loadouts_lookup = await invalid_player.get_loadouts(language=arez.Language.English)
+    assert len(loadouts_lookup) == 0
     # no privacy flag private
-    loadouts = await no_flag_private_player.get_loadouts()
-    assert len(loadouts) == 0
+    loadouts_lookup = await no_flag_private_player.get_loadouts()
+    assert len(loadouts_lookup) == 0
 
 
 async def test_player_champion_stats(
@@ -105,30 +117,36 @@ async def test_player_champion_stats(
     no_flag_private_player: arez.PartialPlayer,
 ):
     # standard
-    stats_list = await player.get_champion_stats()
-    assert all(isinstance(l, arez.ChampionStats) for l in stats_list)
+    stats_lookup = await player.get_champion_stats()
+    assert all(isinstance(l, arez.ChampionStats) for l in stats_lookup)
     # repr
-    if len(stats_list) > 0:
-        stats = stats_list[0]
-        repr(stats)
+    if len(stats_lookup) > 0:
+        stats1 = stats_lookup[0]
+        repr(stats1)
         # WinLose and KDA mixin properties
-        stats.df
-        stats.kda
-        stats.kda2
-        stats.kda_text
-        stats.winrate_text
+        stats1.df
+        stats1.kda
+        stats1.kda2
+        stats1.kda_text
+        stats1.winrate_text
+    # get per champion
+    stats2 = stats_lookup.get("Androxus")
+    assert isinstance(stats2, arez.ChampionStats)
+    # fuzzy
+    stats2 = stats_lookup.get_fuzzy("andro")
+    assert isinstance(stats2, arez.ChampionStats)
     # queue filtered
-    stats_list = await player.get_champion_stats(queue=arez.Queue.Casual_Siege)
-    assert all(isinstance(l, arez.ChampionStats) for l in stats_list)
+    stats_lookup = await player.get_champion_stats(queue=arez.Queue.Casual_Siege)
+    assert all(isinstance(l, arez.ChampionStats) for l in stats_lookup)
     # private
     with pytest.raises(arez.Private):
-        stats_list = await private_player.get_champion_stats()
+        stats_lookup = await private_player.get_champion_stats()
     # invalid + explicit language
-    stats_list = await invalid_player.get_champion_stats(language=arez.Language.English)
-    assert len(stats_list) == 0
+    stats_lookup = await invalid_player.get_champion_stats(language=arez.Language.English)
+    assert len(stats_lookup) == 0
     # no privacy flag private
-    stats_list = await invalid_player.get_champion_stats()
-    assert len(stats_list) == 0
+    stats_lookup = await no_flag_private_player.get_champion_stats()
+    assert len(stats_lookup) == 0
 
 
 async def test_player_history(

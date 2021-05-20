@@ -10,9 +10,9 @@ from .match import PartialMatch
 from .status import PlayerStatus
 from .exceptions import Private, NotFound
 from .mixins import CacheClient, Expandable
-from .utils import _convert_timestamp, Duration
 from .enums import Language, Platform, Region, Queue
 from .stats import Stats, RankedStats, ChampionStats
+from .utils import _convert_timestamp, Duration, Lookup, LookupGroup
 
 if TYPE_CHECKING:
     from . import responses
@@ -213,11 +213,31 @@ class PartialPlayer(Expandable["Player"], CacheClient):
             if p["friend_flags"] == "1"  # yes, apparently it's a string
         ]
 
-    async def get_loadouts(self, language: Optional[Language] = None) -> List[Loadout]:
+    async def get_loadouts(self, language: Optional[Language] = None) -> LookupGroup[Loadout]:
         """
         Fetches the player's loadouts.
 
         Uses up a single request.
+
+        .. note::
+
+            The `LookupGroup` class provides an easy way of searching for loadouts
+            for a particular champion, based on the champion's name or ID.
+            You can also obtain a list of all loadouts instead.
+
+            Please see the example code below:
+
+            .. code-block:: py
+
+                player: PartialPlayer
+                loadouts: LookupGroup[Loadout] = await player.get_loadouts()
+
+                # obtain a list of all loadouts (for all champions)
+                list_loadouts = list(loadouts)
+                # get a list of loadouts for a particular champion
+                champion_loadouts = loadouts.get("Androxus")
+                # fuzzy name matching
+                champion_loadouts = loadouts.get_fuzzy("andro")
 
         Parameters
         ----------
@@ -227,8 +247,8 @@ class PartialPlayer(Expandable["Player"], CacheClient):
 
         Returns
         -------
-        List[Loadout]
-            A list of player's loadouts.
+        LookupGroup[Loadout]
+            An object that lets you iterate over player's loadouts.
 
         Raises
         ------
@@ -247,16 +267,39 @@ class PartialPlayer(Expandable["Player"], CacheClient):
         logger.info(f"Player(id={self._id}).get_loadouts(language={language.name})")
         response = await self._api.request("getplayerloadouts", self._id, language.value)
         if not response or response and not response[0]["playerId"]:
-            return []
-        return [Loadout(self, cache_entry, loadout_data) for loadout_data in response]
+            return LookupGroup([])
+        return LookupGroup(
+            (Loadout(self, cache_entry, loadout_data) for loadout_data in response),
+            key=lambda l: l.champion,
+        )
 
     async def get_champion_stats(
         self, language: Optional[Language] = None, *, queue: Optional[Queue] = None
-    ) -> List[ChampionStats]:
+    ) -> Lookup[ChampionStats]:
         """
         Fetches the player's champion statistics.
 
         Uses up a single request.
+
+        .. note::
+
+            The `Lookup` class provides an easy way of searching for particular statistics,
+            based on their associated champion's name or ID. You can also obtain a list
+            of all champion statistics instead.
+
+            Please see the example code below:
+
+            .. code-block:: py
+
+                player: PartialPlayer
+                stats: Lookup[ChampionStats] = await player.get_champion_stats()
+
+                # obtain a list of stats for all champion
+                list_stats = list(stats)
+                # get the stats object for a particular champion
+                champion_stats = stats.get("Androxus")
+                # fuzzy name matching
+                champion_stats = stats.get_fuzzy("andro")
 
         Parameters
         ----------
@@ -269,9 +312,10 @@ class PartialPlayer(Expandable["Player"], CacheClient):
 
         Returns
         -------
-        List[ChampionStats]
-            A list of champion statistics objects, one for each played champion.\n
-            The list can be missing statistics for champions the player haven't played yet.
+        Lookup[ChampionStats]
+            An object that lets you iterate over each champion's statistics,
+            one for each played champion.\n
+            Some statistics may be missing for champions the player haven't played yet.
 
         Raises
         ------
@@ -293,7 +337,10 @@ class PartialPlayer(Expandable["Player"], CacheClient):
             response = await self._api.request("getgodranks", self._id)
         else:
             response = await self._api.request("getqueuestats", self._id, queue.value)
-        return [ChampionStats(self, cache_entry, stats_data, queue) for stats_data in response]
+        return Lookup(
+            (ChampionStats(self, cache_entry, stats_data, queue) for stats_data in response),
+            key=lambda s: s.champion,
+        )
 
     async def get_match_history(self, language: Optional[Language] = None) -> List[PartialMatch]:
         """
