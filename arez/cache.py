@@ -233,7 +233,8 @@ class CacheEntry:
     .. note::
 
         The `Lookup` class provides an easy way of searching for a particular object,
-        based on its Name or ID. You can also obtain a list of all objects instead.\n
+        based on its Name or ID. You can also obtain a list of all objects instead.
+
         Please see the example code below:
 
         .. code-block:: py
