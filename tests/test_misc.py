@@ -287,7 +287,7 @@ async def test_get_server_status(api: arez.PaladinsAPI, caplog: LogCaptureFixtur
             timeout_times = 3
             # enable exceptions logging
             caplog.set_level("ERROR")
-        timeout = check_interval * (timeout_times - 0.5)
+        timeout = check_interval * timeout_times
         await wait_for(can_continue.wait(), timeout=timeout.total_seconds())
         if extended:
             # see if we logged the exception
@@ -446,7 +446,7 @@ async def test_cache_disabled(api: arez.PaladinsAPI, player: arez.Player):
     finally:
         # finalize
         player._api.cache_enabled = True  # enable cache back
-        await api.initialize()  # re-fetch the entry
+        assert await api.initialize()  # re-fetch the entry
 
 
 @pytest.mark.api()
