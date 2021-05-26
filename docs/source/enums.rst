@@ -46,34 +46,34 @@ if the attribute they're accessed from has them:
 
 .. currentmodule:: arez.enums
 
-.. autoclass:: Enum
+.. autoclass:: Enum(name_or_value)
     :members: name, value, __str__, __int__
 
 .. currentmodule:: arez
 
-.. autoclass:: Platform
+.. autoclass:: Platform(name_or_value)
     :members:
 
-.. autoclass:: Rank
+.. autoclass:: Rank(name_or_value)
     :members:
 
-.. autoclass:: Queue
+.. autoclass:: Queue(name_or_value)
     :members:
 
-.. autoclass:: Rarity
+.. autoclass:: Rarity(name_or_value)
     :members:
 
-.. autoclass:: Region
+.. autoclass:: Region(name_or_value)
     :members:
 
-.. autoclass:: Language
+.. autoclass:: Language(name_or_value)
     :members:
 
-.. autoclass:: DeviceType
+.. autoclass:: DeviceType(name_or_value)
     :members:
 
-.. autoclass:: Activity
+.. autoclass:: Activity(name_or_value)
     :members:
 
-.. autoclass:: AbilityType
+.. autoclass:: AbilityType(name_or_value)
     :members:

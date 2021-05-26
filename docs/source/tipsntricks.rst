@@ -68,6 +68,6 @@ Given two variables: ``player_name`` and ``player_platform``, we can do the foll
     print(player.ranked_best.rank.name)
 
 In this example, we expand the player to print out their rank - normally though,
-the `PartialPlayer` object returned can be used to further query information about a particular
-player, like their matches history, their status and live match they're currently in,
-or champion stats and loadouts they have, etc.
+the `PartialPlayer <arez.PartialPlayer>` object returned can be used to further query information
+about a particular player, like their matches history, their status and live match
+they're currently in, or champion stats and loadouts they have, etc.

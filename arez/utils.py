@@ -396,8 +396,8 @@ class _LookupBase(Sequence[LookupType]):
 class Lookup(_LookupBase[LookupType]):
     """
     A helper class utilizing an internal list and two dictionaries, allowing for easy indexing
-    and lookup of `CacheObject` and it's subclasses, based on the Name and ID attributes.
-    Supports fuzzy Name searches too.
+    and lookup of `CacheObject <arez.CacheObject>` and it's subclasses,
+    based on the Name and ID attributes. Supports fuzzy Name searches too.
 
     This object resembles an immutable sequence, and thus exposes ``__len__``, ``__iter__``,
     ``__getitem__``, ``__contains__``, ``__reversed__``, ``index`` and ``count``
@@ -632,8 +632,8 @@ async def expand_partial(iterable: Iterable[_X]) -> AsyncGenerator[_X, None]:
     Any other object found in the ``iterable`` is passed unchanged.
 
     The following classes are converted:
-        `PartialPlayer` -> `Player`\n
-        `PartialMatch` -> `Match`
+        `PartialPlayer <arez.PartialPlayer>` -> `Player <arez.Player>`\n
+        `PartialMatch <arez.PartialMatch>` -> `Match <arez.Match>`
 
     Parameters
     ----------
