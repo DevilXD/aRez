@@ -172,9 +172,15 @@ def test_enum():
     # rank special aliases
     r = arez.Rank("bronze5")
     assert r is arez.Rank.Bronze_V
-    # rank alt name
-    assert r.alt_name == "Bronze 5"
+    # rank alt_name, tier, division and alt_division
+    assert arez.Rank.Bronze_V.alt_name == "Bronze 5"
     assert arez.Rank.Master.alt_name == "Master"
+    assert arez.Rank.Gold_III.tier == "Gold"
+    assert arez.Rank.Gold_III.division == "III"
+    assert arez.Rank.Gold_III.alt_division == "3"
+    assert arez.Rank.Master.tier == "Master"
+    assert arez.Rank.Master.division == "Master"
+    assert arez.Rank.Master.alt_division == "Master"
     # queue methods
     assert arez.Queue.Casual_Siege.is_casual()
     assert arez.Queue.Competitive_Keyboard.is_ranked()

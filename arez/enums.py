@@ -98,8 +98,8 @@ class EnumMeta(type):
         # Preprocess special attributes
         new_attrs: Dict[str, Any] = {}
         for k, v in attrs.copy().items():
-            if k.startswith("__") or hasattr(v, "__get__"):
-                # special attribute or descriptor, pass unchanged
+            if k.startswith("_") or hasattr(v, "__get__"):
+                # private or special attribute, or descriptor - pass unchanged
                 # remove from attrs, so we don't treat them as members later
                 new_attrs[k] = attrs.pop(k)
 
@@ -690,6 +690,7 @@ class Rank(_RankEnum):
     ``Platinum_IV``, ``Platinum_III``, ``Platinum_II``, ``Platinum_I``, ``Diamond_V``,
     ``Diamond_IV``, ``Diamond_III``, ``Diamond_II``, ``Diamond_I``, ``Master``, ``Grandmaster``.
     """
+    _ROMAN2INT = {"I": "1", "II": "2", "III": "3", "IV": "4", "V": "5"}
 
     Qualifying   =  0
     Bronze_V     =  1
@@ -725,14 +726,54 @@ class Rank(_RankEnum):
         """
         Returns an alternative name of a rank, with the roman numeral replaced with an integer.
 
-        Example: "Silver IV" -> "Silver 4".
+        Example: ``Silver IV`` -> ``Silver 4``.
 
         :type: str
         """
-        for roman in ("I", "II", "III", "IV", "V"):
-            if self.name.endswith(roman):
-                number = {"I": "1", "II": "2", "III": "3", "IV": "4", "V": "5"}[roman]
-                return self.name.replace(roman, number)
+        if ' ' in self.name:
+            tier, _, division = self.name.partition(' ')
+            return f"{tier} {self._ROMAN2INT[division]}"
+        return self.name
+
+    @property
+    def tier(self) -> str:
+        """
+        Returns the rank's tier, one of ``Qualifying``, ``Bronze``, ``Silver``, ``Gold``,
+        ``Platinum``, ``Diamond``, ``Master`` or ``Grandmaster``.
+
+        :type: str
+        """
+        if ' ' in self.name:
+            tier, _, division = self.name.partition(' ')
+            return tier
+        return self.name
+
+    @property
+    def division(self) -> str:
+        """
+        Returns the rank's division, one of ``I``, ``II``, ``III``, ``IV`` or ``V``.\n
+        If the rank has no divisions, returns the name unchanged:
+        ``Qualifying``, ``Master`` or ``Grandmaster``.
+
+        :type: str
+        """
+        if ' ' in self.name:
+            tier, _, division = self.name.partition(' ')
+            return division
+        return self.name
+
+    @property
+    def alt_division(self) -> str:
+        """
+        Returns the rank's division as an integer, one of ``1``, ``2``, ``3``, ``4`` or ``5``.\n
+        If the rank has no divisions, returns the name unchanged:
+        ``Qualifying``, ``Master`` or ``Grandmaster``.
+
+        :type: str
+        """
+        if ' ' in self.name:
+            tier, _, division = self.name.partition(' ')
+            return self._ROMAN2INT[division]
         return self.name
 
 
