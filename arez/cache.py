@@ -4,7 +4,7 @@ import asyncio
 import logging
 from itertools import chain
 from datetime import datetime, timedelta
-from typing import Any, Optional, Union, List, Dict, TYPE_CHECKING
+from typing import Any, Optional, Union, List, Dict, TYPE_CHECKING, cast
 
 from .items import Device
 from .champion import Champion, Skin
@@ -94,7 +94,7 @@ class DataCache(Endpoint, CacheClient):
 
     # solely for typing, __aexit__ exists in the Endpoint
     async def __aenter__(self) -> DataCache:
-        return self  # pragma: no cover
+        return cast(DataCache, super().__aenter__())  # pragma: no cover
 
     def set_default_language(self, language: Language):
         """
