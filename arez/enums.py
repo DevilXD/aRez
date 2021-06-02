@@ -724,11 +724,10 @@ class Rank(_RankEnum):
     @property
     def alt_name(self) -> str:
         """
-        Returns an alternative name of a rank, with the roman numeral replaced with an integer.
+        str: Returns an alternative name of a rank, with the roman numeral replaced
+        with an integer.
 
         Example: ``Silver IV`` -> ``Silver 4``.
-
-        :type: str
         """
         if ' ' in self.name:
             tier, _, division = self.name.partition(' ')
@@ -738,10 +737,8 @@ class Rank(_RankEnum):
     @property
     def tier(self) -> str:
         """
-        Returns the rank's tier, one of ``Qualifying``, ``Bronze``, ``Silver``, ``Gold``,
+        str: Returns the rank's tier, one of: ``Qualifying``, ``Bronze``, ``Silver``, ``Gold``,
         ``Platinum``, ``Diamond``, ``Master`` or ``Grandmaster``.
-
-        :type: str
         """
         if ' ' in self.name:
             tier, _, division = self.name.partition(' ')
@@ -751,11 +748,9 @@ class Rank(_RankEnum):
     @property
     def division(self) -> str:
         """
-        Returns the rank's division, one of ``I``, ``II``, ``III``, ``IV`` or ``V``.\n
+        str: Returns the rank's division, one of: ``I``, ``II``, ``III``, ``IV`` or ``V``.\n
         If the rank has no divisions, returns the name unchanged:
         ``Qualifying``, ``Master`` or ``Grandmaster``.
-
-        :type: str
         """
         if ' ' in self.name:
             tier, _, division = self.name.partition(' ')
@@ -765,11 +760,10 @@ class Rank(_RankEnum):
     @property
     def alt_division(self) -> str:
         """
-        Returns the rank's division as an integer, one of ``1``, ``2``, ``3``, ``4`` or ``5``.\n
+        str: Returns the rank's division as an integer, one of: ``1``, ``2``, ``3``,
+        ``4`` or ``5``.\n
         If the rank has no divisions, returns the name unchanged:
         ``Qualifying``, ``Master`` or ``Grandmaster``.
-
-        :type: str
         """
         if ' ' in self.name:
             tier, _, division = self.name.partition(' ')

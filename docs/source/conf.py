@@ -37,7 +37,8 @@ extensions = [
 ]
 
 # Napoleon setting
-napoleon_numpy_docstrings = True
+napoleon_numpy_docstring = True
+napoleon_google_docstring = False
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3/", None),
