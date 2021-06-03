@@ -125,7 +125,7 @@ class PaladinsAPI(DataCache):
 
     # solely for typing, __aexit__ exists in the Endpoint
     async def __aenter__(self) -> PaladinsAPI:
-        return cast(PaladinsAPI, super().__aenter__())
+        return cast(PaladinsAPI, await super().__aenter__())
 
     async def close(self):
         """

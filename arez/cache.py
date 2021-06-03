@@ -94,7 +94,7 @@ class DataCache(Endpoint, CacheClient):
 
     # solely for typing, __aexit__ exists in the Endpoint
     async def __aenter__(self) -> DataCache:
-        return cast(DataCache, super().__aenter__())  # pragma: no cover
+        return cast(DataCache, await super().__aenter__())  # pragma: no cover
 
     def set_default_language(self, language: Language):
         """
