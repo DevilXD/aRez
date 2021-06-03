@@ -343,7 +343,7 @@ class MatchPlayerMixin(KDAMixin, CacheClient):
             match_data = cast(responses.MatchPlayerObject, match_data)
             creds = match_data["Gold_Earned"]
             kills = match_data["Kills_Player"]
-            damage = match_data["Damage_Done_Physical"]
+            damage = match_data["Damage_Player"]
             champion_name = match_data["Reference_Name"]
         else:
             # we're in a partial (player history) match data
