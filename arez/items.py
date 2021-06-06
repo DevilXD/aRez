@@ -149,7 +149,7 @@ class Device(CacheObject):
             The formatted device's description.
         """
         return self._scale_pattern.sub(
-            self._scale_format(self.base + self.scale * level), self.raw_description
+            self._scale_format(self.base + self.scale * (level - 1)), self.raw_description
         )
 
 
