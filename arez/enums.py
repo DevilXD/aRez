@@ -269,7 +269,6 @@ class Platform(Enum, default_value=0):
     Epic_Games
         Aliases: ``epic``.
     """
-
     Unknown         =  0
     PC              =  1
     hirez           =  1
@@ -322,7 +321,6 @@ class Region(Enum, default_value=0):
     Japan
         Aliases: ``jp``, ``jpn``.
     """
-
     Unknown             = 0
     North_America       = 1
     na                  = 1
@@ -372,7 +370,6 @@ class Language(Enum):
     Turkish
         Aliases: ``tr``, ``tur``.
     """
-
     # Unknown  =  0
     English    =  1
     en         =  1
@@ -449,7 +446,6 @@ class Queue(Enum, default_value=0):
     Test_Maps
         Aliases: ``test``.
     """
-
     Unknown                  =   0
     Casual_Siege             = 424
     casual                   = 424
@@ -789,7 +785,6 @@ class DeviceType(Enum, default_value=0):
     Talent
         The device of this type is a Talent.
     """
-
     Undefined = 0
     Item      = 1
     Card      = 2
@@ -843,7 +838,6 @@ class AbilityType(Enum, default_value=0):
         The ability does Area Damage.\n
         Aliases: ``aoe``.
     """
-
     Undefined     = 0
     Direct_Damage = 1
     direct        = 1
@@ -872,7 +866,6 @@ class Activity(Enum, default_value=5):
     Unknown
         The player's status is unknown.
     """
-
     Offline             = 0
     In_Lobby            = 1
     Character_Selection = 2
