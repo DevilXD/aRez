@@ -297,14 +297,14 @@ class CacheEntry:
                 talents.append(device)
             elif device_type == DeviceType.Item:  # pragma: no branch
                 items.append(device)
-        self.items: Lookup[Device] = Lookup(items)
-        self.cards: Lookup[Device] = Lookup(cards)
-        self.talents: Lookup[Device] = Lookup(talents)
-        self.devices: Lookup[Device] = Lookup(chain(items, talents, cards))
+        self.items: Lookup[Device, Device] = Lookup(items)
+        self.cards: Lookup[Device, Device] = Lookup(cards)
+        self.talents: Lookup[Device, Device] = Lookup(talents)
+        self.devices: Lookup[Device, Device] = Lookup(chain(items, talents, cards))
         # pre-process skins (sort per champion)
         skins = group_by(skins_data, key=lambda s: s["champion_id"])
         # process champions
-        self.champions: Lookup[Champion] = Lookup(
+        self.champions: Lookup[Champion, Champion] = Lookup(
             Champion(
                 self._cache,
                 language,
@@ -315,11 +315,11 @@ class CacheEntry:
             for champ_data in champions_data
         )
         # process abilities
-        self.abilities: Lookup[Ability] = Lookup(
+        self.abilities: Lookup[Ability, Ability] = Lookup(
             ability for champion in self.champions for ability in champion.abilities
         )
         # process skins
-        self.skins: Lookup[Skin] = Lookup(
+        self.skins: Lookup[Skin, Skin] = Lookup(
             skin for champion in self.champions for skin in champion.skins
         )
         logger.debug(

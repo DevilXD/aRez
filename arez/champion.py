@@ -229,7 +229,7 @@ class Champion(CacheObject, CacheClient):
             else:
                 # nope - just append it
                 abilities.append(Ability(self, ability_data))
-        self.abilities: Lookup[Ability] = Lookup(abilities)
+        self.abilities: Lookup[Ability, Ability] = Lookup(abilities)
 
         # Talents and Cards
         cards: List[Device] = []
@@ -243,13 +243,13 @@ class Champion(CacheObject, CacheClient):
         talents.sort(key=lambda d: d.unlocked_at)
         cards.sort(key=lambda d: d.name)
         cards.sort(key=_card_ability_sort)
-        self.cards: Lookup[Device] = Lookup(cards)
-        self.talents: Lookup[Device] = Lookup(talents)
+        self.cards: Lookup[Device, Device] = Lookup(cards)
+        self.talents: Lookup[Device, Device] = Lookup(talents)
 
         # Skins
-        self.skins: Lookup[Skin] = Lookup(sorted(
-            (Skin(self, d) for d in skins_data), key=lambda s: s.rarity.value
-        ))
+        self.skins: Lookup[Skin, Skin] = Lookup(
+            sorted((Skin(self, d) for d in skins_data), key=lambda s: s.rarity.value)
+        )
 
     __hash__ = CacheObject.__hash__
 
@@ -270,7 +270,7 @@ class Champion(CacheObject, CacheClient):
             The list of skins available for this champion.
         """
         response = await self._api.request("getchampionskins", self.id, self._language.value)
-        self.skins = Lookup(sorted(
-            (Skin(self, skin_data) for skin_data in response), key=lambda s: s.rarity.value
-        ))
+        self.skins = Lookup(
+            sorted((Skin(self, skin_data) for skin_data in response), key=lambda s: s.rarity.value)
+        )
         return list(self.skins)

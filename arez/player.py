@@ -9,14 +9,15 @@ from .items import Loadout
 from .match import PartialMatch
 from .status import PlayerStatus
 from .exceptions import Private, NotFound
-from .mixins import CacheClient, Expandable
 from .enums import Language, Platform, Region, Queue
 from .stats import Stats, RankedStats, ChampionStats
+from .mixins import CacheClient, CacheObject, Expandable
 from .utils import _convert_timestamp, Duration, Lookup, LookupGroup
 
 if TYPE_CHECKING:
     from . import responses
     from .cache import DataCache
+    from .champion import Champion
 
 
 __all__ = ["PartialPlayer", "Player"]
@@ -213,7 +214,9 @@ class PartialPlayer(Expandable["Player"], CacheClient):
             if p["friend_flags"] == "1"  # yes, apparently it's a string
         ]
 
-    async def get_loadouts(self, language: Optional[Language] = None) -> LookupGroup[Loadout]:
+    async def get_loadouts(
+        self, language: Optional[Language] = None
+    ) -> LookupGroup[Union[Champion, CacheObject], Loadout]:
         """
         Fetches the player's loadouts.
 
@@ -230,7 +233,7 @@ class PartialPlayer(Expandable["Player"], CacheClient):
             .. code-block:: py
 
                 player: PartialPlayer
-                loadouts: LookupGroup[Loadout] = await player.get_loadouts()
+                loadouts: LookupGroup[Champion, Loadout] = await player.get_loadouts()
 
                 # obtain a list of all loadouts (for all champions)
                 list_loadouts = list(loadouts)
@@ -247,8 +250,8 @@ class PartialPlayer(Expandable["Player"], CacheClient):
 
         Returns
         -------
-        LookupGroup[Loadout]
-            An object that lets you iterate over player's loadouts.
+        LookupGroup[Union[Champion, CacheObject], Loadout]
+            An object that lets you iterate over and lookup player's loadouts for each champion.
 
         Raises
         ------
@@ -275,7 +278,7 @@ class PartialPlayer(Expandable["Player"], CacheClient):
 
     async def get_champion_stats(
         self, language: Optional[Language] = None, *, queue: Optional[Queue] = None
-    ) -> Lookup[ChampionStats]:
+    ) -> Lookup[Union[Champion, CacheObject], ChampionStats]:
         """
         Fetches the player's champion statistics.
 
@@ -292,7 +295,7 @@ class PartialPlayer(Expandable["Player"], CacheClient):
             .. code-block:: py
 
                 player: PartialPlayer
-                stats: Lookup[ChampionStats] = await player.get_champion_stats()
+                stats: Lookup[Champion, ChampionStats] = await player.get_champion_stats()
 
                 # obtain a list of stats for all champion
                 list_stats = list(stats)
@@ -312,8 +315,8 @@ class PartialPlayer(Expandable["Player"], CacheClient):
 
         Returns
         -------
-        Lookup[ChampionStats]
-            An object that lets you iterate over each champion's statistics,
+        Lookup[Union[Champion, CacheObject], ChampionStats]
+            An object that lets you iterate over and lookup each champion's statistics,
             one for each played champion.\n
             Some statistics may be missing for champions the player haven't played yet.
 

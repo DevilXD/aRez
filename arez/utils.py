@@ -15,6 +15,7 @@ from typing import (
     List,
     Dict,
     Tuple,
+    Literal,
     Mapping,
     Callable,
     Iterable,
@@ -23,12 +24,12 @@ from typing import (
     Generator,
     AsyncGenerator,
     TypeVar,
-    Literal,
+    Generic,
     cast,
     overload,
 )
 
-from .mixins import CacheObject as CacheObject, Expandable
+from .mixins import CacheObject, Expandable
 
 
 __all__ = [
@@ -47,6 +48,7 @@ __all__ = [
 _X = TypeVar("_X")
 _Y = TypeVar("_Y")
 LookupType = TypeVar("LookupType")
+LookupKeyType = TypeVar("LookupKeyType", bound=CacheObject)
 
 
 def _deduplicate(iterable: Iterable[_X], *to_remove: _X) -> List[_X]:
@@ -283,7 +285,7 @@ def group_by(iterable: Iterable[_X], key: Callable[[_X], _Y]) -> Dict[_Y, List[_
     return item_map
 
 
-class _LookupBase(Sequence[LookupType]):
+class _LookupBase(Sequence[LookupType], Generic[LookupKeyType, LookupType]):
     _list_lookup: List[LookupType] = []
     _id_lookup: Dict[int, Any] = {}
     _name_lookup: Dict[str, Any] = {}
@@ -393,7 +395,7 @@ class _LookupBase(Sequence[LookupType]):
         return None
 
 
-class Lookup(_LookupBase[LookupType]):
+class Lookup(_LookupBase[LookupKeyType, LookupType]):
     """
     A helper class utilizing an internal list and two dictionaries, allowing for easy indexing
     and lookup of `CacheObject <arez.CacheObject>` and it's subclasses,
@@ -409,16 +411,18 @@ class Lookup(_LookupBase[LookupType]):
         self,
         iterable: Iterable[LookupType],
         *,
-        key: Callable[[LookupType], CacheObject] = lambda item: item,  # type: ignore
+        key: Callable[[LookupType], LookupKeyType] = lambda item: item,  # type: ignore
     ):
         self._list_lookup: List[LookupType] = []
         self._id_lookup: Dict[int, LookupType] = {}
         self._name_lookup: Dict[str, LookupType] = {}
         for element in iterable:
             self._list_lookup.append(element)
-            cache_key = key(element)
+            cache_key: LookupKeyType = key(element)
             if not isinstance(cache_key, CacheObject):
-                raise ValueError
+                raise ValueError(
+                    "Key callable needs to return a subclassed instance of CacheObject"
+                )
             self._id_lookup[cache_key.id] = element
             self._name_lookup[cache_key.name.lower()] = element
 
@@ -541,7 +545,7 @@ class Lookup(_LookupBase[LookupType]):
         return cast(Optional[LookupType], super().get_fuzzy(name, cutoff=cutoff))
 
 
-class LookupGroup(_LookupBase[LookupType]):
+class LookupGroup(_LookupBase[LookupKeyType, LookupType]):
     """
     This class is indentical to the `Lookup` class functionality-wise, but it's been made
     a separate class due to typing collisions. The only difference here is that `get`, `get_fuzzy`
@@ -554,16 +558,18 @@ class LookupGroup(_LookupBase[LookupType]):
         self,
         iterable: Iterable[LookupType],
         *,
-        key: Callable[[LookupType], CacheObject] = lambda item: item,  # type: ignore
+        key: Callable[[LookupType], LookupKeyType] = lambda item: item,  # type: ignore
     ):
         self._list_lookup: List[LookupType] = []
         self._id_lookup: Dict[int, List[LookupType]] = {}
         self._name_lookup: Dict[str, List[LookupType]] = {}
         for element in iterable:
             self._list_lookup.append(element)
-            cache_key = key(element)
+            cache_key: LookupKeyType = key(element)
             if not isinstance(cache_key, CacheObject):
-                raise ValueError
+                raise ValueError(
+                    "Key callable needs to return a subclassed instance of CacheObject"
+                )
             self._id_lookup.setdefault(cache_key.id, []).append(element)
             self._name_lookup.setdefault(cache_key.name.lower(), []).append(element)
 
