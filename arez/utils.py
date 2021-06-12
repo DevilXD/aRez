@@ -403,9 +403,20 @@ class Lookup(_LookupBase[LookupKeyType, LookupType]):
 
     This object resembles an immutable sequence, and thus exposes ``__len__``, ``__iter__``,
     ``__getitem__``, ``__contains__``, ``__reversed__``, ``index`` and ``count``
-    special methods for ease of use.
+    special methods for ease of use. The types specified refer to: ``LookupKeyType``
+    by which you can query, and ``LookupType`` which is returned from the query.
 
     If you'd prefer a normal list instead, use: ``list(lookup)``.
+
+    Parameters
+    ----------
+    iterable : Iterable[LookupType]
+        The iterable to objects to transform into a lookup.
+    key : Callable[[LookupType], LookupKeyType]
+        The lookup key function, mapping each object to a `CacheObject <arez.CacheObject>`
+        or it's subclass, by which the lookup should be indexed.\n
+        Defaults to an identity function (``lambda item: item``), meaning objects passed
+        as the iterable have to be a `CacheObject <arez.CacheObject>` or it's subclass already.
     """
     def __init__(
         self,
@@ -549,7 +560,7 @@ class LookupGroup(_LookupBase[LookupKeyType, LookupType]):
     """
     This class is indentical to the `Lookup` class functionality-wise, but it's been made
     a separate class due to typing collisions. The only difference here is that `get`, `get_fuzzy`
-    and `get_fuzzy_matches` methods return a grouped list of the specified type instances,
+    and `get_fuzzy_matches` methods return a grouped `list` of the specified type instances,
     instead of a single instance. Right now, this is used solely for
     the `PartialPlayer.get_loadouts` method return type, to be able to return a list of loadouts
     for each champion.
