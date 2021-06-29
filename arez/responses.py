@@ -4,10 +4,18 @@ from typing import Optional, List, TypedDict, Literal, SupportsInt
 
 
 class IntStr(SupportsInt, str):
+    """
+    Represents a string of digits, able to be casted directly to an integer.
+    """
     pass
 
 
 class RetMsg(TypedDict):
+    """
+    Most API responses have this field returned at base.
+    Most of the time, it's `None` if there's no errors present.
+    Sometimes, it's used to communicate special data conditions.
+    """
     ret_msg: Optional[str]
 
 
