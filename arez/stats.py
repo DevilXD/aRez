@@ -201,7 +201,9 @@ class RankedStats(Stats):
     rank : Rank
         The player's current rank.
     points : int
-        The amout of TP the player currently has.
+        The amount of TP the player currently has.
+    position : int
+        The leaderboard position.
     season : int
         The current ranked season.
     """
@@ -213,7 +215,7 @@ class RankedStats(Stats):
         self.rank = Rank(stats_data["Tier"])
         self.season = stats_data["Season"]
         self.points = stats_data["Points"]
-        # self.mmr = stats_data["Rank"]
+        self.position = stats_data["Rank"]
         # self.prev_mmr = stats_data["PrevRank"]
         # self.trend = stats_data["Trend"]
 
