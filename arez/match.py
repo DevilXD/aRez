@@ -349,7 +349,7 @@ class Match(CacheClient, MatchMixin):
         logger.debug(f"Match(id={self.id}) -> creating...")
         self.replay_available: bool = first_player["hasReplay"] == "y"
         self.bans: List[Union[Champion, CacheObject]] = []
-        for i in range(1, 5):
+        for i in range(1, 7):
             ban_id: int = first_player[f"BanId{i}"]  # type: ignore[misc]
             # skip 0s
             if not ban_id:

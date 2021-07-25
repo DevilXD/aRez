@@ -211,10 +211,14 @@ class MatchPlayerObject(RetMsg):
     BanId2: int
     BanId3: int
     BanId4: int
+    BanId5: int
+    BanId6: int
     Ban_1: Optional[str]
     Ban_2: Optional[str]
     Ban_3: Optional[str]
     Ban_4: Optional[str]
+    Ban_5: Optional[str]
+    Ban_6: Optional[str]
     Camps_Cleared: Literal[0]
     ChampionId: int
     Damage_Bot: Literal[0]
