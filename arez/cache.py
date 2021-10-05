@@ -163,7 +163,7 @@ class DataCache(Endpoint, CacheClient):
                 f"cache.fetch_entry(language={language.name}, "
                 f"{force_refresh=}, {cache=}) -> fetching new"
             )
-            champions_data = await self.request("getgods", language.value)
+            champions_data = await self.request("getchampions", language.value)
             items_data = await self.request("getitems", language.value)
             skins_data = await self.request("getchampionskins", -1, language.value)
             # Don't strictly enforce skins_data to be there, unless there's no cached entry yet.
