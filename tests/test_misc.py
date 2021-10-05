@@ -293,7 +293,7 @@ async def test_get_server_status(api: arez.PaladinsAPI, caplog: LogCaptureFixtur
             timeout_times = 3
             # enable exceptions logging
             caplog.set_level("ERROR")
-        timeout = check_interval * timeout_times
+        timeout = check_interval * (timeout_times + 1)
         await wait_for(can_continue.wait(), timeout=timeout.total_seconds())
         if extended:
             # see if we logged the exception

@@ -98,6 +98,7 @@ async def test_live_match(player: arez.PartialPlayer):
     live_match = await status.get_live_match()
     assert live_match is None
     # standard
+    status = await player.get_status()
     live_match = await status.get_live_match()
     assert isinstance(live_match, arez.LiveMatch)
     assert all(isinstance(lp.player, arez.PartialPlayer) for lp in live_match.players)
