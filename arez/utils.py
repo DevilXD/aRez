@@ -945,3 +945,14 @@ class WeakValueDefaultDict(WeakValueDictionary, Mapping[_X, _Y]):  # type: ignor
             item = self.default_factory()
             self.__setitem__(key, item)
             return item
+
+
+class CacheDict(Dict[_X, _Y]):
+    def __init__(self, value_factory: Callable[[_X], _Y], *args, **kwargs):
+        self._value_factory = value_factory
+        super().__init__(*args, **kwargs)
+
+    def __missing__(self, key: _X) -> _Y:
+        value = self._value_factory(key)
+        super().__setitem__(key, value)
+        return value

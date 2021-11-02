@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from typing import Any, Optional, Union, List, Dict, Literal, overload
 
 from . import responses
+from .utils import CacheDict
 from . import __version__, __author__
 from .exceptions import HTTPException, Unauthorized, Unavailable, LimitReached
 
@@ -25,12 +26,7 @@ def _timeout(total: int) -> aiohttp.ClientTimeout:
     return aiohttp.ClientTimeout(total=total, connect=5)
 
 
-_BASE_TIMEOUTS: Dict[int, aiohttp.ClientTimeout] = {
-    5: _timeout(5),
-    10: _timeout(10),
-    20: _timeout(20),
-    30: _timeout(30),
-}
+_BASE_TIMEOUTS: CacheDict[int, aiohttp.ClientTimeout] = CacheDict(_timeout)
 DEFAULT_TIMEOUT = _BASE_TIMEOUTS[5]
 
 TIMEOUTS: Dict[str, aiohttp.ClientTimeout] = {
