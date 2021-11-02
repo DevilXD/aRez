@@ -3,7 +3,8 @@
 ###################
 
 # exclude the testing file
-/tests.py
+/test_paladins.py
+/test_smite.py
 # exclude Python's cache files
 __pycache__
 # exclude built docs
