@@ -294,6 +294,8 @@ class Platform(Enum, default_value=0):
     Discord         = 25
     Epic_Games      = 28
     epic            = 28
+    Amazon_Luna     = 30
+    luna            = 30
 
 
 class Region(Enum, default_value=0):
