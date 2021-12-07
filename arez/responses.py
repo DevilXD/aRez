@@ -268,7 +268,13 @@ class MatchPlayerObject(RetMsg):
     Kills_First_Blood: Literal[0]
     Kills_Gold_Fury: int  # siege points captured
     Kills_Penta: Literal[0]
-    Kills_Phoenix: Literal[0]
+    Kills_Phoenix: Literal[  # Device ID of Octavia's passive
+        0,      # No passive
+        26883,  # Commander's Shield
+        27051,  # Commander's Credit
+        27052,  # Commander's Cooldown
+        27053,  # Commander's Ultimate
+    ]
     Kills_Player: int
     Kills_Quadra: Literal[0]
     Kills_Siege_Juggernaut: Literal[0]

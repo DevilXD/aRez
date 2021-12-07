@@ -4,7 +4,7 @@ import re
 from typing import Optional, Union, List, cast, TYPE_CHECKING
 
 from . import responses
-from .enums import DeviceType
+from .enums import DeviceType, Passive
 from .mixins import CacheClient, CacheObject
 
 if TYPE_CHECKING:
@@ -292,12 +292,24 @@ class MatchLoadout:
         The talent used.\n
         With incomplete cache, this will be a `CacheObject` with the name and ID set.\n
         `None` when the player hasn't picked a talent during the match.
+    passive : Optional[Passive]
+        The passive used.
+        Currently, this only applies to Octavia, but may affect other champions in the future.
     """
     def __init__(
         self,
         cache_entry: Optional[CacheEntry],
         match_data: Union[responses.MatchPlayerObject, responses.HistoryMatchObject],
     ):
+        if "hasReplay" in match_data:
+            # we're in a full match data
+            card_key = "Item_Purch_{}"
+            talent_key = "Item_Purch_6"
+        else:
+            # we're in a partial (player history) match data
+            card_key = "Item_{}"
+            talent_key = "Item_6"
+        # cards
         self.cards: List[LoadoutCard] = []
         for i in range(1, 6):  # 1-5
             card_id: int = match_data[f"ItemId{i}"]  # type: ignore[misc]
@@ -308,33 +320,27 @@ class MatchLoadout:
             if cache_entry is not None:
                 card = cache_entry.cards.get(card_id)
             if card is None:
-                if "hasReplay" in match_data:
-                    # we're in a full match data
-                    card_name = match_data[f"Item_Purch_{i}"]  # type: ignore[misc]
-                else:
-                    # we're in a partial (player history) match data
-                    card_name = match_data[f"Item_{i}"]  # type: ignore[misc]
-                card = CacheObject(id=card_id, name=card_name)
+                card = CacheObject(
+                    id=card_id, name=match_data[card_key.format(i)]  # type: ignore[misc]
+                )
             self.cards.append(LoadoutCard(card, match_data[f"ItemLevel{i}"]))  # type: ignore[misc]
         self.cards.sort(key=lambda c: c.points, reverse=True)
+        # talent
         talent_id: int = match_data["ItemId6"]
+        talent: Optional[Union[Device, CacheObject]] = None
         if talent_id:
-            talent: Optional[Union[Device, CacheObject]] = None
             if cache_entry is not None:
                 talent = cache_entry.talents.get(talent_id)
             if talent is None:
-                if "hasReplay" in match_data:
-                    # we're in a full match data
-                    match_data = cast(responses.MatchPlayerObject, match_data)
-                    talent_name = match_data["Item_Purch_6"]
-                else:
-                    # we're in a partial (player history) match data
-                    match_data = cast(responses.HistoryMatchObject, match_data)
-                    talent_name = match_data["Item_6"]
-                talent = CacheObject(id=talent_id, name=talent_name)
-        else:
-            talent = None
+                talent = CacheObject(
+                    id=talent_id, name=match_data[talent_key]  # type: ignore[misc]
+                )
         self.talent: Optional[Union[Device, CacheObject]] = talent
+        # passive
+        self.passive: Optional[Passive] = None
+        passive_id = cast(Optional[int], match_data.get("Kills_Phoenix"))
+        if passive_id:
+            self.passive = Passive(passive_id)
 
     def __repr__(self) -> str:
         if not self.talent:  # pragma: no cover

@@ -9,6 +9,7 @@ __all__ = [
     "Queue",
     "Rarity",
     "Region",
+    "Passive",
     "Activity",
     "Language",
     "Platform",
@@ -768,6 +769,26 @@ class Rank(_RankEnum):
             tier, _, division = self.name.partition(' ')
             return self._ROMAN2INT[division]
         return self.name
+
+
+class Passive(Enum):
+    """
+    Passive enum. Represents an in-match passive ability. Currently applies only to Octavia.
+    Available at: `MatchLoadout.passive`.
+
+    Inherits from `Enum`.
+
+    Attributes
+    """
+    # Some champions appear to have other devices stored in there,
+    # but we don't care about that for now
+    # Wall_Climb = 23461  # Koga's Wall Climb
+    # DR     = 26716  # Yagorath's DR?
+    # Octavia's passives
+    Shield   = 26883
+    Credit   = 27051
+    Cooldown = 27052
+    Ultimate = 27053
 
 
 class DeviceType(Enum, default_value=0):
