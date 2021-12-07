@@ -199,7 +199,7 @@ class PaladinsAPI(DataCache):
             if pts_dict := next(  # pragma: no branch
                 (s for s in api_status if s["environment"] == "pts"), None
             ):
-                pts_dict["platform"] = pts_dict["environment"]  # type: ignore[arg-type]
+                pts_dict["platform"] = pts_dict["environment"]  # type: ignore[typeddict-item]
 
             # fetch from the StatusPage
             group: Optional[ComponentGroup]
