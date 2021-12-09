@@ -290,13 +290,12 @@ async def test_get_matches_for_queue(api: arez.PaladinsAPI):
 
 
 async def test_bounty(api: arez.PaladinsAPI):
-    # normal
-    current_item, upcoming_items, past_items = await api.get_bounty()
-    assert isinstance(current_item, arez.BountyItem)
-    assert all(isinstance(item, arez.BountyItem) for item in upcoming_items)
-    assert all(isinstance(item, arez.BountyItem) for item in past_items)
     # explicit language and empty response
     with pytest.raises(arez.NotFound):
-        current_item, upcoming_items, past_items = await api.get_bounty(
+        active_items, past_items = await api.get_bounty(
             language=arez.Language.English
         )
+    # normal
+    active_items, past_items = await api.get_bounty()
+    assert all(isinstance(item, arez.BountyItem) for item in active_items)
+    assert all(isinstance(item, arez.BountyItem) for item in past_items)

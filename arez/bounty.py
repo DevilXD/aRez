@@ -22,7 +22,7 @@ class BountyItem(CacheClient):
     Attributes
     ----------
     active : bool
-        `True` if this deal hasn't expired yet, `False` otherwise.
+        `True` if this deal is available and hasn't expired yet, `False` otherwise.
     item : CacheObject
         The item available for sale, with both ID and name set.
     champion : Union[Champion, CacheObject]
@@ -33,16 +33,10 @@ class BountyItem(CacheClient):
     sale_type : Literal["Increasing", "Decreasing"]
         The type of this bounty deal.
     initial_price : int
-        The initial deal price.\n
-        ``0`` is returned for active deals.
-    final_price : int
+        The initial deal price.
+    final_price : Optional[int]
         The final deal price.\n
-        ``0`` is returned for active deals.
-
-    .. note::
-
-        All active deals have their prices hidden, and remaining quantity is missing altogether.
-        This is a limitation of the Hi-Rez API, not the library.
+        Due to API restrictions, this can be `None` for active deals.
     """
     def __init__(
         self, api: DataCache, cache_entry: Optional[CacheEntry], data: responses.BountyItemObject
@@ -53,10 +47,9 @@ class BountyItem(CacheClient):
         self.expires: datetime = _convert_timestamp(data["sale_end_datetime"])
         self.sale_type: Literal["Increasing", "Decreasing"] = data["sale_type"]
         # handle prices
-        initial: str = data["initial_price"]
+        self.initial_price: int = int(data["initial_price"])
         final: str = data["final_price"]
-        self.initial_price: int = int(initial) if initial.isdecimal() else 0
-        self.final_price: int = int(final) if final.isdecimal() else 0
+        self.final_price: Optional[int] = int(final) if final.isdecimal() else None
         # handle champion
         champion: Optional[Union[Champion, CacheObject]] = None
         if cache_entry is not None:

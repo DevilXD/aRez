@@ -448,7 +448,7 @@ async def test_cache_disabled(api: arez.PaladinsAPI, player: arez.Player):
         assert isinstance(stats_list[0].champion, arez.CacheObject)
         # test bounty store
         bounty_items = await api.get_bounty()
-        assert isinstance(bounty_items[0].champion, arez.CacheObject)
+        assert isinstance(bounty_items[1][0].champion, arez.CacheObject)
     finally:
         # finalize
         player._api.cache_enabled = True  # enable cache back

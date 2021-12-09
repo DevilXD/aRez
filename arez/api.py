@@ -1048,24 +1048,24 @@ class PaladinsAPI(DataCache):
 
     async def get_bounty(
         self, *, language: Optional[Language] = None
-    ) -> Tuple[BountyItem, List[BountyItem], List[BountyItem]]:
+    ) -> Tuple[List[BountyItem], List[BountyItem]]:
         """
-        Returns a 3-item tuple denoting the (current, upcoming, past) bounty store items, sorted
+        Returns a 2-item tuple denoting the (active, past) bounty store items, sorted
         by their expiration time.
 
         .. note:
 
-            The "upcoming" items list is sorted so that the first item is the one
-            that is going to appear next, with future items following. The "past" items list
-            is sorted so that the first item is the one that has most recently expired,
-            with older items following.
+            The "active" items list is sorted so that the first ``N`` items are the ones
+            that are currently available, with further items becoming available
+            once the current expire. ``N`` changes according to the in-game bounty store size.
+            The "past" items list is sorted so that the first item
+            is the one that has the most recently expired, with older items following.
 
         .. note:
 
-            Depending on the bounty store availability, the "current" item may have
-            already expired. If this happens, the `BountyItem.active` attribute of
-            the "current" item will be `False`, the "upcoming" items list will be empty,
-            and the "past" items list will contain the rest, as expected.
+            Depending on the bounty store availability, all active items may have already expired.
+            If this happens, the "active" list is going to be empty,
+            and the "past" items list will contain all expired items, as expected.
 
         Parameters
         ----------
@@ -1075,9 +1075,9 @@ class PaladinsAPI(DataCache):
 
         Returns
         -------
-        Tuple[BountyItem, List[BountyItem], List[BountyItem]]
-            An tuple containing the current bounty store item, followed by a list of upcoming
-            items, followed by a list of items that have already expired.
+        Tuple[List[BountyItem], List[BountyItem]]
+            An tuple containing a list of active bounty store items,
+            followed by a list of items that have already expired.
 
         Raises
         ------
@@ -1089,15 +1089,10 @@ class PaladinsAPI(DataCache):
         response = await self.request("getbountyitems")
         if not response:
             raise NotFound("Bounty items")
-        items = [BountyItem(self, cache_entry, d) for d in response]
+        items = [BountyItem(self, cache_entry, item_data) for item_data in response]
         idx: int = 0
-        # find the most recent inactive deal, then go back one index to get the current one
         for i, item in enumerate(items):  # pragma: no branch
-            if item.active:
-                continue
-            # check if Hi-Rez hasn't fucked up and there's at least one active skin,
-            # otherwise fall back idx to 0
-            if i > 0:  # pragma: no cover
-                idx = i - 1
-            break
-        return (items[idx], items[idx-len(items)-1::-1], items[idx+1:])  # noqa
+            if not item.active:
+                idx = i
+                break
+        return (items[idx-len(items)-1::-1], items[idx:])
