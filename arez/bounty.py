@@ -43,7 +43,7 @@ class BountyItem(CacheClient):
     ):
         super().__init__(api)
         self.active: bool = data["active"] == 'y'
-        self.item = CacheObject(id=data["bounty_item_id2"], name=data["bounty_item_name"])
+        self.item = CacheObject(id=data["bounty_item_id2"], name=data["bounty_item_name"].strip())
         self.expires: datetime = _convert_timestamp(data["sale_end_datetime"])
         self.sale_type: Literal["Increasing", "Decreasing"] = data["sale_type"]
         # handle prices
