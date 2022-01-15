@@ -304,11 +304,11 @@ class PaladinsAPI(DataCache):
             Callable[[ServerStatus], Any],\
             Callable[[ServerStatus, ServerStatus], Any]]
             The callback function you want to register. This can be either a normal function
-            or an async one, accepting either ``1`` or ``2`` positional-only arguments,
+            or an async one, accepting either ``1`` or ``2`` positional arguments,
             with any return type.\n
             Passing a new callback function, while one is already running,
             will overwrite the previous one and reset the timer.\n
-            Passing `None` stops the checking loop.
+            Passing `None` removes the callback and stops the checking loop.
         check_interval : timedelta
             The length of the interval used between Operational
             (all servers up, no limited access, not including PTS) server status checks.\n
