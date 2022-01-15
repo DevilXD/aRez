@@ -6,7 +6,7 @@ import asyncio
 import logging
 from operator import itemgetter
 from datetime import datetime, timedelta, timezone
-from inspect import Parameter, signature, isfunction, ismethod, iscoroutinefunction
+from inspect import Parameter, signature, iscoroutinefunction
 from typing import (
     Any,
     Optional,
@@ -257,9 +257,7 @@ class PaladinsAPI(DataCache):
     def register_status_callback(
         self,
         callback: Union[
-            None,
-            Callable[[ServerStatus], Union[Awaitable[Any], Any]],
-            Callable[[ServerStatus, ServerStatus], Union[Awaitable[Any], Any]],
+            None, Callable[[ServerStatus], Any], Callable[[ServerStatus, ServerStatus], Any],
         ],
         check_interval: timedelta = _CHECK_INTERVAL,
         recheck_interval: timedelta = _RECHECK_INTERVAL,
@@ -303,8 +301,8 @@ class PaladinsAPI(DataCache):
         Parameters
         ----------
         callback : Union[None,\
-                Callable[[ServerStatus], Union[Awaitable[Any], Any]],\
-                Callable[[ServerStatus, ServerStatus], Union[Awaitable[Any], Any]]]
+            Callable[[ServerStatus], Any],\
+            Callable[[ServerStatus, ServerStatus], Any]]
             The callback function you want to register. This can be either a normal function
             or an async one, accepting either ``1`` or ``2`` positional-only arguments,
             with any return type.\n
@@ -333,7 +331,7 @@ class PaladinsAPI(DataCache):
                 self._status_task.cancel()
                 self._status_task = None
             return
-        if not (isfunction(callback) or ismethod(callback)):
+        if not callable(callback):
             raise TypeError("Callback has to be either a normal or async function")
         sig = signature(callback)
         arg_types = (Parameter.POSITIONAL_OR_KEYWORD, Parameter.POSITIONAL_ONLY)
