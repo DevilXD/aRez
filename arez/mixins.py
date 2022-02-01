@@ -389,7 +389,7 @@ class MatchPlayerMixin(KDAMixin, CacheClient):
         self.team_score: int = match_data[f"Team{self.team_number}Score"]  # type: ignore[misc]
         self.winner: bool = self.team_number == match_data["Winning_TaskForce"]
         seconds: int = match_data["Time_In_Match_Seconds"]
-        self.experience: int = floor((seconds * (275/6) + 15000) / (2 if not self.winner else 1))
+        self.experience: int = floor(seconds * (275/6) + (15000 if self.winner else 0))
 
         from .items import MatchLoadout, MatchItem  # cyclic imports
         self.items: List[MatchItem] = []
