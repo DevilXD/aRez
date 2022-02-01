@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from math import nan
+from math import nan, floor
 from functools import wraps
 from datetime import datetime
 from abc import abstractmethod
@@ -13,8 +13,8 @@ from .enums import Queue, Region
 
 if TYPE_CHECKING:
     from .items import Device
-    from .cache import DataCache, CacheEntry
     from .champion import Champion, Skin
+    from .cache import DataCache, CacheEntry
     from .player import PartialPlayer, Player
 
 
@@ -297,6 +297,8 @@ class MatchPlayerMixin(KDAMixin, CacheClient):
         A list of items bought by the player during this match.
     credits : int
         The amount of credits earned this match.
+    experience : int
+        The base amount of experience gained from this match.
     kills : int
         The amount of player kills.
     deaths : int
@@ -386,6 +388,8 @@ class MatchPlayerMixin(KDAMixin, CacheClient):
         self.team_number: Literal[1, 2] = match_data["TaskForce"]
         self.team_score: int = match_data[f"Team{self.team_number}Score"]  # type: ignore[misc]
         self.winner: bool = self.team_number == match_data["Winning_TaskForce"]
+        seconds: int = match_data["Time_In_Match_Seconds"]
+        self.experience: int = floor((seconds * (275/6) + 15000) / (2 if not self.winner else 1))
 
         from .items import MatchLoadout, MatchItem  # cyclic imports
         self.items: List[MatchItem] = []

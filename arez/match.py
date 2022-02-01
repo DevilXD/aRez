@@ -89,6 +89,8 @@ class PartialMatch(MatchPlayerMixin, MatchMixin, Expandable["Match"]):
         A list of items bought by the player during this match.
     credits : int
         The amount of credits earned this match.
+    experience : int
+        The base amount of experience gained from this match.
     kills : int
         The amount of kills.
     deaths : int
@@ -199,6 +201,8 @@ class MatchPlayer(MatchPlayerMixin):
         A list of items bought by the player during this match.
     credits : int
         The amount of credits earned this match.
+    experience : int
+        The base amount of experience gained from this match.
     kills : int
         The amount of player kills.
     deaths : int
