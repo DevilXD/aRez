@@ -328,11 +328,12 @@ class Match(CacheClient, MatchMixin):
         The winning team of this match.
     replay_available : bool
         `True` if this match has a replay that you can watch, `False` otherwise.
-    bans : List[Union[Champion, CacheObject]]
+    bans : List[Optional[Union[Champion, CacheObject]]]
         A list of champions banned in this match.\n
         With incomplete cache, the list will contain `CacheObject` objects
         with the name and ID set.\n
-        This will be an empty list for non-ranked matches.
+        This will be an empty list for non-ranked matches.\n
+        `None` indicates there was no ban.
     team1 : List[MatchPlayer]
         A list of players in the first team.
     team2 : List[MatchPlayer]
@@ -352,20 +353,22 @@ class Match(CacheClient, MatchMixin):
         MatchMixin.__init__(self, first_player)
         logger.debug(f"Match(id={self.id}) -> creating...")
         self.replay_available: bool = first_player["hasReplay"] == "y"
-        self.bans: List[Union[Champion, CacheObject]] = []
-        for i in range(1, 7):
-            ban_id: int = first_player[f"BanId{i}"]  # type: ignore[misc]
-            # skip 0s
-            if not ban_id:
-                continue
-            ban_champ: Optional[Union[Champion, CacheObject]] = None
-            if cache_entry is not None:
-                ban_champ = cache_entry.champions.get(ban_id)
-            if ban_champ is None:
-                ban_champ = CacheObject(
-                    id=ban_id, name=first_player[f"Ban_{i}"]  # type: ignore[misc]
-                )
-            self.bans.append(ban_champ)
+        self.bans: List[Optional[Union[Champion, CacheObject]]] = []
+        if self.queue.is_ranked():
+            for i in range(1, 7):
+                ban_id: int = first_player[f"BanId{i}"]  # type: ignore[misc]
+                if not ban_id:
+                    # zero indicates no ban has happened - use None
+                    self.bans.append(None)
+                    continue
+                ban_champ: Optional[Union[Champion, CacheObject]] = None
+                if cache_entry is not None:
+                    ban_champ = cache_entry.champions.get(ban_id)
+                if ban_champ is None:
+                    ban_champ = CacheObject(
+                        id=ban_id, name=first_player[f"Ban_{i}"]  # type: ignore[misc]
+                    )
+                self.bans.append(ban_champ)
         self.team1: List[MatchPlayer] = []
         self.team2: List[MatchPlayer] = []
         # Determine party numbers
