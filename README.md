@@ -40,7 +40,6 @@ There are plans on expanding the existing framework to incorporate the above and
         - [ ] Support for `getteamdetails` endpoint
         - [ ] Support for `getteamplayers` endpoint
         - [ ] Support for `searchteams` endpoint
-- [ ] \(Maybe) Support for RealmRoyaleAPI (support Realm Royale endpoint URL)
 
 If you have some experience with Smite and it's API, and would be interested in working with me
 together on expanding this project, please don't hessitate to contact me
