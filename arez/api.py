@@ -676,11 +676,12 @@ class PaladinsAPI(DataCache):
                 f"got {type(platform)!r}"
             )
         list_response: List[responses.PartialPlayerObject]
+        logger.info(
+            f"api.search_players({player_name=}, platform={getattr(platform, 'name', None)}, "
+            f"{return_private=}, {exact=})"
+        )
         if exact and platform is not None:
             # Specific platform
-            logger.info(
-                f"api.search_players({player_name=}, platform={platform.name}, {return_private=})"
-            )
             if platform in PC_PLATFORMS:
                 # PC platforms, with unique names
                 list_response = await self.request("getplayeridbyname", player_name)
@@ -691,17 +692,18 @@ class PaladinsAPI(DataCache):
                 )
         else:
             # All platforms or not exact
-            logger.info(
-                f"api.search_players({player_name=}, {platform=}, {return_private=}, {exact=})"
-            )
             response = await self.request("searchplayers", player_name)
             player_name = player_name.lower()
             list_response = []
-            # pre-process the names to prioritize unique names first
             for player_dict in response:
+                # reassign the names to prioritize unique PC names over console ones first
                 if name := player_dict["hz_player_name"]:
                     player_dict["Name"] = name
-                if exact and player_dict["Name"].lower() != player_name:
+                # if we're doing an exact name match and the current name isn't one, skip it
+                if exact and name.lower() != player_name:
+                    continue
+                # if a platform has been passed and it doesn't match, skip it
+                if platform is not None and player_dict["portal_id"] != platform.value:
                     continue
                 list_response.append(player_dict)
         if not return_private:
