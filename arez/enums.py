@@ -787,8 +787,8 @@ class Passive(Enum):
     # Octavia's passives
     Shield   = 26883
     Credit   = 27051
-    Cooldown = 27052
-    Ultimate = 27053
+    Cooldown = 27053
+    Ultimate = 27052
 
 
 class DeviceType(Enum, default_value=0):
