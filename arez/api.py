@@ -700,7 +700,7 @@ class PaladinsAPI(DataCache):
                 if name := player_dict["hz_player_name"]:
                     player_dict["Name"] = name
                 # if we're doing an exact name match and the current name isn't one, skip it
-                if exact and name.lower() != player_name:
+                if exact and player_dict["Name"].lower() != player_name:
                     continue
                 # if a platform has been passed and it doesn't match, skip it
                 if platform is not None and player_dict["portal_id"] != platform.value:

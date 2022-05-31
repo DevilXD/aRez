@@ -440,7 +440,7 @@ class PartialPlayerObject(RetMsg):
 
 
 class PlayerSearchObject(PartialPlayerObject):
-    hz_player_name: str
+    hz_player_name: str | None
 
 
 class MatchSearchObject(RetMsg):
