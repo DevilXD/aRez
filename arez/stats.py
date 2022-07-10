@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional, Union, Literal, cast, TYPE_CHECKING
+from typing import Literal, cast, TYPE_CHECKING
 
 from . import responses
 from .enums import Rank
@@ -171,7 +171,7 @@ class Stats(WinLoseMixin):
     leaves : int
         The amount of times player left / disconnected from a match.
     """
-    def __init__(self, stats_data: Union[responses.PlayerObject, responses.RankedStatsObject]):
+    def __init__(self, stats_data: responses.PlayerObject | responses.RankedStatsObject):
         super().__init__(
             wins=stats_data["Wins"],
             losses=stats_data["Losses"],
@@ -238,12 +238,12 @@ class ChampionStats(WinLoseMixin, KDAMixin):
         The amount of deaths with this champion.
     assists : int
         The amount of assists with this champion.
-    player : Union[PartialPlayer, Player]
+    player : PartialPlayer | Player
         The player these stats are for.
-    champion : Union[Champion, CacheObject]
+    champion : Champion | CacheObject
         The champion these stats are for.\n
         With incomplete cache, this will be a `CacheObject` with the name and ID set.
-    queue : Optional[Queue]
+    queue : Queue | None
         The queue these starts are for.\n
         `None` means these stats are for all queues.
     level : int
@@ -262,10 +262,10 @@ class ChampionStats(WinLoseMixin, KDAMixin):
     """
     def __init__(
         self,
-        player: Union[PartialPlayer, Player],
-        cache_entry: Optional[CacheEntry],
-        stats_data: Union[responses.ChampionRankObject, responses.ChampionQueueRankObject],
-        queue: Optional[Queue] = None,
+        player: PartialPlayer | Player,
+        cache_entry: CacheEntry | None,
+        stats_data: responses.ChampionRankObject | responses.ChampionQueueRankObject,
+        queue: Queue | None = None,
     ):
         WinLoseMixin.__init__(
             self,
@@ -278,8 +278,8 @@ class ChampionStats(WinLoseMixin, KDAMixin):
             deaths=stats_data["Deaths"],
             assists=stats_data["Assists"],
         )
-        self.player: Union[PartialPlayer, Player] = player
-        self.queue: Optional[Queue] = queue
+        self.player: PartialPlayer | Player = player
+        self.queue: Queue | None = queue
         if queue is None:
             stats_data = cast(responses.ChampionRankObject, stats_data)
             champion_id = int(stats_data["champion_id"])
@@ -288,12 +288,12 @@ class ChampionStats(WinLoseMixin, KDAMixin):
             stats_data = cast(responses.ChampionQueueRankObject, stats_data)
             champion_id = int(stats_data["ChampionId"])
             champion_name = stats_data["Champion"]
-        champion: Optional[Union[Champion, CacheObject]] = None
+        champion: Champion | CacheObject | None = None
         if cache_entry is not None:
             champion = cache_entry.champions.get(champion_id)
         if champion is None:
             champion = CacheObject(id=champion_id, name=champion_name)
-        self.champion: Union[Champion, CacheObject] = champion
+        self.champion: Champion | CacheObject = champion
         self.last_played: datetime = _convert_timestamp(stats_data["LastPlayed"])
         self.level = stats_data.get("Rank", 0)
         self.experience = stats_data.get("Worshippers", 0)

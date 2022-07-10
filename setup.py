@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import re
-from typing import Optional
 from setuptools import setup, find_packages
 
 
 # Parse the version string out of the init file
-version: Optional[str] = None
+version: str | None = None
 with open("arez/__init__.py", 'r', encoding="utf8") as f:
     match = re.search(r'__version__ = "(\d+\.\d+\.\d+(?:\.dev\d+)?)"', f.read())
     if match:

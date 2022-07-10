@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional, List, TypedDict, Literal, SupportsInt
+from typing import TypedDict, Literal, SupportsInt
 
 
 class IntStr(SupportsInt, str):
@@ -16,7 +16,7 @@ class RetMsg(TypedDict):
     Most of the time, it's `None` if there's no errors present.
     Sometimes, it's used to communicate special data conditions.
     """
-    ret_msg: Optional[str]
+    ret_msg: str | None
 
 
 class SessionObject(TypedDict):
@@ -40,12 +40,12 @@ class DataUsedObject(RetMsg):
 
 
 class ServerStatusObject(RetMsg):
-    entry_datetime: Optional[str]
+    entry_datetime: str | None
     environment: Literal["live", "pts"]
     limited_access: bool
     platform: Literal["pc", "ps4", "xbox", "switch"]
     status: Literal["UP", "DOWN"]
-    version: Optional[str]
+    version: str | None
 
 
 class MergedPlayerObject(RetMsg):
@@ -71,17 +71,17 @@ class RankedStatsObject(RetMsg):
 class PlayerObject(RetMsg):
     ActivePlayerId: int
     AvatarId: int
-    AvatarURL: Optional[str]
+    AvatarURL: str | None
     Created_Datetime: str
     HoursPlayed: int
     Id: int
     Last_Login_Datetime: str
     Leaves: int
     Level: int
-    LoadingFrame: Optional[str]
+    LoadingFrame: str | None
     Losses: int
     MasteryLevel: int
-    MergedPlayers: Optional[List[MergedPlayerObject]]
+    MergedPlayers: list[MergedPlayerObject] | None
     MinutesPlayed: int
     Name: str
     Personal_Status_Message: Literal['']
@@ -95,13 +95,13 @@ class PlayerObject(RetMsg):
     Tier_Conquest: Literal[0]
     Tier_RankedController: int
     Tier_RankedKBM: int
-    Title: Optional[str]
+    Title: str | None
     Total_Achievements: int
     Total_Worshippers: int  # Smite EXP
     Total_XP: int  # Paladins EXP
     Wins: int
-    hz_gamer_tag: Optional[str]
-    hz_player_name: Optional[str]
+    hz_gamer_tag: str | None
+    hz_player_name: str | None
 
 
 class AbilityObject(RetMsg):
@@ -213,12 +213,12 @@ class MatchPlayerObject(RetMsg):
     BanId4: int
     BanId5: int
     BanId6: int
-    Ban_1: Optional[str]
-    Ban_2: Optional[str]
-    Ban_3: Optional[str]
-    Ban_4: Optional[str]
-    Ban_5: Optional[str]
-    Ban_6: Optional[str]
+    Ban_1: str | None
+    Ban_2: str | None
+    Ban_3: str | None
+    Ban_4: str | None
+    Ban_5: str | None
+    Ban_6: str | None
     Camps_Cleared: Literal[0]
     ChampionId: int
     Damage_Bot: Literal[0]
@@ -290,7 +290,7 @@ class MatchPlayerObject(RetMsg):
     Mastery_Level: int
     Match: int  # match ID
     Match_Duration: int  # in seconds, unused
-    MergedPlayers: Optional[List[MergedPlayerObject]]
+    MergedPlayers: list[MergedPlayerObject] | None
     Minutes: int
     Multi_kill_Max: int
     Objective_Assists: int
@@ -314,8 +314,8 @@ class MatchPlayerObject(RetMsg):
     Win_Status: Literal["Winner", "Loser"]
     Winning_TaskForce: Literal[1, 2]
     hasReplay: Literal["y", "n"]
-    hz_gamer_tag: Optional[str]
-    hz_player_name: Optional[str]
+    hz_gamer_tag: str | None
+    hz_player_name: str | None
     match_queue_id: int
     name: str  # queue name
     playerId: IntStr
@@ -482,7 +482,7 @@ class ChampionLoadoutObject(RetMsg):
     ChampionName: str
     DeckId: int
     DeckName: str
-    LoadoutItems: List[LoadoutItemObject]
+    LoadoutItems: list[LoadoutItemObject]
     playerId: int
     playerName: str
 

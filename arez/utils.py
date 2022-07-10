@@ -9,9 +9,9 @@ from weakref import WeakValueDictionary
 from datetime import datetime, timedelta
 from operator import itemgetter, attrgetter, eq, ne, lt, le, gt, ge
 from typing import (
+    Any,
     Optional,
     Union,
-    Any,
     List,
     Dict,
     Tuple,
@@ -51,7 +51,7 @@ LookupType = TypeVar("LookupType")
 LookupKeyType = TypeVar("LookupKeyType", bound=CacheObject)
 
 
-def _deduplicate(iterable: Iterable[_X], *to_remove: _X) -> List[_X]:
+def _deduplicate(iterable: Iterable[_X], *to_remove: _X) -> list[_X]:
     """
     Removes duplicates from an iterable and returns a list. Optimised for speed.
     Optionally, also removes the value(s) specified entirely.
@@ -65,12 +65,12 @@ def _deduplicate(iterable: Iterable[_X], *to_remove: _X) -> List[_X]:
 
     Returns
     -------
-    List[X]
+    list[X]
         The deduplicated list of values.
     """
     if not isinstance(iterable, Iterable):
         raise TypeError(f"Expected an iterable, got {type(iterable)}")
-    no_dups: List[_X] = list(OrderedDict.fromkeys(iterable))
+    no_dups: list[_X] = list(OrderedDict.fromkeys(iterable))
     for value in to_remove:
         if value in no_dups:
             no_dups.remove(value)
@@ -131,7 +131,7 @@ def _ceil_dt(dt: datetime, td: timedelta) -> datetime:
 # Generates API-valid series of date and hour parameters for the 'getmatchidsbyqueue' endpoint
 def _date_gen(
     start: datetime, end: datetime, *, reverse: bool = False
-) -> Generator[Tuple[str, str], None, None]:
+) -> Generator[tuple[str, str], None, None]:
     # helpful time intervals
     one_day = timedelta(days=1)
     one_hour = timedelta(hours=1)
@@ -220,7 +220,7 @@ def _date_gen(
             start += ten_minutes
 
 
-def get(iterable: Iterable[_X], **attrs) -> Optional[_X]:
+def get(iterable: Iterable[_X], **attrs) -> _X | None:
     """
     Returns the first object from the ``iterable`` which attributes match the
     keyword arguments passed.
@@ -257,7 +257,7 @@ def get(iterable: Iterable[_X], **attrs) -> Optional[_X]:
     return None
 
 
-def group_by(iterable: Iterable[_X], key: Callable[[_X], _Y]) -> Dict[_Y, List[_X]]:
+def group_by(iterable: Iterable[_X], key: Callable[[_X], _Y]) -> dict[_Y, list[_X]]:
     """
     A helper function for grouping elements of an iterable into a dictionary, where each key
     represents a common value, and the value represents a list of elements having said
@@ -273,10 +273,10 @@ def group_by(iterable: Iterable[_X], key: Callable[[_X], _Y]) -> Dict[_Y, List[_
 
     Returns
     -------
-    Dict[Y, List[X]]
+    dict[Y, list[X]]
         A mapping of groups to lists of grouped elements.
     """
-    item_map: Dict[_Y, List[_X]] = {}
+    item_map: dict[_Y, list[_X]] = {}
     for item in iterable:
         group = key(item)
         if group not in item_map:
@@ -286,9 +286,9 @@ def group_by(iterable: Iterable[_X], key: Callable[[_X], _Y]) -> Dict[_Y, List[_
 
 
 class _LookupBase(Sequence[LookupType], Generic[LookupKeyType, LookupType]):
-    _list_lookup: List[LookupType] = []
-    _id_lookup: Dict[int, Any] = {}
-    _name_lookup: Dict[str, Any] = {}
+    _list_lookup: list[LookupType] = []
+    _id_lookup: dict[int, Any] = {}
+    _name_lookup: dict[str, Any] = {}
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({repr(self._list_lookup)})"
@@ -304,10 +304,10 @@ class _LookupBase(Sequence[LookupType], Generic[LookupKeyType, LookupType]):
         ...
 
     @overload
-    def __getitem__(self, index: slice) -> List[LookupType]:
+    def __getitem__(self, index: slice) -> list[LookupType]:
         ...
 
-    def __getitem__(self, index: Union[int, slice]) -> Union[LookupType, List[LookupType]]:
+    def __getitem__(self, index: int | slice) -> LookupType | list[LookupType]:
         return self._list_lookup[index]
 
     def __contains__(self, item: object) -> bool:
@@ -322,7 +322,7 @@ class _LookupBase(Sequence[LookupType], Generic[LookupKeyType, LookupType]):
     def count(self, item: LookupType) -> int:
         return self._list_lookup.count(item)
 
-    def get(self, name_or_id: Union[int, str]) -> Optional[Union[LookupType, List[LookupType]]]:
+    def get(self, name_or_id: int | str) -> LookupType | list[LookupType] | None:
         if isinstance(name_or_id, str):
             return self._name_lookup.get(name_or_id.lower())
         return self._id_lookup.get(name_or_id)
@@ -335,30 +335,30 @@ class _LookupBase(Sequence[LookupType], Generic[LookupKeyType, LookupType]):
         limit: int = 3,
         cutoff: float = 0.6,
         with_scores: Literal[False] = False,
-    ) -> Union[List[LookupType], List[List[LookupType]]]:
+    ) -> list[LookupType] | list[list[LookupType]]:
         ...
 
     @overload
     def get_fuzzy_matches(
         self, name: str, *, limit: int = 3, cutoff: float = 0.6, with_scores: Literal[True]
-    ) -> Union[List[Tuple[LookupType, float]], List[Tuple[List[LookupType], float]]]:
+    ) -> list[tuple[LookupType, float]] | list[tuple[list[LookupType], float]]:
         ...
 
     @overload
     def get_fuzzy_matches(
         self, name: str, *, limit: int = 3, cutoff: float = 0.6, with_scores: bool = False
-    ) -> Union[
-        Union[List[LookupType], List[List[LookupType]]],
-        Union[List[Tuple[LookupType, float]], List[Tuple[List[LookupType], float]]],
-    ]:
+    ) -> (
+        list[LookupType] | list[list[LookupType]]
+        | list[tuple[LookupType, float]] | list[tuple[list[LookupType], float]]
+    ):
         ...
 
     def get_fuzzy_matches(
         self, name: str, *, limit: int = 3, cutoff: float = 0.6, with_scores: bool = False
-    ) -> Union[
-        Union[List[LookupType], List[List[LookupType]]],
-        Union[List[Tuple[LookupType, float]], List[Tuple[List[LookupType], float]]],
-    ]:
+    ) -> (
+        list[LookupType] | list[list[LookupType]]
+        | list[tuple[LookupType, float]] | list[tuple[list[LookupType], float]]
+    ):
         if not isinstance(name, str):
             raise TypeError("The name has to be a string of characters")
         if not isinstance(limit, int):
@@ -372,7 +372,7 @@ class _LookupBase(Sequence[LookupType], Generic[LookupKeyType, LookupType]):
 
         matcher: SequenceMatcher[str] = SequenceMatcher()
         matcher.set_seq2(name.lower())
-        scores: List[Tuple[str, float]] = []
+        scores: list[tuple[str, float]] = []
         for key in self._name_lookup:
             matcher.set_seq1(key)
             if (
@@ -388,7 +388,7 @@ class _LookupBase(Sequence[LookupType], Generic[LookupKeyType, LookupType]):
 
     def get_fuzzy(
         self, name: str, *, cutoff: float = 0.6
-    ) -> Optional[Union[LookupType, List[LookupType]]]:
+    ) -> LookupType | list[LookupType] | None:
         matches = self.get_fuzzy_matches(name, limit=1, cutoff=cutoff)
         if matches:
             return matches[0]
@@ -424,9 +424,9 @@ class Lookup(_LookupBase[LookupKeyType, LookupType]):
         *,
         key: Callable[[LookupType], LookupKeyType] = lambda item: item,  # type: ignore
     ):
-        self._list_lookup: List[LookupType] = []
-        self._id_lookup: Dict[int, LookupType] = {}
-        self._name_lookup: Dict[str, LookupType] = {}
+        self._list_lookup: list[LookupType] = []
+        self._id_lookup: dict[int, LookupType] = {}
+        self._name_lookup: dict[str, LookupType] = {}
         for element in iterable:
             self._list_lookup.append(element)
             cache_key: LookupKeyType = key(element)
@@ -437,13 +437,13 @@ class Lookup(_LookupBase[LookupKeyType, LookupType]):
             self._id_lookup[cache_key.id] = element
             self._name_lookup[cache_key.name.lower()] = element
 
-    def get(self, name_or_id: Union[int, str]) -> Optional[LookupType]:
+    def get(self, name_or_id: int | str) -> LookupType | None:
         """
         Allows you to quickly lookup an element by it's Name or ID.
 
         Parameters
         ----------
-        name_or_id : Union[int, str]
+        name_or_id : int | str
             The name or ID of the element you want to lookup.
 
             .. note::
@@ -452,7 +452,7 @@ class Lookup(_LookupBase[LookupKeyType, LookupType]):
 
         Returns
         -------
-        Optional[LookupType]
+        LookupType | None
             The element requested.\n
             `None` is returned if the requested element couldn't be found.
         """
@@ -466,24 +466,24 @@ class Lookup(_LookupBase[LookupKeyType, LookupType]):
         limit: int = 3,
         cutoff: float = 0.6,
         with_scores: Literal[False] = False,
-    ) -> List[LookupType]:
+    ) -> list[LookupType]:
         ...
 
     @overload
     def get_fuzzy_matches(
         self, name: str, *, limit: int = 3, cutoff: float = 0.6, with_scores: Literal[True]
-    ) -> List[Tuple[LookupType, float]]:
+    ) -> list[tuple[LookupType, float]]:
         ...
 
     @overload
     def get_fuzzy_matches(
         self, name: str, *, limit: int = 3, cutoff: float = 0.6, with_scores: bool = False
-    ) -> Union[List[LookupType], List[Tuple[LookupType, float]]]:
+    ) -> list[LookupType] | list[tuple[LookupType, float]]:
         ...
 
     def get_fuzzy_matches(
         self, name: str, *, limit: int = 3, cutoff: float = 0.6, with_scores: bool = False
-    ) -> Union[List[LookupType], List[Tuple[LookupType, float]]]:
+    ) -> list[LookupType] | list[tuple[LookupType, float]]:
         """
         Performs a fuzzy lookup of an element by it's name,
         by calculating the similarity score between each item. Case-insensitive.\n
@@ -508,7 +508,7 @@ class Lookup(_LookupBase[LookupKeyType, LookupType]):
 
         Returns
         -------
-        Union[List[LookupType], List[Tuple[LookupType, float]]]
+        list[LookupType] | list[tuple[LookupType, float]]
             A list of up to ``limit`` matching elements, with at least ``cutoff`` similarity score,
             sorted in descending order by their similarity score.\n
             If ``with_scores`` is set to `True`, returns a list of up to ``limit`` 2-item tuples,
@@ -527,7 +527,7 @@ class Lookup(_LookupBase[LookupKeyType, LookupType]):
             super().get_fuzzy_matches(name, limit=limit, cutoff=cutoff, with_scores=with_scores),
         )
 
-    def get_fuzzy(self, name: str, *, cutoff: float = 0.6) -> Optional[LookupType]:
+    def get_fuzzy(self, name: str, *, cutoff: float = 0.6) -> LookupType | None:
         """
         Simplified version of `get_fuzzy_matches`, allowing you to search for a single element,
         or receive `None` if no matching element was found.
@@ -542,7 +542,7 @@ class Lookup(_LookupBase[LookupKeyType, LookupType]):
 
         Returns
         -------
-        Optional[LookupType]
+        LookupType | None
             The element requested.\n
             `None` is returned if the requested element couldn't be found.
 
@@ -571,9 +571,9 @@ class LookupGroup(_LookupBase[LookupKeyType, LookupType]):
         *,
         key: Callable[[LookupType], LookupKeyType] = lambda item: item,  # type: ignore
     ):
-        self._list_lookup: List[LookupType] = []
-        self._id_lookup: Dict[int, List[LookupType]] = {}
-        self._name_lookup: Dict[str, List[LookupType]] = {}
+        self._list_lookup: list[LookupType] = []
+        self._id_lookup: dict[int, list[LookupType]] = {}
+        self._name_lookup: dict[str, list[LookupType]] = {}
         for element in iterable:
             self._list_lookup.append(element)
             cache_key: LookupKeyType = key(element)
@@ -584,7 +584,7 @@ class LookupGroup(_LookupBase[LookupKeyType, LookupType]):
             self._id_lookup.setdefault(cache_key.id, []).append(element)
             self._name_lookup.setdefault(cache_key.name.lower(), []).append(element)
 
-    def get(self, name_or_id: Union[int, str]) -> Optional[List[LookupType]]:
+    def get(self, name_or_id: int | str) -> list[LookupType] | None:
         return cast(Optional[List[LookupType]], super().get(name_or_id))
 
     @overload
@@ -595,48 +595,48 @@ class LookupGroup(_LookupBase[LookupKeyType, LookupType]):
         limit: int = 3,
         cutoff: float = 0.6,
         with_scores: Literal[False] = False,
-    ) -> List[List[LookupType]]:
+    ) -> list[list[LookupType]]:
         ...
 
     @overload
     def get_fuzzy_matches(
         self, name: str, *, limit: int = 3, cutoff: float = 0.6, with_scores: Literal[True]
-    ) -> List[Tuple[List[LookupType], float]]:
+    ) -> list[tuple[list[LookupType], float]]:
         ...
 
     @overload
     def get_fuzzy_matches(
         self, name: str, *, limit: int = 3, cutoff: float = 0.6, with_scores: bool = False
-    ) -> Union[List[List[LookupType]], List[Tuple[List[LookupType], float]]]:
+    ) -> list[list[LookupType]] | list[tuple[list[LookupType], float]]:
         ...
 
     def get_fuzzy_matches(
         self, name: str, *, limit: int = 3, cutoff: float = 0.6, with_scores: bool = False
-    ) -> Union[List[List[LookupType]], List[Tuple[List[LookupType], float]]]:
+    ) -> list[list[LookupType]] | list[tuple[list[LookupType], float]]:
         return cast(
             Union[List[List[LookupType]], List[Tuple[List[LookupType], float]]],
             super().get_fuzzy_matches(name, limit=limit, cutoff=cutoff, with_scores=with_scores),
         )
 
-    def get_fuzzy(self, name: str, *, cutoff: float = 0.6) -> Optional[List[LookupType]]:
+    def get_fuzzy(self, name: str, *, cutoff: float = 0.6) -> list[LookupType] | None:
         return cast(Optional[List[LookupType]], super().get_fuzzy(name, cutoff=cutoff))
 
 
-def chunk(list_to_chunk: List[_X], chunk_length: int) -> Generator[List[_X], None, None]:
+def chunk(list_to_chunk: list[_X], chunk_length: int) -> Generator[list[_X], None, None]:
     """
     A helper generator that divides the input list into chunks of ``chunk_length`` length.
     The last chunk may be shorter than specified.
 
     Parameters
     ----------
-    list_to_chunk : List[X]
+    list_to_chunk : list[X]
         The list you want to divide into chunks.
     chunk_length : int
         The length of each chunk.
 
     Returns
     -------
-    Generator[List[X], None, None]
+    Generator[list[X], None, None]
         A generator yielding chunks of the given length.
     """
     for i in range(0, len(list_to_chunk), chunk_length):
@@ -670,7 +670,7 @@ async def expand_partial(iterable: Iterable[_X]) -> AsyncGenerator[_X, None]:
             yield element
 
 
-def _int_divmod(base: Union[int, float], div: Union[int, float]) -> Tuple[int, int]:
+def _int_divmod(base: int | float, div: int | float) -> tuple[int, int]:
     result = divmod(base, div)
     return (int(result[0]), int(result[1]))
 
@@ -781,7 +781,7 @@ class Duration:
         return cls(seconds=delta.total_seconds())
 
     def __repr__(self) -> str:
-        args: List[Tuple[str, float]] = []
+        args: list[tuple[str, float]] = []
         if self._days:
             args.append(("days", self._days))
         if self._hours or self._minutes or self._seconds:
@@ -829,24 +829,24 @@ class Duration:
 
     # Math operations
 
-    def __add__(self, other: Union[Duration, timedelta]) -> Duration:
+    def __add__(self, other: Duration | timedelta) -> Duration:
         if (delta := self._get_delta(other)) is NotImplemented:
             return NotImplemented
         return Duration(seconds=self._total_seconds + delta.total_seconds())
 
     __radd__ = __add__
 
-    def __sub__(self, other: Union[Duration, timedelta]) -> Duration:
+    def __sub__(self, other: Duration | timedelta) -> Duration:
         if (delta := self._get_delta(other)) is NotImplemented:
             return NotImplemented
         return Duration(seconds=self._total_seconds - delta.total_seconds())
 
-    def __rsub__(self, other: Union[Duration, timedelta]) -> Duration:
+    def __rsub__(self, other: Duration | timedelta) -> Duration:
         if (delta := self._get_delta(other)) is NotImplemented:
             return NotImplemented
         return Duration(seconds=delta.total_seconds() - self._total_seconds)
 
-    def __mul__(self, other: Union[int, float]) -> Duration:
+    def __mul__(self, other: int | float) -> Duration:
         if not isinstance(other, (int, float)):
             return NotImplemented
         return Duration(seconds=self._total_seconds * other)
@@ -854,14 +854,14 @@ class Duration:
     __rmul__ = __mul__
 
     @overload
-    def __truediv__(self, other: Union[Duration, timedelta]) -> float:
+    def __truediv__(self, other: Duration | timedelta) -> float:
         ...
 
     @overload
-    def __truediv__(self, other: Union[int, float]) -> Duration:
+    def __truediv__(self, other: int | float) -> Duration:
         ...
 
-    def __truediv__(self, other: Union[Duration, timedelta, int, float]):
+    def __truediv__(self, other: Duration | timedelta | int | float):
         if isinstance(other, (int, float)):
             return Duration(seconds=self._total_seconds / other)
         if (delta := self._get_delta(other)) is NotImplemented:
@@ -874,14 +874,14 @@ class Duration:
         return other.total_seconds() / self._total_seconds
 
     @overload
-    def __floordiv__(self, other: Union[Duration, timedelta]) -> int:
+    def __floordiv__(self, other: Duration | timedelta) -> int:
         ...
 
     @overload
     def __floordiv__(self, other: int) -> Duration:
         ...
 
-    def __floordiv__(self, other: Union[Duration, timedelta, int]):
+    def __floordiv__(self, other: Duration | timedelta | int):
         if isinstance(other, int):
             return Duration(microseconds=floor(self._total_seconds * 1e6 // other))
         if (delta := self._get_delta(other)) is NotImplemented:
@@ -893,23 +893,23 @@ class Duration:
             return NotImplemented
         return int(other.total_seconds() // self._total_seconds)
 
-    def __mod__(self, other: Union[Duration, timedelta]) -> Duration:
+    def __mod__(self, other: Duration | timedelta) -> Duration:
         if (delta := self._get_delta(other)) is NotImplemented:
             return NotImplemented
         return Duration(seconds=(self._total_seconds % delta.total_seconds()))
 
-    def __rmod__(self, other: Union[Duration, timedelta]) -> Duration:
+    def __rmod__(self, other: Duration | timedelta) -> Duration:
         if (delta := self._get_delta(other)) is NotImplemented:
             return NotImplemented
         return Duration(seconds=(delta.total_seconds() % self._total_seconds))
 
-    def __divmod__(self, other: Union[Duration, timedelta]) -> Tuple[int, Duration]:
+    def __divmod__(self, other: Duration | timedelta) -> tuple[int, Duration]:
         if (delta := self._get_delta(other)) is NotImplemented:
             return NotImplemented
         q, r = divmod(self._total_seconds, delta.total_seconds())
         return (int(q), Duration(seconds=r))
 
-    def __rdivmod__(self, other: timedelta) -> Tuple[int, Duration]:
+    def __rdivmod__(self, other: timedelta) -> tuple[int, Duration]:
         if not isinstance(other, timedelta):
             return NotImplemented
         q, r = divmod(other.total_seconds(), self._total_seconds)
@@ -930,8 +930,8 @@ class Duration:
 class WeakValueDefaultDict(WeakValueDictionary, Mapping[_X, _Y]):  # type: ignore[type-arg]
     def __init__(
         self,
-        default_factory: Optional[Callable[[], Any]] = None,
-        mapping_or_iterable: Union[Mapping[_X, _Y], Iterable[Tuple[_X, _Y]]] = {},
+        default_factory: Callable[[], Any] | None = None,
+        mapping_or_iterable: Mapping[_X, _Y] | Iterable[tuple[_X, _Y]] = {},
     ):
         self.default_factory = default_factory
         super().__init__(mapping_or_iterable)

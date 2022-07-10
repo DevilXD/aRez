@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional, Union, List, Dict, Tuple, Literal, cast, TYPE_CHECKING
+from typing import Literal, cast, TYPE_CHECKING
 
 from .statuspage import colors
 from .mixins import CacheClient
@@ -35,8 +35,8 @@ def _convert_platform(platform: str) -> _platforms:
 
 
 def _convert_status(
-    up: Optional[bool], limited_access: Optional[bool], status: Optional[str], color: Optional[int]
-) -> Tuple[bool, bool, str, int]:
+    up: bool | None, limited_access: bool | None, status: str | None, color: int | None
+) -> tuple[bool, bool, str, int]:
     """
     A function responsible for the logic behind merging server status data, from the official API
     and StatusPage.
@@ -50,16 +50,16 @@ def _convert_status(
 
     Parameters
     ----------
-    up : Optional[bool]
+    up : bool | None
         Server status flag from the official API.\n
         `None` when not available.
-    limited_access : Optional[bool]
+    limited_access : bool | None
         Limited access flag from the official API.\n
         `None` when not available.
-    status : Optional[str]
+    status : str | None
         StatusPage group status description.\n
         `None` when not available.
-    color : Optional[int]
+    color : int | None
         StatusPage group color.\n
         `None` when not available.
 
@@ -86,7 +86,7 @@ def _convert_status(
         return (final_up, False, status, color)
     # official API definitely exists here
     assert up is not None and limited_access is not None
-    status_color: Tuple[str, int] = ("Operational", colors["green"])
+    status_color: tuple[str, int] = ("Operational", colors["green"])
     if not up:
         status_color = ("Outage", colors["red"])
     elif limited_access:
@@ -127,14 +127,14 @@ class Status:
         This server's status description.
     color : int
         The color assiciated with this server's status.
-    incidents : List[Incident]
+    incidents : list[Incident]
         A list of incidents affecting this server status.
-    scheduled_maintenances : List[ScheduledMaintenance]
+    scheduled_maintenances : list[ScheduledMaintenance]
         A list of scheduled maintenances that will (or are)
         affect this server status in the future.
     """
     def __init__(
-        self, status_data: responses.ServerStatusObject, components: Dict[str, Component]
+        self, status_data: responses.ServerStatusObject, components: dict[str, Component]
     ):
         self.up: bool
         self.limited_access: bool
@@ -148,9 +148,9 @@ class Status:
         self.platform: _platforms = _convert_platform(platform)
         self.version: str = status_data["version"] or ''
 
-        status_color: Tuple[Optional[str], Optional[int]] = (None, None)
-        self.incidents: List[Incident] = []
-        self.maintenances: List[Maintenance] = []
+        status_color: tuple[str | None, int | None] = (None, None)
+        self.incidents: list[Incident] = []
+        self.maintenances: list[Maintenance] = []
         # this also removes the component from the dictionary
         if comp := components.pop(self.platform.lower(), None):
             status_color = (comp.status, comp.color)
@@ -216,17 +216,17 @@ class ServerStatus(CacheClient):
     color : int
         The color associated with the current overall server status.\n
         There is an alias for this under ``colour``.
-    statuses : Dict[str, Status]
+    statuses : dict[str, Status]
         A dictionary of all individual available server statuses.\n
         The usual keys you should be able to find here are:
         ``pc``, ``ps4``, ``xbox``, ``switch``, ``epic`` and ``pts``.
-    incidents : List[Incident]
+    incidents : list[Incident]
         A list of incidents affecting the current server status.
-    maintenances : List[Maintenance]
+    maintenances : list[Maintenance]
         A list of maintenances that will (or are) affect the server status in the future.
     """
     def __init__(
-        self, api_status: List[responses.ServerStatusObject], group: Optional[ComponentGroup]
+        self, api_status: list[responses.ServerStatusObject], group: ComponentGroup | None
     ):
         self.timestamp = datetime.utcnow()
         self.all_up: bool
@@ -234,9 +234,9 @@ class ServerStatus(CacheClient):
         self.status: str
         self.color: int
 
-        self.statuses: Dict[str, Status] = {}
+        self.statuses: dict[str, Status] = {}
         # each StatusPage component for Paladins starts with "Paladins ...", we need to strip that
-        components: Dict[str, Component] = {}
+        components: dict[str, Component] = {}
         if group is not None:
             group_name: str = group.name
             for comp in group.components:
@@ -244,7 +244,7 @@ class ServerStatus(CacheClient):
                 if comp_name.startswith(group_name):  # pragma: no branch
                     comp_name = comp_name[len(group_name):].strip()
                 components[comp_name.lower()] = comp
-        statuses: List[Status] = []
+        statuses: list[Status] = []
         # match keys with existing official data, and add StatusPage data
         # note: this may not run at all, if the official API's response was empty
         for status_data in api_status:
@@ -264,9 +264,9 @@ class ServerStatus(CacheClient):
                 all_up = False
             if status.limited_access:
                 limited_access = True
-        status_color: Tuple[Optional[str], Optional[int]] = (None, None)
-        self.incidents: List[Incident] = []
-        self.maintenances: List[Maintenance] = []
+        status_color: tuple[str | None, int | None] = (None, None)
+        self.incidents: list[Incident] = []
+        self.maintenances: list[Maintenance] = []
         if group is not None:
             status_color = (group.status, group.color)
             self.incidents = group.incidents
@@ -321,35 +321,35 @@ class PlayerStatus(CacheClient):
 
     Attributes
     ----------
-    player : Union[PartialPlayer, Player]
+    player : PartialPlayer | Player
         The player this status is for.
-    live_match_id : Optional[int]
+    live_match_id : int | None
         ID of the live match the player is currently in.\n
         `None` if the player isn't in a match.
-    queue : Optional[Queue]
+    queue : Queue | None
         The queue the player is currently playing in.\n
         `None` if the player isn't in a match.
     status : Activity
         An enum representing the current player status.
     """
     def __init__(
-        self, player: Union[PartialPlayer, Player], status_data: responses.PlayerStatusObject
+        self, player: PartialPlayer | Player, status_data: responses.PlayerStatusObject
     ):
         super().__init__(player._api)
         self.player = player
-        self.live_match_id: Optional[int] = status_data["Match"] or None
-        queue: Optional[Queue] = None
+        self.live_match_id: int | None = status_data["Match"] or None
+        queue: Queue | None = None
         if queue_id := status_data["match_queue_id"]:
             queue = Queue(queue_id)
-        self.queue: Optional[Queue] = queue
+        self.queue: Queue | None = queue
         self.status = Activity(status_data["status"])
 
     def __repr__(self) -> str:
         return f"{self.player.name}({self.player.id}): {self.status.name}"
 
     async def get_live_match(
-        self, language: Optional[Language] = None, *, expand_players: bool = False
-    ) -> Optional[LiveMatch]:
+        self, language: Language | None = None, *, expand_players: bool = False
+    ) -> LiveMatch | None:
         """
         Fetches a live match the player is currently in.
 
@@ -368,7 +368,7 @@ class PlayerStatus(CacheClient):
 
         Returns
         -------
-        Optional[LiveMatch]
+        LiveMatch | None
             The live match requested.\n
             `None` is returned if the player isn't in a live match,
             or the match is played in an unsupported queue (customs).
@@ -383,7 +383,7 @@ class PlayerStatus(CacheClient):
         if response[0]["ret_msg"]:
             # unsupported queue
             return None
-        players_dict: Dict[int, Player] = {}
+        players_dict: dict[int, Player] = {}
         if expand_players:
             players_dict = await _get_players(self._api, (int(p["playerId"]) for p in response))
         return LiveMatch(self._api, cache_entry, response, players_dict)

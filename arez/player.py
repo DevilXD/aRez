@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from datetime import datetime
 from functools import cached_property
-from typing import Optional, Union, List, Sequence, SupportsInt, TYPE_CHECKING
+from typing import Sequence, SupportsInt, TYPE_CHECKING
 
 from .items import Loadout
 from .match import PartialMatch
@@ -56,13 +56,13 @@ class PartialPlayer(Expandable["Player"], CacheClient):
         *,
         id: SupportsInt,
         name: str = '',
-        platform: Union[str, int] = 0,
+        platform: str | int = 0,
         private: bool = False,
     ):
         super().__init__(api)
         self._id: int = int(id)
         self._name: str = str(name)
-        self._hash: Optional[int] = None
+        self._hash: int | None = None
         if isinstance(platform, str) and platform.isdecimal():
             platform = int(platform)
         self._platform = Platform(platform, _return_default=True)
@@ -187,7 +187,7 @@ class PartialPlayer(Expandable["Player"], CacheClient):
             raise NotFound("Player status")
         return PlayerStatus(self, response[0])
 
-    async def get_friends(self) -> List[PartialPlayer]:
+    async def get_friends(self) -> list[PartialPlayer]:
         """
         Fetches the player's friend list.
 
@@ -195,7 +195,7 @@ class PartialPlayer(Expandable["Player"], CacheClient):
 
         Returns
         -------
-        List[PartialPlayer]
+        list[PartialPlayer]
             A list of players this player is friends with.\n
             Some players might be missing if their profile is set as private.
 
@@ -215,8 +215,8 @@ class PartialPlayer(Expandable["Player"], CacheClient):
         ]
 
     async def get_loadouts(
-        self, language: Optional[Language] = None
-    ) -> LookupGroup[Union[Champion, CacheObject], Loadout]:
+        self, language: Language | None = None
+    ) -> LookupGroup[Champion | CacheObject, Loadout]:
         """
         Fetches the player's loadouts.
 
@@ -244,13 +244,13 @@ class PartialPlayer(Expandable["Player"], CacheClient):
 
         Parameters
         ----------
-        language : Optional[Language]
+        language : Language | None
             The `Language` you want to fetch the information in.\n
             Default language is used if not provided.
 
         Returns
         -------
-        LookupGroup[Union[Champion, CacheObject], Loadout]
+        LookupGroup[Champion | CacheObject, Loadout]
             An object that lets you iterate over and lookup player's loadouts for each champion.
 
         Raises
@@ -277,8 +277,8 @@ class PartialPlayer(Expandable["Player"], CacheClient):
         )
 
     async def get_champion_stats(
-        self, language: Optional[Language] = None, *, queue: Optional[Queue] = None
-    ) -> Lookup[Union[Champion, CacheObject], ChampionStats]:
+        self, language: Language | None = None, *, queue: Queue | None = None
+    ) -> Lookup[Champion | CacheObject, ChampionStats]:
         """
         Fetches the player's champion statistics.
 
@@ -306,16 +306,16 @@ class PartialPlayer(Expandable["Player"], CacheClient):
 
         Parameters
         ----------
-        language : Optional[Language]
+        language : Language | None
             The `Language` you want to fetch the information in.\n
             Default language is used if not provided.
-        queue : Optional[Queue]
+        queue : Queue | None
             The queue you want to filter the returned stats to.\n
             Defaults to all queues.
 
         Returns
         -------
-        Lookup[Union[Champion, CacheObject], ChampionStats]
+        Lookup[Champion | CacheObject, ChampionStats]
             An object that lets you iterate over and lookup each champion's statistics,
             one for each played champion.\n
             Some statistics may be missing for champions the player haven't played yet.
@@ -335,7 +335,7 @@ class PartialPlayer(Expandable["Player"], CacheClient):
             language = self._api._default_language
         cache_entry = await self._api._ensure_entry(language)
         logger.info(f"Player(id={self._id}).get_champion_stats(language={language.name})")
-        response: Sequence[Union[responses.ChampionRankObject, responses.ChampionQueueRankObject]]
+        response: Sequence[responses.ChampionRankObject | responses.ChampionQueueRankObject]
         if queue is None:
             response = await self._api.request("getgodranks", self._id)
         else:
@@ -345,7 +345,7 @@ class PartialPlayer(Expandable["Player"], CacheClient):
             key=lambda s: s.champion,
         )
 
-    async def get_match_history(self, language: Optional[Language] = None) -> List[PartialMatch]:
+    async def get_match_history(self, language: Language | None = None) -> list[PartialMatch]:
         """
         Fetches player's match history.
 
@@ -358,13 +358,13 @@ class PartialPlayer(Expandable["Player"], CacheClient):
 
         Parameters
         ----------
-        language : Optional[Language]
+        language : Language | None
             The `Language` you want to fetch the information in.\n
             Default language is used if not provided.
 
         Returns
         -------
-        List[PartialMatch]
+        list[PartialMatch]
             A list of up to 50 partial matches, containing statistics for the current player only.
 
         Raises
@@ -401,16 +401,16 @@ class Player(PartialPlayer):
 
     Attributes
     ----------
-    active_player : Optional[PartialPlayer]
+    active_player : PartialPlayer | None
         The current active player between merged profiles.\n
         `None` if the current profile is the active profile.
-    merged_players : List[PartialPlayer]
+    merged_players : list[PartialPlayer]
         A list of all merged profiles.\n
         Only ID and platform are present.
-    created_at : Optional[datetime.datetime]
+    created_at : datetime.datetime | None
         A timestamp of the profile's creation date.\n
         This can be `None` for accounts that are really old.
-    last_login : Optional[datetime.datetime]
+    last_login : datetime.datetime | None
         A timestamp of the profile's last successful in-game login.\n
         This can be `None` for accounts that are really old.
     platform_name : str
@@ -448,8 +448,8 @@ class Player(PartialPlayer):
     """
     def __init__(self, api: DataCache, player_data: responses.PlayerObject):
         # delay super() to pre-process player names
-        player_name: Optional[str] = player_data["hz_player_name"]
-        gamer_tag: Optional[str] = player_data["hz_gamer_tag"]
+        player_name: str | None = player_data["hz_player_name"]
+        gamer_tag: str | None = player_data["hz_gamer_tag"]
         name: str = player_data["Name"]
         self.platform_name: str = name
         if player_name is not None:
@@ -463,17 +463,17 @@ class Player(PartialPlayer):
             platform=player_data["Platform"],
             # No private kwarg here, since this object can only exist for non-private accounts
         )
-        self.active_player: Optional[PartialPlayer] = None
+        self.active_player: PartialPlayer | None = None
         if player_data["ActivePlayerId"] != self._id:  # pragma: no cover
             self.active_player = PartialPlayer(api, id=player_data["ActivePlayerId"])
-        self.merged_players: List[PartialPlayer] = []
+        self.merged_players: list[PartialPlayer] = []
         if player_data["MergedPlayers"] is not None:
             for p in player_data["MergedPlayers"]:
                 self.merged_players.append(
                     PartialPlayer(api, id=p["playerId"], platform=p["portalId"])
                 )
-        self.created_at: Optional[datetime] = None
-        self.last_login: Optional[datetime] = None
+        self.created_at: datetime | None = None
+        self.last_login: datetime | None = None
         if created_stamp := player_data["Created_Datetime"]:
             self.created_at = _convert_timestamp(created_stamp)
         if login_stamp := player_data["Last_Login_Datetime"]:

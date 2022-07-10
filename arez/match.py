@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from itertools import count
-from typing import Optional, Union, List, Dict, Iterable, Generator, TYPE_CHECKING
+from typing import Iterable, Generator, TYPE_CHECKING
 
 from .exceptions import NotFound
 from .enums import Queue, Region, Rank
@@ -30,12 +30,12 @@ logger = logging.getLogger(__package__)
 
 
 # this is a close duplicate of `PaladinsAPI.get_players`, modified for speed and its usage
-async def _get_players(cache: DataCache, player_ids: Iterable[int]) -> Dict[int, Player]:
-    ids_list: List[int] = _deduplicate(player_ids, 0)  # also remove private accounts
+async def _get_players(cache: DataCache, player_ids: Iterable[int]) -> dict[int, Player]:
+    ids_list: list[int] = _deduplicate(player_ids, 0)  # also remove private accounts
     if not ids_list:  # pragma: no cover
         return {}
     from .player import Player  # cyclic import
-    players_dict: Dict[int, Player] = {}
+    players_dict: dict[int, Player] = {}
     for chunk_ids in chunk(ids_list, 20):
         chunk_response = await cache.request("getplayerbatch", ','.join(map(str, chunk_ids)))
         for player_data in chunk_response:
@@ -71,21 +71,21 @@ class PartialMatch(MatchPlayerMixin, MatchMixin, Expandable["Match"]):
         The duration of the match.
     map_name : str
         The name of the map played.
-    score : Tuple[int, int]
+    score : tuple[int, int]
         The match's ending score.\n
         The first value is always the allied-team score, while the second one - enemy team score.
     winning_team : Literal[1, 2]
         The winning team of this match.
-    player : Union[PartialPlayer, Player]
+    player : PartialPlayer | Player
         The player who participated in this match.\n
         This is usually a new partial player object.\n
         All attributes, Name, ID and Platform, should be present.
-    champion : Union[Champion, CacheObject]
+    champion : Champion | CacheObject
         The champion used by the player in this match.\n
         With incomplete cache, this will be a `CacheObject` with the name and ID set.
     loadout : MatchLoadout
         The loadout used by the player in this match.
-    items : List[MatchItem]
+    items : list[MatchItem]
         A list of items bought by the player during this match.
     credits : int
         The amount of credits earned this match.
@@ -115,7 +115,7 @@ class PartialMatch(MatchPlayerMixin, MatchMixin, Expandable["Match"]):
         The amount of objective time the player got, in seconds.
     multikill_max : int
         The maximum multikill player did during the match.
-    skin : Union[Skin, CacheObject]
+    skin : Skin | CacheObject
         The skin the player had equipped for this match.\n
         With incomplete cache, this will be a `CacheObject` with the name and ID set.
     team_number : Literal[1, 2]
@@ -127,9 +127,9 @@ class PartialMatch(MatchPlayerMixin, MatchMixin, Expandable["Match"]):
     """
     def __init__(
         self,
-        player: Union[PartialPlayer, Player],
+        player: PartialPlayer | Player,
         language: Language,
-        cache_entry: Optional[CacheEntry],
+        cache_entry: CacheEntry | None,
         match_data: responses.HistoryMatchObject,
     ):
         MatchPlayerMixin.__init__(self, player, cache_entry, match_data)
@@ -181,23 +181,23 @@ class MatchPlayer(MatchPlayerMixin):
     ----------
     match : Match
         The match this player belongs to.
-    player : Union[PartialPlayer, Player]
+    player : PartialPlayer | Player
         The player itself who participated in this match.\n
         This is usually a new partial player object.\n
         All attributes, Name, ID and Platform, should be present.
-    rank : Optional[Rank]
+    rank : Rank | None
         The player's rank.
 
         .. warning::
 
             Due to API limitations, this is only available for matches played in ranked queues.\n
             For other queues, this attribute will be `None`.
-    champion : Union[Champion, CacheObject]
+    champion : Champion | CacheObject
         The champion used by the player in this match.\n
         With incomplete cache, this will be a `CacheObject` with the name and ID set.
     loadout : MatchLoadout
         The loadout used by the player in this match.
-    items : List[MatchItem]
+    items : list[MatchItem]
         A list of items bought by the player during this match.
     credits : int
         The amount of credits earned this match.
@@ -227,7 +227,7 @@ class MatchPlayer(MatchPlayerMixin):
         The amount of objective time the player got, in seconds.
     multikill_max : int
         The maximum multikill player did during the match.
-    skin : Union[Skin, CacheObject]
+    skin : Skin | CacheObject
         The skin the player had equipped for this match.\n
         With incomplete cache, this will be a `CacheObject` with the name and ID set.
     team_number : Literal[1, 2]
@@ -255,12 +255,12 @@ class MatchPlayer(MatchPlayerMixin):
     def __init__(
         self,
         match: Match,
-        cache_entry: Optional[CacheEntry],
+        cache_entry: CacheEntry | None,
         player_data: responses.MatchPlayerObject,
-        parties: Dict[int, int],
-        players: Dict[int, Player],
+        parties: dict[int, int],
+        players: dict[int, Player],
     ):
-        player: Optional[Union[PartialPlayer, Player]] = players.get(int(player_data["playerId"]))
+        player: PartialPlayer | Player | None = players.get(int(player_data["playerId"]))
         if player is None:
             # if no full player was found
             from .player import PartialPlayer  # cyclic imports
@@ -271,7 +271,7 @@ class MatchPlayer(MatchPlayerMixin):
                 platform=player_data["playerPortalId"],
             )
         super().__init__(player, cache_entry, player_data)
-        self.rank: Optional[Rank]
+        self.rank: Rank | None
         if match.queue.is_ranked():
             self.rank = Rank(player_data["League_Tier"], _return_default=True)
         else:
@@ -328,15 +328,15 @@ class Match(CacheClient, MatchMixin):
         The winning team of this match.
     replay_available : bool
         `True` if this match has a replay that you can watch, `False` otherwise.
-    bans : List[Optional[Union[Champion, CacheObject]]]
+    bans : list[Champion | CacheObject | None]
         A list of champions banned in this match.\n
         With incomplete cache, the list will contain `CacheObject` objects
         with the name and ID set.\n
         This will be an empty list for non-ranked matches.\n
         `None` indicates there was no ban.
-    team1 : List[MatchPlayer]
+    team1 : list[MatchPlayer]
         A list of players in the first team.
-    team2 : List[MatchPlayer]
+    team2 : list[MatchPlayer]
         A list of players in the second team.
     players : Generator[MatchPlayer]
         A generator that iterates over all match players in the match.
@@ -344,37 +344,37 @@ class Match(CacheClient, MatchMixin):
     def __init__(
         self,
         api: DataCache,
-        cache_entry: Optional[CacheEntry],
-        match_data: List[responses.MatchPlayerObject],
-        players: Dict[int, Player],
+        cache_entry: CacheEntry | None,
+        match_data: list[responses.MatchPlayerObject],
+        players: dict[int, Player],
     ):
         CacheClient.__init__(self, api)
         first_player = match_data[0]
         MatchMixin.__init__(self, first_player)
         logger.debug(f"Match(id={self.id}) -> creating...")
         self.replay_available: bool = first_player["hasReplay"] == "y"
-        self.bans: List[Optional[Union[Champion, CacheObject]]] = []
+        self.bans: list[Champion | CacheObject | None] = []
         if self.queue.is_ranked():
             for i in range(1, 7):
-                ban_id: int = first_player[f"BanId{i}"]  # type: ignore[misc]
+                ban_id: int = first_player[f"BanId{i}"]  # type: ignore[literal-required]
                 if not ban_id:
                     # zero indicates no ban has happened - use None
                     self.bans.append(None)
                     continue
-                ban_champ: Optional[Union[Champion, CacheObject]] = None
+                ban_champ: Champion | CacheObject | None = None
                 if cache_entry is not None:
                     ban_champ = cache_entry.champions.get(ban_id)
                 if ban_champ is None:
                     ban_champ = CacheObject(
-                        id=ban_id, name=first_player[f"Ban_{i}"]  # type: ignore[misc]
+                        id=ban_id, name=first_player[f"Ban_{i}"]  # type: ignore[literal-required]
                     )
                 self.bans.append(ban_champ)
-        self.team1: List[MatchPlayer] = []
-        self.team2: List[MatchPlayer] = []
+        self.team1: list[MatchPlayer] = []
+        self.team2: list[MatchPlayer] = []
         # Determine party numbers
         # We need to do this here because apparently one-man parties are a thing
         party_count = count(1)
-        parties: Dict[int, int] = {}
+        parties: dict[int, int] = {}
         for player_data in match_data:
             pid = player_data["PartyId"]
             # process only non-0 parties
@@ -431,15 +431,15 @@ class LivePlayer(WinLoseMixin, CacheClient):
     ----------
     match: LiveMatch
         The match this player belongs to.
-    player : Union[PartialPlayer, Player]
+    player : PartialPlayer | Player
         The actual player playing in this match.
-    champion : Union[Champion, CacheObject]
+    champion : Champion | CacheObject
         The champion the player is using in this match.\n
         With incomplete cache, this will be a `CacheObject` with the name and ID set.
-    skin : Union[Skin, CacheObject]
+    skin : Skin | CacheObject
         The skin the player has equipped for this match.\n
         With incomplete cache, this will be a `CacheObject` with the name and ID set.
-    rank : Optional[Rank]
+    rank : Rank | None
         The player's rank.
 
         .. warning::
@@ -458,9 +458,9 @@ class LivePlayer(WinLoseMixin, CacheClient):
     def __init__(
         self,
         match: LiveMatch,
-        cache_entry: Optional[CacheEntry],
+        cache_entry: CacheEntry | None,
         player_data: responses.LivePlayerObject,
-        players: Dict[int, Player],
+        players: dict[int, Player],
     ):
         CacheClient.__init__(self, match._api)
         WinLoseMixin.__init__(
@@ -470,7 +470,7 @@ class LivePlayer(WinLoseMixin, CacheClient):
         )
         self.match: LiveMatch = match
         # Player
-        player: Optional[Union[PartialPlayer, Player]] = players.get(int(player_data["playerId"]))
+        player: PartialPlayer | Player | None = players.get(int(player_data["playerId"]))
         if player is None:
             # if no full player was found
             from .player import PartialPlayer  # cyclic imports
@@ -480,25 +480,25 @@ class LivePlayer(WinLoseMixin, CacheClient):
                 name=player_data["playerName"],
                 platform=player_data["playerPortalId"],
             )
-        self.player: Union[PartialPlayer, Player] = player
+        self.player: PartialPlayer | Player = player
         # Champion
         champion_id: int = player_data["ChampionId"]
-        champion: Optional[Union[Champion, CacheObject]] = None
+        champion: Champion | CacheObject | None = None
         if cache_entry is not None:
             champion = cache_entry.champions.get(champion_id)
         if champion is None:
             champion = CacheObject(id=champion_id, name=player_data["ChampionName"])
-        self.champion: Union[Champion, CacheObject] = champion
+        self.champion: Champion | CacheObject = champion
         # Skin
         skin_id = player_data["SkinId"]
-        skin: Optional[Union[Skin, CacheObject]] = None
+        skin: Skin | CacheObject | None = None
         if cache_entry is not None:
             skin = cache_entry.skins.get(skin_id)
         if skin is None:  # pragma: no cover
             skin = CacheObject(id=skin_id, name=player_data["Skin"])
-        self.skin: Union[Skin, CacheObject] = skin
+        self.skin: Skin | CacheObject = skin
         # Other
-        self.rank: Optional[Rank]
+        self.rank: Rank | None
         if match.queue.is_ranked():  # pragma: no cover
             self.rank = Rank(player_data["Tier"], _return_default=True)
         else:
@@ -529,9 +529,9 @@ class LiveMatch(CacheClient):
         The queue the match is being played in.
     region : Region
         The region this match is being played in.
-    team1 : List[LivePlayer]
+    team1 : list[LivePlayer]
         A list of live players in the first team.
-    team2 : List[LivePlayer]
+    team2 : list[LivePlayer]
         A list of live players in the second team.
     players : Generator[LivePlayer]
         A generator that iterates over all live match players in the match.
@@ -539,9 +539,9 @@ class LiveMatch(CacheClient):
     def __init__(
         self,
         api: DataCache,
-        cache_entry: Optional[CacheEntry],
-        match_data: List[responses.LivePlayerObject],
-        players: Dict[int, Player],
+        cache_entry: CacheEntry | None,
+        match_data: list[responses.LivePlayerObject],
+        players: dict[int, Player],
     ):
         super().__init__(api)
         first_player = match_data[0]
@@ -549,8 +549,8 @@ class LiveMatch(CacheClient):
         self.map_name: str = _convert_map_name(first_player["mapGame"])
         self.queue = Queue(int(first_player["Queue"]), _return_default=True)
         self.region = Region(first_player["playerRegion"], _return_default=True)
-        self.team1: List[LivePlayer] = []
-        self.team2: List[LivePlayer] = []
+        self.team1: list[LivePlayer] = []
+        self.team2: list[LivePlayer] = []
         for player_data in match_data:
             live_player = LivePlayer(self, cache_entry, player_data, players)
             if player_data["taskForce"] == 1:

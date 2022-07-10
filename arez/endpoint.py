@@ -7,7 +7,7 @@ from hashlib import md5
 from random import gauss
 from platform import python_version
 from datetime import datetime, timedelta
-from typing import Any, Optional, Union, List, Dict, Literal, overload
+from typing import Any, Literal, overload
 
 from . import responses
 from .utils import CacheDict
@@ -29,7 +29,7 @@ def _timeout(total: int) -> aiohttp.ClientTimeout:
 _BASE_TIMEOUTS: CacheDict[int, aiohttp.ClientTimeout] = CacheDict(_timeout)
 DEFAULT_TIMEOUT = _BASE_TIMEOUTS[5]
 
-TIMEOUTS: Dict[str, aiohttp.ClientTimeout] = {
+TIMEOUTS: dict[str, aiohttp.ClientTimeout] = {
     # default timeout is 5s
     "getgods": _BASE_TIMEOUTS[10],
     "getitems": _BASE_TIMEOUTS[10],
@@ -77,21 +77,21 @@ class Endpoint:
     ----------
     url : str
         The endpoint's base URL.
-    dev_id : Union[int, str]
+    dev_id : int | str
         Your developer's ID (devId).
     auth_key : str
         Your developer's authentication key (authKey).
-    loop : Optional[asyncio.AbstractEventLoop]
+    loop : asyncio.AbstractEventLoop | None
         The event loop you want to use for this Endpoint.\n
         Default loop is used when not provided.
     """
     def __init__(
         self,
         url: str,
-        dev_id: Union[int, str],
+        dev_id: int | str,
         auth_key: str,
         *,
-        loop: Optional[asyncio.AbstractEventLoop] = None,
+        loop: asyncio.AbstractEventLoop | None = None,
     ):
         if loop is None:  # pragma: no cover
             loop = asyncio.get_event_loop()
@@ -155,28 +155,28 @@ class Endpoint:
     @overload
     async def request(
         self, method_name: Literal["getdataused"], /,
-    ) -> List[responses.DataUsedObject]:
+    ) -> list[responses.DataUsedObject]:
         ...
 
     # server status
     @overload
     async def request(
         self, method_name: Literal["gethirezserverstatus"], /,
-    ) -> List[responses.ServerStatusObject]:
+    ) -> list[responses.ServerStatusObject]:
         ...
 
     # champions data
     @overload
     async def request(
         self, method_name: Literal["getgods", "getchampions"], language_value: int, /,
-    ) -> List[responses.ChampionObject]:
+    ) -> list[responses.ChampionObject]:
         ...
 
     # items / devices data
     @overload
     async def request(
         self, method_name: Literal["getitems"], language_value: int, /,
-    ) -> List[responses.DeviceObject]:
+    ) -> list[responses.DeviceObject]:
         ...
 
     # champion skins data
@@ -187,14 +187,14 @@ class Endpoint:
         champion_id: int,
         language_value: int,
         /,
-    ) -> List[responses.ChampionSkinObject]:
+    ) -> list[responses.ChampionSkinObject]:
         ...
 
     # player information
     @overload
     async def request(
-        self, method_name: Literal["getplayer", "getplayerbatch"], name_or_id: Union[int, str], /,
-    ) -> List[responses.PlayerObject]:
+        self, method_name: Literal["getplayer", "getplayerbatch"], name_or_id: int | str, /,
+    ) -> list[responses.PlayerObject]:
         ...
 
     # match information
@@ -202,23 +202,23 @@ class Endpoint:
     async def request(
         self,
         method_name: Literal["getmatchdetails", "getmatchdetailsbatch"],
-        match_ids: Union[int, str],  # single or comma-delimited string
+        match_ids: int | str,  # single or comma-delimited string
         /,
-    ) -> List[responses.MatchPlayerObject]:
+    ) -> list[responses.MatchPlayerObject]:
         ...
 
     # live match information
     @overload
     async def request(
         self, method_name: Literal["getmatchplayerdetails"], match_id: int, /,
-    ) -> List[responses.LivePlayerObject]:
+    ) -> list[responses.LivePlayerObject]:
         ...
 
     # partial players - PC platform only
     @overload
     async def request(
         self, method_name: Literal["getplayeridbyname"], name: str, /,
-    ) -> List[responses.PartialPlayerObject]:
+    ) -> list[responses.PartialPlayerObject]:
         ...
 
     # partial players - console platforms only
@@ -227,16 +227,16 @@ class Endpoint:
         self,
         method_name: Literal["getplayeridsbygamertag", "getplayeridbyportaluserid"],
         portal_id: int,
-        name_or_id: Union[str, int],
+        name_or_id: str | int,
         /,
-    ) -> List[responses.PartialPlayerObject]:
+    ) -> list[responses.PartialPlayerObject]:
         ...
 
     # searching players
     @overload
     async def request(
         self, method_name: Literal["searchplayers"], name: str, /,
-    ) -> List[responses.PlayerSearchObject]:
+    ) -> list[responses.PlayerSearchObject]:
         ...
 
     # getting match IDs by queue
@@ -248,28 +248,28 @@ class Endpoint:
         date: str,
         hour: str,
         /,
-    ) -> List[responses.MatchSearchObject]:
+    ) -> list[responses.MatchSearchObject]:
         ...
 
     # bounty items
     @overload
     async def request(
         self, method_name: Literal["getbountyitems"], /,
-    ) -> List[responses.BountyItemObject]:
+    ) -> list[responses.BountyItemObject]:
         ...
 
     # player status
     @overload
     async def request(
         self, method_name: Literal["getplayerstatus"], player_id: int, /,
-    ) -> List[responses.PlayerStatusObject]:
+    ) -> list[responses.PlayerStatusObject]:
         ...
 
     # player friends
     @overload
     async def request(
         self, method_name: Literal["getfriends"], player_id: int, /,
-    ) -> List[responses.PlayerFriendObject]:
+    ) -> list[responses.PlayerFriendObject]:
         ...
 
     # player's champion loadouts
@@ -280,36 +280,36 @@ class Endpoint:
         player_id: int,
         language_value: int,
         /,
-    ) -> List[responses.ChampionLoadoutObject]:
+    ) -> list[responses.ChampionLoadoutObject]:
         ...
 
     # overall god / champion stats
     @overload
     async def request(
         self, method_name: Literal["getgodranks", "getchampionranks"], player_id: int, /,
-    ) -> List[responses.ChampionRankObject]:
+    ) -> list[responses.ChampionRankObject]:
         ...
 
     # per-queue champion stats
     @overload
     async def request(
         self, method_name: Literal["getqueuestats"], player_id: int, queue_value: int, /,
-    ) -> List[responses.ChampionQueueRankObject]:
+    ) -> list[responses.ChampionQueueRankObject]:
         ...
 
     # player's history matches
     @overload
     async def request(
         self, method_name: Literal["getmatchhistory"], player_id: int, /,
-    ) -> List[responses.HistoryMatchObject]:
+    ) -> list[responses.HistoryMatchObject]:
         ...
 
     # general case
     @overload
-    async def request(self, method_name: str, /, *data: Union[str, int]) -> Any:
+    async def request(self, method_name: str, /, *data: str | int) -> Any:
         ...
 
-    async def request(self, method_name: str, /, *data: Union[str, int]) -> Any:
+    async def request(self, method_name: str, /, *data: str | int) -> Any:
         """
         Makes a direct request to the HiRez API.
 
@@ -321,13 +321,13 @@ class Endpoint:
         method_name : str
             The name of the method requested. This shouldn't include the reponse type as it's
             added for you.
-        *data : Union[int, str]
+        *data : int | str
             Method parameters requested to add at the end of the request, if applicable.
             These should be either integers or strings.
 
         Returns
         -------
-        Union[str, Dict[str, Any], List[Dict[str, Any]]]
+        str | dict[str, Any] | list[dict[str, Any]]
             A raw server's response as a string, list or a dictionary (depending on the endpoint).
 
         Raises
@@ -398,7 +398,7 @@ class Endpoint:
                         raise Unavailable
                     # Raise for any other error code
                     response.raise_for_status()
-                    res_data: Union[List[Dict[str, Any]], Dict[str, Any]] = await response.json()
+                    res_data: str | list[dict[str, Any]] | dict[str, Any] = await response.json()
 
                 # handle some ret_msg errors, if possible
                 if res_data:

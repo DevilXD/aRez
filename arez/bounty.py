@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional, Union, Literal, TYPE_CHECKING
+from typing import Literal, TYPE_CHECKING
 
 from .utils import _convert_timestamp
 from .mixins import CacheClient, CacheObject
@@ -25,7 +25,7 @@ class BountyItem(CacheClient):
         `True` if this deal is available and hasn't expired yet, `False` otherwise.
     item : CacheObject
         The item available for sale, with both ID and name set.
-    champion : Union[Champion, CacheObject]
+    champion : Champion | CacheObject
         The champion this item belongs to.\n
         With incomplete cache, this will be a `CacheObject` with the name and ID set.
     expires : datetime
@@ -34,12 +34,12 @@ class BountyItem(CacheClient):
         The type of this bounty deal.
     initial_price : int
         The initial deal price.
-    final_price : Optional[int]
+    final_price : int | None
         The final deal price.\n
         Due to API restrictions, this can be `None` for active deals.
     """
     def __init__(
-        self, api: DataCache, cache_entry: Optional[CacheEntry], data: responses.BountyItemObject
+        self, api: DataCache, cache_entry: CacheEntry | None, data: responses.BountyItemObject
     ):
         super().__init__(api)
         self.active: bool = data["active"] == 'y'
@@ -49,11 +49,11 @@ class BountyItem(CacheClient):
         # handle prices
         self.initial_price: int = int(data["initial_price"])
         final: str = data["final_price"]
-        self.final_price: Optional[int] = int(final) if final.isdecimal() else None
+        self.final_price: int | None = int(final) if final.isdecimal() else None
         # handle champion
-        champion: Optional[Union[Champion, CacheObject]] = None
+        champion: Champion | CacheObject | None = None
         if cache_entry is not None:
             champion = cache_entry.champions.get(data["champion_id"])
         if champion is None:
             champion = CacheObject(id=data["champion_id"], name=data["champion_name"])
-        self.champion: Union[Champion, CacheObject] = champion
+        self.champion: Champion | CacheObject = champion

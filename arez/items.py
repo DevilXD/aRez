@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Optional, Union, List, cast, TYPE_CHECKING
+from typing import cast, TYPE_CHECKING
 
 from . import responses
 from .enums import DeviceType, Passive
@@ -44,12 +44,12 @@ class Device(CacheObject):
         See also: `description`.
     icon_url : str
         The URL of this device's icon.
-    ability : Union[Ability, CacheObject]
+    ability : Ability | CacheObject
         The ability this device affects, or a `CacheObject` with only the name set,
         denoting the affected part of the champion.\n
         The usual names you can find here are ``Weapon`` and ``Armor``,
         or ``Unknown`` in cases where this information couldn't be parsed.
-    champion : Optional[Union[Champion, CacheObject]]
+    champion : Champion | CacheObject | None
         The champion this device belongs to.\n
         This is a `CacheObject` with incomplete cache, and `None` for shop items.
     base : float
@@ -74,7 +74,7 @@ class Device(CacheObject):
     def __init__(self, device_data: responses.DeviceObject):
         super().__init__(id=device_data["ItemId"], name=device_data["DeviceName"])
         self.raw_description: str = device_data["Description"].strip()
-        self.ability: Union[Ability, CacheObject] = CacheObject()
+        self.ability: Ability | CacheObject = CacheObject()
         match = self._ability_pattern.match(self.raw_description)
         if match:
             self.ability = CacheObject(name=match.group(1))
@@ -103,7 +103,7 @@ class Device(CacheObject):
         else:
             self.type = DeviceType.Undefined
         # start with None by default
-        self.champion: Optional[Union[Champion, CacheObject]] = None
+        self.champion: Champion | CacheObject | None = None
         # if the champion ID is non-zero, replace it with a cache object
         if champion_id := device_data["champion_id"]:
             # later overwritten when the device is added to a champion
@@ -159,14 +159,14 @@ class LoadoutCard:
 
     Attributes
     ----------
-    card : Union[Device, CacheObject]
+    card : Device | CacheObject
         The actual card that belongs to this loadout.\n
         `CacheObject` with incomplete cache.
     points : int
         The amount of loadout points that have been assigned to this card.
     """
-    def __init__(self, card: Union[Device, CacheObject], points: int):
-        self.card: Union[Device, CacheObject] = card
+    def __init__(self, card: Device | CacheObject, points: int):
+        self.card: Device | CacheObject = card
         self.points: int = points
 
     def __repr__(self) -> str:
@@ -201,35 +201,35 @@ class Loadout(CacheObject, CacheClient):
         ID of the loadout.
     name : str
         Name of the loadout.
-    player : Union[PartialPlayer, Player]
+    player : PartialPlayer | Player
         The player this loadout belongs to.
-    champion : Union[Champion, CacheObject]
+    champion : Champion | CacheObject
         The champion this loadout belongs to.\n
         With incomplete cache, this will be a `CacheObject` with the name and ID set.
-    cards : List[LoadoutCard]
+    cards : list[LoadoutCard]
         A list of loadout cards this loadout consists of.
     """
     def __init__(
         self,
-        player: Union[PartialPlayer, Player],
-        cache_entry: Optional[CacheEntry],
+        player: PartialPlayer | Player,
+        cache_entry: CacheEntry | None,
         loadout_data: responses.ChampionLoadoutObject,
     ):
         assert player.id == loadout_data["playerId"]
         CacheClient.__init__(self, player._api)
         CacheObject.__init__(self, id=loadout_data["DeckId"], name=loadout_data["DeckName"])
-        self.player: Union[PartialPlayer, Player] = player
-        champion: Optional[Union[Champion, CacheObject]] = None
+        self.player: PartialPlayer | Player = player
+        champion: Champion | CacheObject | None = None
         if cache_entry is not None:
             champion = cache_entry.champions.get(loadout_data["ChampionId"])
         if champion is None:
             champion = CacheObject(
                 id=loadout_data["ChampionId"], name=loadout_data["ChampionName"]
             )
-        self.champion: Union[Champion, CacheObject] = champion
-        self.cards: List[LoadoutCard] = []
+        self.champion: Champion | CacheObject = champion
+        self.cards: list[LoadoutCard] = []
         for card_data in loadout_data["LoadoutItems"]:
-            card: Optional[Union[Device, CacheObject]] = None
+            card: Device | CacheObject | None = None
             if cache_entry is not None:
                 card = cache_entry.cards.get(card_data["ItemId"])
             if card is None:
@@ -249,14 +249,14 @@ class MatchItem:
 
     Attributes
     ----------
-    item : Union[Device, CacheObject]
+    item : Device | CacheObject
         The purchased item.\n
         `CacheObject` with incomplete cache.
     level : int
         The level of the item purchased.
     """
-    def __init__(self, item: Union[Device, CacheObject], level: int):
-        self.item: Union[Device, CacheObject] = item
+    def __init__(self, item: Device | CacheObject, level: int):
+        self.item: Device | CacheObject = item
         self.level: int = level
 
     def __repr__(self) -> str:
@@ -285,21 +285,21 @@ class MatchLoadout:
 
     Attributes
     ----------
-    cards : List[LoadoutCard]
+    cards : list[LoadoutCard]
         A list of loadout cards used.\n
         Will be empty if the player hasn't picked a loadout during the match.
-    talent : Optional[Union[Device, CacheObject]]
+    talent : Device | CacheObject | None
         The talent used.\n
         With incomplete cache, this will be a `CacheObject` with the name and ID set.\n
         `None` when the player hasn't picked a talent during the match.
-    passive : Optional[Passive]
+    passive : Passive | None
         The passive used.
         Currently, this only applies to Octavia, but may affect other champions in the future.
     """
     def __init__(
         self,
-        cache_entry: Optional[CacheEntry],
-        match_data: Union[responses.MatchPlayerObject, responses.HistoryMatchObject],
+        cache_entry: CacheEntry | None,
+        match_data: responses.MatchPlayerObject | responses.HistoryMatchObject,
     ):
         if "hasReplay" in match_data:
             # we're in a full match data
@@ -310,37 +310,41 @@ class MatchLoadout:
             card_key = "Item_{}"
             talent_key = "Item_6"
         # cards
-        self.cards: List[LoadoutCard] = []
+        self.cards: list[LoadoutCard] = []
         for i in range(1, 6):  # 1-5
-            card_id: int = match_data[f"ItemId{i}"]  # type: ignore[misc]
+            card_id: int = match_data[f"ItemId{i}"]  # type: ignore[literal-required]
             if not card_id:
                 # skip 0s
                 continue
-            card: Optional[Union[Device, CacheObject]] = None
+            card: Device | CacheObject | None = None
             if cache_entry is not None:
                 card = cache_entry.cards.get(card_id)
             if card is None:
                 card = CacheObject(
-                    id=card_id, name=match_data[card_key.format(i)]  # type: ignore[misc]
+                    id=card_id,
+                    name=match_data[card_key.format(i)],  # type: ignore[literal-required]
                 )
-            self.cards.append(LoadoutCard(card, match_data[f"ItemLevel{i}"]))  # type: ignore[misc]
+            self.cards.append(
+                LoadoutCard(card, match_data[f"ItemLevel{i}"])  # type: ignore[literal-required]
+            )
         self.cards.sort(key=lambda c: c.points, reverse=True)
         # talent
         talent_id: int = match_data["ItemId6"]
-        talent: Optional[Union[Device, CacheObject]] = None
+        talent: Device | CacheObject | None = None
         if talent_id:
             if cache_entry is not None:
                 talent = cache_entry.talents.get(talent_id)
             if talent is None:
                 talent = CacheObject(
-                    id=talent_id, name=match_data[talent_key]  # type: ignore[misc]
+                    id=talent_id, name=match_data[talent_key]  # type: ignore[literal-required]
                 )
-        self.talent: Optional[Union[Device, CacheObject]] = talent
+        self.talent: Device | CacheObject | None = talent
         # passive
-        self.passive: Optional[Passive] = None
-        passive_id = cast(Optional[int], match_data.get("Kills_Phoenix"))
-        if passive_id:
-            self.passive = Passive(passive_id)
+        self.passive: Passive | None = None
+        if "hasReplay" in match_data:
+            match_data = cast(responses.MatchPlayerObject, match_data)
+            if passive_id := match_data["Kills_Phoenix"]:
+                self.passive = Passive(passive_id)
 
     def __repr__(self) -> str:
         if not self.talent:  # pragma: no cover

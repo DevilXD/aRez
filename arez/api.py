@@ -9,11 +9,6 @@ from datetime import datetime, timedelta, timezone
 from inspect import Parameter, signature, iscoroutinefunction
 from typing import (
     Any,
-    Optional,
-    Union,
-    List,
-    Dict,
-    Tuple,
     Callable,
     Iterable,
     Sequence,
@@ -75,7 +70,7 @@ class PaladinsAPI(DataCache):
 
     Parameters
     ----------
-    dev_id : Union[int, str]
+    dev_id : int | str
         Your developer's ID (devId).
     auth_key : str
         Your developer's authentication key (authKey).
@@ -83,24 +78,24 @@ class PaladinsAPI(DataCache):
         When set to `False`, this disables the data cache. This makes most objects returned
         from the API be `CacheObject` instead of their respective data-rich counterparts.\n
         Defaults to `True`.
-    initialize : Union[bool, Language]
+    initialize : bool | Language
         When set to `True`, it launches a task that will initialize the cache with
         the default (English) language.\n
         Can be set to a `Language` instance, in which case that language will be set as default
         first, before initializing.\n
         Defaults to `False`, where no initialization occurs.
-    loop : Optional[asyncio.AbstractEventLoop]
+    loop : asyncio.AbstractEventLoop | None
         The event loop you want to use for this API.\n
         Default loop is used when not provided.
     """
     def __init__(
         self,
-        dev_id: Union[int, str],
+        dev_id: int | str,
         auth_key: str,
         *,
         cache: bool = True,
-        initialize: Union[bool, Language] = False,
-        loop: Optional[asyncio.AbstractEventLoop] = None,
+        initialize: bool | Language = False,
+        loop: asyncio.AbstractEventLoop | None = None,
     ):
         if loop is None:  # pragma: no branch
             loop = asyncio.get_event_loop()
@@ -114,12 +109,10 @@ class PaladinsAPI(DataCache):
         )
         self._statuspage = StatusPage("http://status.hirezstudios.com", loop=loop)
         self._statuspage_group = "Paladins"
-        self._server_status: Optional[ServerStatus] = None
-        self._status_callback: Optional[
-            Callable[[ServerStatus, ServerStatus], Awaitable[Any]]
-        ] = None
-        self._status_task: Optional[asyncio.Task[NoReturn]] = None
-        self._status_intervals: Tuple[timedelta, timedelta] = (
+        self._server_status: ServerStatus | None = None
+        self._status_callback: Callable[[ServerStatus, ServerStatus], Awaitable[Any]] | None = None
+        self._status_task: asyncio.Task[NoReturn] | None = None
+        self._status_intervals: tuple[timedelta, timedelta] = (
             _CHECK_INTERVAL, _RECHECK_INTERVAL  # check, recheck
         )
 
@@ -202,7 +195,7 @@ class PaladinsAPI(DataCache):
                 pts_dict["platform"] = pts_dict["environment"]  # type: ignore[typeddict-item]
 
             # fetch from the StatusPage
-            group: Optional[ComponentGroup]
+            group: ComponentGroup | None
             try:
                 page_status: CurrentStatus = await self._statuspage.get_status()
             except (
@@ -256,9 +249,9 @@ class PaladinsAPI(DataCache):
 
     def register_status_callback(
         self,
-        callback: Union[
-            None, Callable[[ServerStatus], Any], Callable[[ServerStatus, ServerStatus], Any],
-        ],
+        callback: (
+            None | Callable[[ServerStatus], Any] | Callable[[ServerStatus, ServerStatus], Any]
+        ),
         check_interval: timedelta = _CHECK_INTERVAL,
         recheck_interval: timedelta = _RECHECK_INTERVAL,
     ):
@@ -300,9 +293,8 @@ class PaladinsAPI(DataCache):
 
         Parameters
         ----------
-        callback : Union[None,\
-            Callable[[ServerStatus], Any],\
-            Callable[[ServerStatus, ServerStatus], Any]]
+        callback : Callable[[ServerStatus], Any] | \
+        Callable[[ServerStatus, ServerStatus], Any]] | None
             The callback function you want to register. This can be either a normal function
             or an async one, accepting either ``1`` or ``2`` positional arguments,
             with any return type.\n
@@ -363,10 +355,10 @@ class PaladinsAPI(DataCache):
 
     async def get_champion_info(
         self,
-        language: Optional[Language] = None,
+        language: Language | None = None,
         *,
         force_refresh: bool = False,
-        cache: Optional[bool] = None,
+        cache: bool | None = None,
     ) -> CacheEntry:
         """
         Fetches the champions, talents, cards, shop items and skins information.
@@ -378,13 +370,13 @@ class PaladinsAPI(DataCache):
 
         Parameters
         ----------
-        language : Optional[Language]
+        language : Language | None
             The `Language` you want to fetch the information in.\n
             Default language is used if not provided.
         force_refresh : bool
             Bypasses the cache, forcing a fetch and returning a new object.\n
             Defaults to `False`.
-        cache : Optional[bool]
+        cache : bool | None
             Lets you decide if the received information should be cached or not.\n
             Setting this to `True` forces the object to be cached, even
             when the cache is disabled.\n
@@ -418,7 +410,7 @@ class PaladinsAPI(DataCache):
         self,
         player_id: int,
         player_name: str = '',
-        platform: Union[str, int] = 0,
+        platform: str | int = 0,
         private: bool = False,
     ) -> PartialPlayer:
         """
@@ -442,7 +434,7 @@ class PaladinsAPI(DataCache):
         player_name : str
             The player Name you want the object to have.\n
             Defaults to an empty string.
-        platform : Union[str, int]
+        platform : str | int
             The platform you want the object to have.\n
             Defaults to `Platform.Unknown`.
         private : bool
@@ -461,19 +453,19 @@ class PaladinsAPI(DataCache):
 
     @overload
     async def get_player(
-        self, player: Union[int, str], *, return_private: Literal[False] = False
+        self, player: int | str, *, return_private: Literal[False] = False
     ) -> Player:
         ...
 
     @overload
     async def get_player(
-        self, player: Union[int, str], *, return_private: Literal[True]
-    ) -> Union[Player, PartialPlayer]:
+        self, player: int | str, *, return_private: Literal[True]
+    ) -> Player | PartialPlayer:
         ...
 
     async def get_player(
-        self, player: Union[int, str], *, return_private: bool = False
-    ) -> Union[Player, PartialPlayer]:
+        self, player: int | str, *, return_private: bool = False
+    ) -> Player | PartialPlayer:
         """
         Fetches a Player object for the given player ID or player name.
 
@@ -485,7 +477,7 @@ class PaladinsAPI(DataCache):
 
         Parameters
         ----------
-        player : Union[int, str]
+        player : int | str
             Player ID or player name of the player you want to get object for.
         return_private : bool
             When set to `True` and the requested profile is determined private, this method will
@@ -495,7 +487,7 @@ class PaladinsAPI(DataCache):
 
         Returns
         -------
-        Union[Player, PartialPlayer]
+        Player | PartialPlayer
             An object containing stats information about the player requested.\n
             `PartialPlayer` objects are only returned for private profiles and appropriate
             arguments used.
@@ -547,12 +539,12 @@ class PaladinsAPI(DataCache):
     @overload
     async def get_players(
         self, player_ids: Iterable[int], *, return_private: Literal[True]
-    ) -> Sequence[Union[Player, PartialPlayer]]:
+    ) -> Sequence[Player | PartialPlayer]:
         ...
 
     async def get_players(
         self, player_ids: Iterable[int], *, return_private: bool = False
-    ) -> Sequence[Union[Player, PartialPlayer]]:
+    ) -> Sequence[Player | PartialPlayer]:
         """
         Fetches multiple players in a batch, and returns their list. Removes duplicates.
 
@@ -571,14 +563,14 @@ class PaladinsAPI(DataCache):
 
         Returns
         -------
-        List[Union[Player, PartialPlayer]]
+        list[Player | PartialPlayer]
             A list of players requested.\n
             `PartialPlayer` objects are only returned for private profiles and appropriate
             arguments used.
             Some players might not be included in the output if they weren't found,
             or their profile was private.
         """
-        ids_list: List[int] = _deduplicate(player_ids, 0)  # also remove private accounts
+        ids_list: list[int] = _deduplicate(player_ids, 0)  # also remove private accounts
         if not ids_list:
             return []
         # verify the types
@@ -590,10 +582,10 @@ class PaladinsAPI(DataCache):
         logger.info(
             f"api.get_players(player_ids=[{', '.join(map(str, ids_list))}], {return_private=})"
         )
-        player_list: List[Union[Player, PartialPlayer]] = []
+        player_list: list[Player | PartialPlayer] = []
         for chunk_ids in chunk(ids_list, 20):
             chunk_response = await self.request("getplayerbatch", ','.join(map(str, chunk_ids)))
-            chunk_players: List[Union[Player, PartialPlayer]] = []
+            chunk_players: list[Player | PartialPlayer] = []
             for p in chunk_response:
                 ret_msg = p["ret_msg"]
                 if not ret_msg:
@@ -613,11 +605,11 @@ class PaladinsAPI(DataCache):
     async def search_players(
         self,
         player_name: str,
-        platform: Optional[Platform] = None,
+        platform: Platform | None = None,
         *,
         return_private: bool = True,
         exact: bool = True,
-    ) -> List[PartialPlayer]:
+    ) -> list[PartialPlayer]:
         """
         Fetches all players whose name matches the name specified.
         The search is fuzzy - player name capitalisation doesn't matter.
@@ -633,7 +625,7 @@ class PaladinsAPI(DataCache):
         ----------
         player_name : str
             Player name you want to search for.
-        platform : Optional[Platform]
+        platform : Platform | None
             Platform you want to limit the search to.\n
             Specifying `None` will search on all platforms.\n
             Defaults to `None`.
@@ -656,7 +648,7 @@ class PaladinsAPI(DataCache):
 
         Returns
         -------
-        List[PartialPlayer]
+        list[PartialPlayer]
             A list of players whose name (and optionally platform) matches
             the specified name.\n
             Note that some of them might be set as private, unless appropriate input parameters
@@ -675,7 +667,7 @@ class PaladinsAPI(DataCache):
                 "platform argument has to be None or of arez.Platform type, "
                 f"got {type(platform)!r}"
             )
-        list_response: List[responses.PartialPlayerObject]
+        list_response: list[responses.PartialPlayerObject]
         logger.info(
             f"api.search_players({player_name=}, platform={getattr(platform, 'name', None)}, "
             f"{return_private=}, {exact=})"
@@ -769,7 +761,7 @@ class PaladinsAPI(DataCache):
         )
 
     async def get_match(
-        self, match_id: int, language: Optional[Language] = None, *, expand_players: bool = False
+        self, match_id: int, language: Language | None = None, *, expand_players: bool = False
     ) -> Match:
         """
         Fetches a match for the given Match ID.
@@ -780,7 +772,7 @@ class PaladinsAPI(DataCache):
         ----------
         match_id : int
             Match ID you want to get a match for.
-        language : Optional[Language]
+        language : Language | None
             The `Language` you want to fetch the information in.\n
             Default language is used if not provided.
         expand_players : bool
@@ -813,7 +805,7 @@ class PaladinsAPI(DataCache):
         response = await self.request("getmatchdetails", match_id)
         if not response:
             raise NotFound("Match")
-        players_dict: Dict[int, Player] = {}
+        players_dict: dict[int, Player] = {}
         if expand_players:
             players_dict = await _get_players(self, (int(p["playerId"]) for p in response))
         return Match(self, cache_entry, response, players_dict)
@@ -821,10 +813,10 @@ class PaladinsAPI(DataCache):
     async def get_matches(
         self,
         match_ids: Iterable[int],
-        language: Optional[Language] = None,
+        language: Language | None = None,
         *,
         expand_players: bool = False,
-    ) -> List[Match]:
+    ) -> list[Match]:
         """
         Fetches multiple matches in a batch, for the given Match IDs. Removes duplicates.
 
@@ -834,7 +826,7 @@ class PaladinsAPI(DataCache):
         ----------
         match_ids : Iterable[int]
             An iterable of Match IDs you want to fetch.
-        language : Optional[Language]
+        language : Language | None
             The `Language` you want to fetch the information in.\n
             Default language is used if not provided.
         expand_players : bool
@@ -845,11 +837,11 @@ class PaladinsAPI(DataCache):
 
         Returns
         -------
-        List[Match]
+        list[Match]
             A list of the available matches requested.\n
             Some of the matches can be not present if they weren't available on the server.
         """
-        ids_list: List[int] = _deduplicate(match_ids)
+        ids_list: list[int] = _deduplicate(match_ids)
         if not ids_list:
             return []
         # verify the types
@@ -869,8 +861,8 @@ class PaladinsAPI(DataCache):
             f"api.get_matches(match_ids=[{', '.join(map(str, ids_list))}], "
             f"language={language.name}, {expand_players=})"
         )
-        matches: List[Match] = []
-        players: Dict[int, Player] = {}
+        matches: list[Match] = []
+        players: dict[int, Player] = {}
         for chunk_ids in chunk(ids_list, 10):  # chunk the IDs into groups of 10
             response = await self.request("getmatchdetailsbatch", ','.join(map(str, chunk_ids)))
             # see if there are any API errors
@@ -890,7 +882,7 @@ class PaladinsAPI(DataCache):
                         player_ids.append(pid)
                 players_list = await self.get_players(player_ids)
                 players.update({p.id: p for p in players_list})
-            chunked_matches: List[Match] = [
+            chunked_matches: list[Match] = [
                 Match(self, cache_entry, match_list, players)
                 for match_list in bunched_matches.values()
             ]
@@ -903,7 +895,7 @@ class PaladinsAPI(DataCache):
         *,
         start: datetime,
         end: datetime,
-        language: Optional[Language] = None,
+        language: Language | None = None,
         reverse: bool = False,
         local_time: bool = False,
         expand_players: bool = False,
@@ -938,7 +930,7 @@ class PaladinsAPI(DataCache):
         ----------
         queue : Queue
             The `Queue` you want to fetch the matches for.
-        language : Optional[Language]
+        language : Language | None
             The `Language` you want to fetch the information in.\n
             Default language is used if not provided.
         start : datetime.datetime
@@ -992,10 +984,10 @@ class PaladinsAPI(DataCache):
         )
 
         # Use the generated date and hour values to iterate over and fetch matches
-        players: Dict[int, Player] = {}
+        players: dict[int, Player] = {}
         for date, hour in _date_gen(start, end, reverse=reverse):  # pragma: no branch
             queue_response = await self.request("getmatchidsbyqueue", queue.value, date, hour)
-            processed: List[Tuple[int, datetime]] = sorted(
+            processed: list[tuple[int, datetime]] = sorted(
                 (
                     (int(match_info["Match"]), _convert_timestamp(match_info["Entry_Datetime"]))
                     for match_info in queue_response
@@ -1004,7 +996,7 @@ class PaladinsAPI(DataCache):
                 key=itemgetter(1),
                 reverse=reverse,
             )
-            match_ids: List[int] = []
+            match_ids: list[int] = []
             if reverse:
                 for mid, stamp in processed:  # pragma: no branch
                     if stamp < start:
@@ -1047,8 +1039,8 @@ class PaladinsAPI(DataCache):
                     yield match
 
     async def get_bounty(
-        self, *, language: Optional[Language] = None
-    ) -> Tuple[List[BountyItem], List[BountyItem]]:
+        self, *, language: Language | None = None
+    ) -> tuple[list[BountyItem], list[BountyItem]]:
         """
         Returns a 2-item tuple denoting the (active, past) bounty store items, sorted
         by their expiration time.
@@ -1069,13 +1061,13 @@ class PaladinsAPI(DataCache):
 
         Parameters
         ----------
-        language : Optional[Language]
+        language : Language | None
             The `Language` you want to fetch the information in.\n
             Default language is used if not provided.
 
         Returns
         -------
-        Tuple[List[BountyItem], List[BountyItem]]
+        tuple[list[BountyItem], list[BountyItem]]
             An tuple containing a list of active bounty store items,
             followed by a list of items that have already expired.
 

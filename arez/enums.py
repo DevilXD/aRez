@@ -1,7 +1,7 @@
 ﻿from __future__ import annotations
 
 from enum import IntEnum
-from typing import Any, Iterator, Optional, Union, Dict, Tuple, Protocol, Type, cast, TYPE_CHECKING
+from typing import Any, Iterator, Protocol, Type, cast, TYPE_CHECKING
 
 
 __all__ = [
@@ -72,15 +72,15 @@ class _EnumProt(Protocol):
     """
     An internal protocol, describing how the resulting enum class will look like.
     """
-    _name_mapping: Dict[str, _EnumBase]
-    _value_mapping: Dict[int, _EnumBase]
-    _member_mapping: Dict[str, _EnumBase]
+    _name_mapping: dict[str, _EnumBase]
+    _value_mapping: dict[int, _EnumBase]
+    _member_mapping: dict[str, _EnumBase]
     _default_value: int
     _immutable: bool
 
     def __new__(  # type: ignore[misc]
         cls: _EnumProt, name: str, value: int
-    ) -> Optional[Union[_EnumBase, int, str]]:
+    ) -> _EnumBase | int | str | None:
         ...
 
     def __call__(self, name: str, value: int) -> _EnumBase:
@@ -91,13 +91,13 @@ class EnumMeta(type):
     def __new__(
         meta_cls: Type[EnumMeta],
         name: str,
-        bases: Tuple[type, ...],
-        attrs: Dict[str, Any],
+        bases: tuple[type, ...],
+        attrs: dict[str, Any],
         *,
-        default_value: Optional[int] = None,
+        default_value: int | None = None,
     ):
         # Preprocess special attributes
-        new_attrs: Dict[str, Any] = {}
+        new_attrs: dict[str, Any] = {}
         for k, v in attrs.copy().items():
             if k.startswith("_") or hasattr(v, "__get__"):
                 # private or special attribute, or descriptor - pass unchanged
@@ -111,9 +111,9 @@ class EnumMeta(type):
         super().__setattr__(cls, "_immutable", False)
 
         # Create enum members
-        name_mapping: Dict[str, _EnumBase] = {}
-        value_mapping: Dict[int, _EnumBase] = {}
-        member_mapping: Dict[str, _EnumBase] = {}
+        name_mapping: dict[str, _EnumBase] = {}
+        value_mapping: dict[int, _EnumBase] = {}
+        member_mapping: dict[str, _EnumBase] = {}
         for k, v in attrs.items():
             if v in value_mapping:
                 # existing value, just read it back
@@ -139,11 +139,11 @@ class EnumMeta(type):
     # Add our special enum member constructor
     def __call__(  # type: ignore[override]
         cls: _EnumProt,
-        name_or_value: Union[str, int],
-        value: Optional[int] = None,
+        name_or_value: str | int,
+        value: int | None = None,
         /, *,
         _return_default: bool = False,
-    ) -> Optional[Union[_EnumBase, int, str]]:
+    ) -> _EnumBase | int | str | None:
         if value is not None:
             if getattr(cls, "_immutable", True):
                 raise TypeError("Cannot extend enums")
@@ -192,7 +192,7 @@ class _RankMeta(EnumMeta):
             "v": 5,
         }
         cls: _EnumProt = super().__new__(meta_cls, *args, **kwargs)
-        more_aliases: Dict[str, _EnumBase] = {}
+        more_aliases: dict[str, _EnumBase] = {}
         # generate additional aliases
         for k, v in cls._name_mapping.items():
             if ' ' in k or '_' not in k:
@@ -212,11 +212,11 @@ class _RankMeta(EnumMeta):
 if TYPE_CHECKING:
     # For typing purposes only
     class Enum(IntEnum):
-        def __init__(self, name_or_value: Union[str, int], *, _return_default: bool = False):
+        def __init__(self, name_or_value: str | int, *, _return_default: bool = False):
             ...
 
     class _RankEnum(IntEnum):
-        def __init__(self, name_or_value: Union[str, int], *, _return_default: bool = False):
+        def __init__(self, name_or_value: str | int, *, _return_default: bool = False):
             ...
 else:
     class Enum(_EnumBase, metaclass=EnumMeta):
@@ -229,12 +229,12 @@ else:
 
         Parameters
         ----------
-        name_or_value : Union[str, int]
+        name_or_value : str | int
             The name or value of the enum member you want to get.
 
         Returns
         -------
-        Optional[Enum]
+        Enum | None
             The matched enum member. `None` is returned if no member could be matched.
         """
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import List, Dict, Literal, cast, TYPE_CHECKING
+from typing import Literal, cast, TYPE_CHECKING
 
 from .utils import Lookup
 from .mixins import CacheClient, CacheObject
@@ -182,8 +182,8 @@ class Champion(CacheObject, CacheClient):
         cache: DataCache,
         language: Language,
         champion_data: responses.ChampionObject,
-        devices: List[Device],
-        skins_data: List[responses.ChampionSkinObject],
+        devices: list[Device],
+        skins_data: list[responses.ChampionSkinObject],
     ):
         CacheClient.__init__(self, cache)
         CacheObject.__init__(self, id=champion_data["id"], name=champion_data["Name"])
@@ -201,12 +201,12 @@ class Champion(CacheObject, CacheClient):
         # Abilities
         abilities = []
         for i in range(1, 6):
-            ability_data = champion_data[f"Ability_{i}"]  # type: ignore[misc]
+            ability_data = champion_data[f"Ability_{i}"]  # type: ignore[literal-required]
             # see if this is a composite ability
             match = self._name_pattern.match(ability_data["Summary"])
             if match:
                 # yes - we need to split the data into two sets
-                composites: Dict[str, responses.AbilityObject] = {}
+                composites: dict[str, responses.AbilityObject] = {}
                 name1, name2 = match.groups()
                 composites[name1] = {"Summary": name1}  # type: ignore[typeddict-item]
                 composites[name2] = {"Summary": name2}  # type: ignore[typeddict-item]
@@ -232,8 +232,8 @@ class Champion(CacheObject, CacheClient):
         self.abilities: Lookup[Ability, Ability] = Lookup(abilities)
 
         # Talents and Cards
-        cards: List[Device] = []
-        talents: List[Device] = []
+        cards: list[Device] = []
+        talents: list[Device] = []
         for d in devices:
             if d.type == DeviceType.Card:
                 cards.append(d)
@@ -256,7 +256,7 @@ class Champion(CacheObject, CacheClient):
     def __bool__(self) -> bool:
         return len(self.cards) == 16 and len(self.talents) == 3
 
-    async def get_skins(self) -> List[Skin]:
+    async def get_skins(self) -> list[Skin]:
         """
         Returns a list of skins this champion has.
 
@@ -266,7 +266,7 @@ class Champion(CacheObject, CacheClient):
 
         Returns
         -------
-        List[Skin]
+        list[Skin]
             The list of skins available for this champion.
         """
         response = await self._api.request("getchampionskins", self.id, self._language.value)

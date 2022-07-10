@@ -1,4 +1,4 @@
-from typing import Optional
+from __future__ import annotations
 
 
 __all__ = [
@@ -28,7 +28,7 @@ class HTTPException(ArezException):
 
     Attributes
     ----------
-    cause : Optional[Exception]
+    cause : Exception | None
         The original exception cause. This is usually:\n
         • `aiohttp.ClientResponseError` when the request results in an unhandled HTTP error.\n
         • `aiohttp.ClientConnectionError` when the request couldn't complete \
@@ -40,7 +40,7 @@ class HTTPException(ArezException):
         A more detailed description of the error. This is usually an empty string,
         set only when the API is having some internal error.
     """
-    def __init__(self, original_exc: Optional[Exception] = None, description: str = ''):
+    def __init__(self, original_exc: Exception | None = None, description: str = ''):
         if description:  # pragma: no cover
             text = f"There was an error while processing the request: {description}"
         else:

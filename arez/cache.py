@@ -4,12 +4,12 @@ import asyncio
 import logging
 from itertools import chain
 from datetime import datetime, timedelta
-from typing import Any, Optional, Union, List, Dict, TYPE_CHECKING, cast
+from typing import Any, TYPE_CHECKING, cast
 
 from .items import Device
-from .champion import Champion, Skin
 from .endpoint import Endpoint
 from .mixins import CacheClient
+from .champion import Champion, Skin
 from .enums import Language, DeviceType
 from .utils import group_by, Lookup, WeakValueDefaultDict
 from .exceptions import HTTPException, Unavailable, LimitReached
@@ -48,7 +48,7 @@ class DataCache(Endpoint, CacheClient):
     ----------
     url : str
         The cache's base endpoint URL.
-    dev_id : Union[int, str]
+    dev_id : int | str
         Your developer's ID (devId).
     auth_key : str
         Your developer's authentication key (authKey).
@@ -56,25 +56,25 @@ class DataCache(Endpoint, CacheClient):
         When set to `False`, this disables the data cache. This makes most objects returned
         from the API be `CacheObject` instead of their respective data-rich counterparts.
         Defaults to `True`.
-    initialize : Union[bool, Language]
+    initialize : bool | Language
         When set to `True`, it launches a task that will initialize the cache with
         the default (English) language.\n
         Can be set to a `Language` instance, in which case that language will be set as default
         first, before initializing.\n
         Defaults to `False`, where no initialization occurs.
-    loop : Optional[asyncio.AbstractEventLoop]
+    loop : asyncio.AbstractEventLoop | None
         The event loop you want to use for this data cache.\n
         Default loop is used when not provided.
     """
     def __init__(
         self,
         url: str,
-        dev_id: Union[int, str],
+        dev_id: int | str,
         auth_key: str,
         *,
         enabled: bool = True,
-        initialize: Union[bool, Language] = False,
-        loop: Optional[asyncio.AbstractEventLoop] = None,
+        initialize: bool | Language = False,
+        loop: asyncio.AbstractEventLoop | None = None,
     ):
         super().__init__(url, dev_id, auth_key, loop=loop)
         CacheClient.__init__(self, self)  # assign CacheClient recursively here
@@ -83,7 +83,7 @@ class DataCache(Endpoint, CacheClient):
             self._default_language = initialize
         else:
             self._default_language = Language.English
-        self._cache: Dict[Language, CacheEntry] = {}
+        self._cache: dict[Language, CacheEntry] = {}
         self._locks: WeakValueDefaultDict[Any, asyncio.Lock] = WeakValueDefaultDict(
             lambda: asyncio.Lock()
         )
@@ -114,7 +114,7 @@ class DataCache(Endpoint, CacheClient):
         logger.info(f"cache.set_default_language(language={language.name})")
         self._default_language = language
 
-    async def initialize(self, *, language: Optional[Language] = None) -> bool:
+    async def initialize(self, *, language: Language | None = None) -> bool:
         """
         Initializes the data cache, by pre-fetching and storing the `CacheEntry` for the default
         language currently set.
@@ -126,7 +126,7 @@ class DataCache(Endpoint, CacheClient):
 
         Parameters
         ----------
-        language : Optional[Language]
+        language : Language | None
             The `Language` you want to initialize the information for.\n
             Default language is used if not provided.
 
@@ -146,8 +146,8 @@ class DataCache(Endpoint, CacheClient):
         return bool(entry)
 
     async def _fetch_entry(
-        self, language: Language, *, force_refresh: bool = False, cache: Optional[bool] = None
-    ) -> Optional[CacheEntry]:
+        self, language: Language, *, force_refresh: bool = False, cache: bool | None = None
+    ) -> CacheEntry | None:
         # Use a lock here to ensure no race condition between checking for an entry
         # and setting a new one. Use separate locks per each language.
         async with self._locks[f"cache_fetch_{language.name}"]:
@@ -188,7 +188,7 @@ class DataCache(Endpoint, CacheClient):
                 self._cache[language] = entry
         return entry
 
-    async def _ensure_entry(self, language: Optional[Language]) -> Optional[CacheEntry]:
+    async def _ensure_entry(self, language: Language | None) -> CacheEntry | None:
         if language is None:
             language = self._default_language
         if not self.cache_enabled:
@@ -197,7 +197,7 @@ class DataCache(Endpoint, CacheClient):
         entry = await self._fetch_entry(language)
         return entry
 
-    def get_entry(self, language: Optional[Language] = None) -> Optional[CacheEntry]:
+    def get_entry(self, language: Language | None = None) -> CacheEntry | None:
         """
         Returns a cache entry for the given language specified.
 
@@ -209,13 +209,13 @@ class DataCache(Endpoint, CacheClient):
 
         Parameters
         ----------
-        language : Optional[Language]
+        language : Language | None
             The `Language` you want to get the entry in.\n
             Default language is used if not provided.
 
         Returns
         -------
-        Optional[CacheEntry]
+        CacheEntry | None
             The cache entry you requested.\n
             `None` is returned if the entry for the language specified hasn't been fetched yet.
         """
@@ -272,15 +272,15 @@ class CacheEntry:
         cache: DataCache,
         language: Language,
         expires_at: datetime,
-        champions_data: List[responses.ChampionObject],
-        items_data: List[responses.DeviceObject],
-        skins_data: List[responses.ChampionSkinObject],
+        champions_data: list[responses.ChampionObject],
+        items_data: list[responses.DeviceObject],
+        skins_data: list[responses.ChampionSkinObject],
     ):
         self._cache = cache
         self.language = language
         self._expires_at = expires_at
         # process devices (shop items, cards and talents)
-        sorted_devices: Dict[int, List[Device]] = {}
+        sorted_devices: dict[int, list[Device]] = {}
         items = []
         cards = []
         talents = []

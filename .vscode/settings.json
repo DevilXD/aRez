@@ -4,5 +4,6 @@
         "--ignore D002",
         "--ignore D004"
     ],
-    "python.linting.enabled": true
+    "python.linting.enabled": true,
+    "esbonio.sphinx.confDir": ""
 }
