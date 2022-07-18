@@ -72,7 +72,7 @@ class Device(CacheObject):
     _scale_pattern = re.compile(r'{scale=(-?\d*\.?\d+)\|(-?\d*\.?\d+)}|{(-?\d+)}')
 
     def __init__(self, device_data: responses.DeviceObject):
-        super().__init__(id=device_data["ItemId"], name=device_data["DeviceName"])
+        super().__init__(id=device_data["ItemId"], name=device_data["DeviceName"].strip())
         self.raw_description: str = device_data["Description"].strip()
         self.ability: Ability | CacheObject = CacheObject()
         match = self._ability_pattern.match(self.raw_description)
