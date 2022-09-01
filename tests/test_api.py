@@ -170,6 +170,14 @@ async def test_search_players(api: arez.PaladinsAPI):
         CONSOLE_PLAYER.name, arez.Platform(CONSOLE_PLAYER.platform)
     )
     assert len(player_list) == 1 and isinstance(player_list[0], arez.PartialPlayer)
+    # non-exact names, all platforms
+    player_list = await api.search_players(PLAYER.name, exact=False)
+    assert len(player_list) >= 2 and all(isinstance(p, arez.PartialPlayer) for p in player_list)
+    # non-exact names, PC platform
+    player_list = await api.search_players(
+        PLAYER.name, arez.Platform(PLAYER.platform), exact=False
+    )
+    assert len(player_list) >= 1 and all(isinstance(p, arez.PartialPlayer) for p in player_list)
     # return private accounts
     player_list = await api.search_players(
         PRIVATE_PLAYER.name, arez.Platform(PRIVATE_PLAYER.platform)

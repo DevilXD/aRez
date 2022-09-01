@@ -695,7 +695,7 @@ class PaladinsAPI(DataCache):
                 if exact and player_dict["Name"].lower() != player_name:
                     continue
                 # if a platform has been passed and it doesn't match, skip it
-                if platform is not None and player_dict["portal_id"] != platform.value:
+                if platform is not None and int(player_dict["portal_id"]) != platform.value:
                     continue
                 list_response.append(player_dict)
         if not return_private:
