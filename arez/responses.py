@@ -447,6 +447,7 @@ class MatchSearchObject(RetMsg):
     Active_Flag: Literal['y', 'n']
     Entry_Datetime: str  # timestamp
     Match: IntStr
+    Region: str
 
 
 class BountyItemObject(RetMsg):
