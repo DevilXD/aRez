@@ -357,7 +357,7 @@ class Match(CacheClient, MatchMixin):
         if self.queue.is_ranked():
             for i in range(1, 7):
                 ban_id: int = first_player[f"BanId{i}"]  # type: ignore[literal-required]
-                if not ban_id:
+                if not ban_id:  # pragma: no cover
                     # zero indicates no ban has happened - use None
                     self.bans.append(None)
                     continue
@@ -416,7 +416,7 @@ class Match(CacheClient, MatchMixin):
         for mp in self.players:
             pid = mp.player.id
             # skip 0s
-            if pid == 0:
+            if pid == 0:  # pragma: no cover
                 continue
             if (p := players_dict.get(pid)) is not None:  # pragma: no branch
                 mp.player = p
