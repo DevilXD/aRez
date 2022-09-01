@@ -39,11 +39,11 @@ pytest_plugins = ["asyncio", "recording", "pytest_cov", "pytest_order"]
 #####################
 
 # base datetime - has to be within the last 3-30 days, date only
-BASE_DATETIME = datetime(2021, 9, 30)
+BASE_DATETIME = datetime(2022, 8, 27)
 
 # match IDs - at least one private player
-MATCH         = 1125950944  # Ranked Siege
-MATCH_TDM     = 1125950791  # TDM
+MATCH         = 1183722847  # Ranked Siege
+MATCH_TDM     = 1183721365  # TDM
 INVALID_MATCH = 1234        # invalid
 
 # named tuple for player data storage
