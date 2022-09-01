@@ -29,7 +29,7 @@ from .status import ServerStatus
 from .statuspage import StatusPage
 from .match import Match, _get_players
 from .player import Player, PartialPlayer
-from .enums import Language, Platform, Queue, PC_PLATFORMS
+from .enums import Language, Platform, Queue, Region, PC_PLATFORMS
 from .utils import chunk, group_by, _date_gen, _convert_timestamp, _deduplicate
 from .exceptions import HTTPException, Private, NotFound, Unavailable, LimitReached
 
@@ -896,6 +896,7 @@ class PaladinsAPI(DataCache):
         start: datetime,
         end: datetime,
         language: Language | None = None,
+        region: Region | None = None,
         reverse: bool = False,
         local_time: bool = False,
         expand_players: bool = False,
@@ -933,6 +934,9 @@ class PaladinsAPI(DataCache):
         language : Language | None
             The `Language` you want to fetch the information in.\n
             Default language is used if not provided.
+        region : Region | None
+            The `Region` to filter the returned matches to.\n
+            `None` means that no filtering is done.
         start : datetime.datetime
             A timestamp indicating the starting point of a time slice you want to
             fetch the matches in.
@@ -958,7 +962,7 @@ class PaladinsAPI(DataCache):
         -------
         AsyncGenerator[Match, None]
             An async generator yielding matches played in the queue specified, between the
-            timestamps specified.
+            timestamps specified, optionally filtered to the region specified.
         """
         if not isinstance(queue, Queue):
             raise TypeError(f"queue argument has to be of arez.Queue type, got {type(queue)}")
@@ -987,28 +991,34 @@ class PaladinsAPI(DataCache):
         players: dict[int, Player] = {}
         for date, hour in _date_gen(start, end, reverse=reverse):  # pragma: no branch
             queue_response = await self.request("getmatchidsbyqueue", queue.value, date, hour)
-            processed: list[tuple[int, datetime]] = sorted(
+            processed: list[tuple[int, datetime, Region]] = sorted(
                 (
-                    (int(match_info["Match"]), _convert_timestamp(match_info["Entry_Datetime"]))
+                    (
+                        int(match_info["Match"]),
+                        _convert_timestamp(match_info["Entry_Datetime"]),
+                        Region(match_info["Region"]),
+                    )
                     for match_info in queue_response
                     if match_info["Active_Flag"] == 'n'
                 ),
                 key=itemgetter(1),
                 reverse=reverse,
             )
+            # gather and filter match IDs
             match_ids: list[int] = []
             if reverse:
-                for mid, stamp in processed:  # pragma: no branch
+                for mid, stamp, match_region in processed:  # pragma: no branch
                     if stamp < start:
                         break
-                    if stamp <= end:
+                    if stamp <= end and (region is None or match_region == region):
                         match_ids.append(mid)
             else:
-                for mid, stamp in processed:  # pragma: no branch
+                for mid, stamp, match_region in processed:  # pragma: no branch
                     if stamp > end:
                         break
-                    if stamp >= start:
+                    if stamp >= start and (region is None or match_region == region):
                         match_ids.append(mid)
+            # fetch in chunks
             for chunk_ids in chunk(match_ids, 10):  # pragma: no branch
                 matches_response = await self.request(
                     "getmatchdetailsbatch", ','.join(map(str, chunk_ids))
