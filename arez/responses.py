@@ -102,6 +102,7 @@ class PlayerObject(RetMsg):
     Wins: int
     hz_gamer_tag: str | None
     hz_player_name: str | None
+    privacy_flag: Literal['y', 'n']  # usually 'n'
 
 
 class AbilityObject(RetMsg):
