@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from enum import IntEnum
 from typing import Any, Iterator, Protocol, Type, cast, TYPE_CHECKING
@@ -449,13 +449,13 @@ class Queue(Enum, default_value=0):
     Test_Maps
         Aliases: ``test``.
     """
-    Unknown                  =   0
+    Unknown                  = 0
     Casual_Siege             = 424
     casual                   = 424
     siege                    = 424
-    Team_Deathmatch          = 469
-    deathmatch               = 469
-    tdm                      = 469
+    Team_Deathmatch          = 10296
+    deathmatch               = 10296
+    tdm                      = 10296
     Onslaught                = 452
     Competitive_Keyboard     = 486
     keyboard_comp            = 486
@@ -477,46 +477,56 @@ class Queue(Enum, default_value=0):
     bot_siege                = 425
     Training_Onslaught       = 453
     bot_onslaught            = 453
-    Training_Team_Deathmatch = 470
-    bot_team_deathmatch      = 470
-    bot_deathmatch           = 470
-    bot_tdm                  = 470
+    Training_Team_Deathmatch = 10297
+    bot_team_deathmatch      = 10297
+    bot_deathmatch           = 10297
+    bot_tdm                  = 10297
     Test_Maps                = 445
     test                     = 445
+    # LTMs
+    Payload                 = 10279
+    Cards_To_The_Max        = 10284
+    Floor_is_Lava           = 10287
+    Siege_of_Ascension_Peak = 10285
+    Health_Drops            = 10235
+    # Old/replaced queues
+    Classic_Team_Deathmatch          = 469
+    Classic_Training_Team_Deathmatch = 470
     # Customs
-    Custom_Ascension_Peak                 = 473
     Custom_Bazaar                         = 426
-    Custom_Brightmarsh                    = 458
-    Custom_Fish_Market                    = 431
-    Custom_Frog_Isle                      = 433
-    Custom_Frozen_Guard                   = 432
-    Custom_Ice_Mines                      = 439
-    Custom_Jaguar_Falls                   = 438
-    Custom_Serpent_Beach                  = 440
-    Custom_Shattered_Desert               = 487
-    Custom_Splitstone_Quary               = 459
-    Custom_Stone_Keep_Day                 = 10239
-    Custom_Stone_Keep_Night               = 10210
     Custom_Timber_Mill                    = 430
-    Custom_Warders_Gate                   = 485
+    Custom_Fish_Market                    = 431
+    Custom_Frozen_Guard                   = 432
+    Custom_Frog_Isle                      = 433
+    Custom_Jaguar_Falls                   = 438
+    Custom_Ice_Mines                      = 439
+    Custom_Serpent_Beach                  = 440
+    Custom_Snowfall_Junction_TDM          = 454
+    Custom_Primal_Court_Onslaught         = 455
+    Custom_Brightmarsh                    = 458
+    Custom_Splitstone_Quary               = 459
     Custom_Foremans_Rise_Onslaught        = 462
     Custom_Magistrates_Archives_Onslaught = 464
-    Custom_Marauders_Port_Onslaught       = 483
-    Custom_Primal_Court_Onslaught         = 455
-    Custom_Abyss_TDM                      = 479
-    Custom_Dragon_Arena_TDM               = 484
+    Custom_Trade_District_TDM             = 468
     Custom_Foremans_Rise_TDM              = 471
     Custom_Magistrates_Archives_TDM       = 472
-    Custom_Snowfall_Junction_TDM          = 454
+    Custom_Ascension_Peak                 = 473
+    Custom_Abyss_TDM                      = 479
     Custom_Throne_TDM                     = 480
-    Custom_Trade_District_TDM             = 468
+    Custom_Marauders_Port_Onslaught       = 483
+    Custom_Dragon_Arena_TDM               = 484
+    Custom_Warders_Gate                   = 485
+    Custom_Shattered_Desert               = 487
     Custom_Magistrates_Archives_KotH      = 10200
     Custom_Snowfall_Junction_KotH         = 10201
     Custom_Trade_District_KotH            = 10202
+    Custom_Stone_Keep_Night               = 10210
+    Custom_Stone_Keep_Day                 = 10239
 
     def is_casual(self) -> bool:
         """
         Checks if this queue is considered "casual".
+        Casual queues are the ones accessible from the main queue screen.
 
         .. note::
 
@@ -524,23 +534,26 @@ class Queue(Enum, default_value=0):
 
         :type: bool
         """
-        return self.value in (
-            424,  # Casual Siege
-            452,  # Onslaught
-            469,  # TDM
-            445,  # Test maps
+        return self.is_ltm() or self in (
+            self.Casual_Siege,
+            self.Onslaught,
+            self.Team_Deathmatch,
+            self.Test_Maps,
+            self.Classic_Team_Deathmatch,
         )
 
     def is_ranked(self) -> bool:
         """
-        Checks if this queue is considered "ranked".
+        Checks if this queue is considered "ranked" or "competitive".
 
         :type: bool
         """
-        return self.value in (
-            486,  # Competitive Keyboard
-            428,  # Competitive Controller
+        return self in (
+            self.Competitive_Keyboard,
+            self.Competitive_Controller,
         )
+
+    is_competitive = is_ranked
 
     def is_training(self) -> bool:
         """
@@ -548,10 +561,12 @@ class Queue(Enum, default_value=0):
 
         :type: bool
         """
-        return self.value in (
-            425,  # Training Siege
-            453,  # Training Onslaught
-            470,  # Training TDM
+        return self in (
+            self.Shooting_Range,
+            self.Training_Siege,
+            self.Training_Onslaught,
+            self.Training_Team_Deathmatch,
+            self.Classic_Training_Team_Deathmatch,
         )
 
     def is_custom(self) -> bool:
@@ -560,37 +575,7 @@ class Queue(Enum, default_value=0):
 
         :type: bool
         """
-        return self.value in (
-            # All customs
-            473,
-            426,
-            458,
-            431,
-            433,
-            432,
-            439,
-            438,
-            440,
-            487,
-            459,
-            423,
-            430,
-            485,
-            462,
-            464,
-            483,
-            455,
-            479,
-            484,
-            471,
-            472,
-            454,
-            480,
-            468,
-            10200,
-            10201,
-            10202,
-        )
+        return self.name.startswith("Custom")
 
     def is_siege(self) -> bool:
         """
@@ -598,24 +583,25 @@ class Queue(Enum, default_value=0):
 
         :type: bool
         """
-        return self.is_ranked() or self.value in (
-            424,  # Casual
-            425,  # Training
+        return self.is_ranked() or self in (
+            self.Casual_Siege,
+            self.Training_Siege,
             # Custom Siege
-            473,
-            426,
-            458,
-            431,
-            433,
-            432,
-            439,
-            438,
-            440,
-            487,
-            459,
-            423,
-            430,
-            485,
+            self.Custom_Ascension_Peak,
+            self.Custom_Bazaar,
+            self.Custom_Brightmarsh,
+            self.Custom_Fish_Market,
+            self.Custom_Frog_Isle,
+            self.Custom_Frozen_Guard,
+            self.Custom_Ice_Mines,
+            self.Custom_Jaguar_Falls,
+            self.Custom_Serpent_Beach,
+            self.Custom_Shattered_Desert,
+            self.Custom_Splitstone_Quary,
+            self.Custom_Stone_Keep_Day,
+            self.Custom_Stone_Keep_Night,
+            self.Custom_Timber_Mill,
+            self.Custom_Warders_Gate,
         )
 
     def is_onslaught(self) -> bool:
@@ -624,36 +610,35 @@ class Queue(Enum, default_value=0):
 
         :type: bool
         """
-        return self.value in (
-            452,  # Casual
-            453,  # Training
-            # Custom Onslaught
-            462,
-            464,
-            483,
-            455,
+        return self in (
+            self.Onslaught,
+            self.Training_Onslaught,
+            self.Custom_Foremans_Rise_Onslaught,
+            self.Custom_Magistrates_Archives_Onslaught,
+            self.Custom_Marauders_Port_Onslaught,
+            self.Custom_Primal_Court_Onslaught,
         )
 
-    def is_tdm(self):
+    def is_tdm(self) -> bool:
         """
         Checks if this queue contains "team deathmatch" game mode.
 
         :type: bool
         """
-        return self.value in (
-            469,  # Casual
-            470,  # Training
+        return self in (
+            self.Team_Deathmatch,
+            self.Classic_Team_Deathmatch,
             # Custom TDM
-            479,
-            484,
-            471,
-            472,
-            454,
-            480,
-            468,
+            self.Custom_Abyss_TDM,
+            self.Custom_Dragon_Arena_TDM,
+            self.Custom_Foremans_Rise_TDM,
+            self.Custom_Magistrates_Archives_TDM,
+            self.Custom_Snowfall_Junction_TDM,
+            self.Custom_Throne_TDM,
+            self.Custom_Trade_District_TDM,
         )
 
-    def is_koth(self):
+    def is_koth(self) -> bool:
         """
         Checks if this queue contains "king of the hill" game mode.
 
@@ -664,12 +649,27 @@ class Queue(Enum, default_value=0):
 
         :type: bool
         """
-        return self.value in (
-            452,  # Onslaught
+        return self in (
+            self.Onslaught,
             # Custom KotH
-            10200,
-            10201,
-            10202,
+            self.Custom_Magistrates_Archives_KotH,
+            self.Custom_Snowfall_Junction_KotH,
+            self.Custom_Trade_District_KotH,
+        )
+
+    def is_ltm(self) -> bool:
+        """
+        Checks if this queue is a Limited Time Mode.
+        These game modes are cycles through in and out as time goes on.
+
+        :type: bool
+        """
+        return self in (
+            self.Payload,
+            self.Cards_To_The_Max,
+            self.Floor_is_Lava,
+            self.Siege_of_Ascension_Peak,
+            self.Health_Drops,
         )
 
 
