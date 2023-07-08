@@ -116,7 +116,7 @@ def test_enum_meta():
     assert isinstance(e, WithDefault)  # isinstance
     assert str(e) == "NoSpace"  # str cast
     assert int(e) == 1  # int cast
-    assert e == 1  # int comparison
+    assert e == 1  # type: ignore[comparison-overlap]  # int comparison
     assert repr(e) == "<WithDefault.NoSpace: 1>"  # repr
     # same but with a space in the name
     e = WithDefault("with space")
@@ -183,7 +183,7 @@ def test_enum():
     assert arez.Rank.Master.alt_division == "Master"
     # queue methods
     assert arez.Queue.Casual_Siege.is_casual()
-    assert arez.Queue.Competitive_Keyboard.is_ranked()
+    assert arez.Queue.Ranked.is_ranked()
     assert arez.Queue.Training_Siege.is_training()
     assert arez.Queue.Custom_Ascension_Peak.is_custom()
     assert arez.Queue.Casual_Siege.is_siege()

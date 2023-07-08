@@ -433,11 +433,8 @@ class Queue(Enum, default_value=0):
     Team_Deathmatch
         Aliases: ``deathmatch``, ``tdm``.
     Onslaught
-    Competitive_Keyboard
-        Aliases: ``keyboard_comp``, ``keyboard_ranked``, ``kb_comp``, ``kb_rank``, ``kb_ranked``.
-    Competitive_Controller
-        Aliases: ``controller_comp``, ``controller_ranked``, ``cn_comp``, ``cn_rank``,
-        ``cn_ranked``.
+    Ranked
+        Aliases: ``competitive``, ``rank``, ``comp``.
     Shooting_Range
         Aliases: ``range``.
     Training_Siege
@@ -457,20 +454,10 @@ class Queue(Enum, default_value=0):
     deathmatch               = 10296
     tdm                      = 10296
     Onslaught                = 452
-    Competitive_Keyboard     = 486
-    keyboard_comp            = 486
-    keyboard_rank            = 486
-    keyboard_ranked          = 486
-    kb_comp                  = 486
-    kb_rank                  = 486
-    kb_ranked                = 486
-    Competitive_Controller   = 428
-    controller_comp          = 428
-    controller_rank          = 428
-    controller_ranked        = 428
-    cn_comp                  = 428
-    cn_rank                  = 428
-    cn_ranked                = 428
+    Ranked                   = 486
+    competitive              = 486
+    comp                     = 486
+    rank                     = 486
     Shooting_Range           = 434
     range                    = 434
     Training_Siege           = 425
@@ -534,13 +521,13 @@ class Queue(Enum, default_value=0):
 
         :type: bool
         """
-        return self.is_ltm() or self in (
+        return self in (
             self.Casual_Siege,
             self.Onslaught,
             self.Team_Deathmatch,
             self.Test_Maps,
             self.Classic_Team_Deathmatch,
-        )
+        ) or self.is_ltm()
 
     def is_ranked(self) -> bool:
         """
@@ -548,10 +535,7 @@ class Queue(Enum, default_value=0):
 
         :type: bool
         """
-        return self in (
-            self.Competitive_Keyboard,
-            self.Competitive_Controller,
-        )
+        return self is self.Ranked
 
     is_competitive = is_ranked
 
@@ -783,7 +767,7 @@ class Passive(Enum):
     # Some champions appear to have other devices stored in there,
     # but we don't care about that for now
     # Wall_Climb = 23461  # Koga's Wall Climb
-    # DR     = 26716  # Yagorath's DR?
+    # DR = 26716  # Yagorath's DR?
     # Octavia's passives
     Shield   = 26883
     Credit   = 27051
