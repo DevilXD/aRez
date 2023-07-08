@@ -137,7 +137,7 @@ class EnumMeta(type):
         return cls
 
     # Add our special enum member constructor
-    def __call__(  # type: ignore[override]
+    def __call__(
         cls: _EnumProt,
         name_or_value: str | int,
         value: int | None = None,

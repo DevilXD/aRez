@@ -7,19 +7,8 @@ import logging
 from operator import itemgetter
 from datetime import datetime, timedelta, timezone
 from inspect import Parameter, signature, iscoroutinefunction
-from typing import (
-    Any,
-    Callable,
-    Iterable,
-    Sequence,
-    Awaitable,
-    AsyncGenerator,
-    Literal,
-    NoReturn,
-    cast,
-    overload,
-    TYPE_CHECKING,
-)
+from typing import Any, Literal, NoReturn, cast, overload, TYPE_CHECKING
+from collections.abc import Coroutine, Iterable, Sequence, Callable, AsyncGenerator
 
 from . import responses
 from .stats import DataUsed
@@ -110,7 +99,9 @@ class PaladinsAPI(DataCache):
         self._statuspage = StatusPage("http://status.hirezstudios.com", loop=loop)
         self._statuspage_group = "Paladins"
         self._server_status: ServerStatus | None = None
-        self._status_callback: Callable[[ServerStatus, ServerStatus], Awaitable[Any]] | None = None
+        self._status_callback: (
+            Callable[[ServerStatus, ServerStatus], Coroutine[Any, Any, Any]] | None
+        ) = None
         self._status_task: asyncio.Task[NoReturn] | None = None
         self._status_intervals: tuple[timedelta, timedelta] = (
             _CHECK_INTERVAL, _RECHECK_INTERVAL  # check, recheck
