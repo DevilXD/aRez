@@ -355,8 +355,12 @@ class Match(CacheClient, MatchMixin):
         self.replay_available: bool = first_player["hasReplay"] == "y"
         self.bans: list[Champion | CacheObject | None] = []
         if self.queue.is_ranked():
-            for i in range(1, 7):
-                ban_id: int = first_player[f"BanId{i}"]  # type: ignore[literal-required]
+            i = 0
+            while True:
+                i += 1
+                if (ban_key := f"BanId{i}") not in first_player:
+                    break
+                ban_id: int = first_player[ban_key]  # type: ignore[literal-required]
                 if not ban_id:  # pragma: no cover
                     # zero indicates no ban has happened - use None
                     self.bans.append(None)
@@ -366,7 +370,8 @@ class Match(CacheClient, MatchMixin):
                     ban_champ = cache_entry.champions.get(ban_id)
                 if ban_champ is None:
                     ban_champ = CacheObject(
-                        id=ban_id, name=first_player[f"Ban_{i}"]  # type: ignore[literal-required]
+                        id=ban_id,
+                        name=first_player.get(f"Ban_{i}", ''),  # type: ignore[arg-type]
                     )
                 self.bans.append(ban_champ)
         self.team1: list[MatchPlayer] = []

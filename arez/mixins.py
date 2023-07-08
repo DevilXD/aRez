@@ -54,9 +54,12 @@ class CacheObject:
         The object's name.\n
         Defaults to ``Unknown`` if not set.
     """
-    def __init__(self, *, id: int = 0, name: str = "Unknown"):
-        self._id: int = id
-        self._name: str = name
+    DEFAULT_ID = 0
+    DEFAULT_NAME = "Unknown"
+
+    def __init__(self, *, id: int = DEFAULT_ID, name: str = DEFAULT_NAME):
+        self._id: int = id or self.DEFAULT_ID
+        self._name: str = name or self.DEFAULT_NAME
         self._hash: int | None = None
 
     @property
@@ -72,15 +75,15 @@ class CacheObject:
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, self.__class__):
-            if self._id != 0 and other._id != 0:
+            if self._id != self.DEFAULT_ID and other._id != self.DEFAULT_ID:
                 return self._id == other._id
-            elif self._name != "Unknown" and other._name != "Unknown":
+            elif self._name != self.DEFAULT_NAME and other._name != self.DEFAULT_NAME:
                 return self._name == other._name
         return NotImplemented
 
     def __hash__(self) -> int:
         if self._hash is None:
-            self._hash = hash((self.__class__.__name__, self._name, self._id))
+            self._hash = hash((self.__class__.__name__, self._id, self._name))
         return self._hash
 
 
