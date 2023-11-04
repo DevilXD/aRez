@@ -276,6 +276,7 @@ class Platform(Enum, default_value=0):
     standalone      =  1
     Steam           =  5
     PS4             =  9
+    ps5             =  9
     psn             =  9
     playstation     =  9
     Xbox            = 10
