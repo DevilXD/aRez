@@ -1,7 +1,8 @@
 ﻿from __future__ import annotations
 
 from enum import IntEnum
-from typing import Any, Iterator, Protocol, Type, cast, TYPE_CHECKING
+from collections.abc import Callable, Iterator
+from typing import Any, Protocol, Type, TypeVar, cast, TYPE_CHECKING
 
 
 __all__ = [
@@ -17,6 +18,8 @@ __all__ = [
     "AbilityType",
     "PC_PLATFORMS",
 ]
+_T = TypeVar("_T")
+_C = TypeVar("_C", bound="Callable[..., Any]")
 
 
 class _EnumBase(int):
@@ -72,14 +75,17 @@ class _EnumProt(Protocol):
     """
     An internal protocol, describing how the resulting enum class will look like.
     """
+    # NOTE: These specify what attributes MAY exist, not necessarily will
     _name_mapping: dict[str, _EnumBase]
     _value_mapping: dict[int, _EnumBase]
     _member_mapping: dict[str, _EnumBase]
+    _short2_mapping: dict[int, str]
+    _short3_mapping: dict[int, str]
     _default_value: int
     _immutable: bool
 
     def __new__(  # type: ignore[misc]
-        cls: _EnumProt, name: str, value: int
+        cls: _EnumProt, name: str, value: int, *, default_value: int | None = None
     ) -> _EnumBase | int | str | None:
         ...
 
@@ -87,9 +93,9 @@ class _EnumProt(Protocol):
         ...
 
 
-class EnumMeta(type):
+class _EnumMeta(type):
     def __new__(
-        meta_cls: Type[EnumMeta],
+        meta_cls: Type[_EnumMeta],
         name: str,
         bases: tuple[type, ...],
         attrs: dict[str, Any],
@@ -117,18 +123,18 @@ class EnumMeta(type):
         for k, v in attrs.items():
             if v in value_mapping:
                 # existing value, just read it back
-                member = value_mapping[v]
+                m = value_mapping[v]
             else:
                 # create a new value
-                member = cls(k, v)
-                value_mapping[v] = member
-                member_mapping[k] = member
-                setattr(cls, k, member)
+                m = cls(k, v)
+                value_mapping[v] = m
+                member_mapping[k] = m
+                setattr(cls, k, m)
             k_lower = k.lower()
-            name_mapping[k_lower] = member
+            name_mapping[k_lower] = m
             if '_' in k:
                 # generate a second alias with spaces instead of underscores
-                name_mapping[k_lower.replace('_', ' ')] = member
+                name_mapping[k_lower.replace('_', ' ')] = m
         setattr(cls, "_name_mapping", name_mapping)
         setattr(cls, "_value_mapping", value_mapping)
         setattr(cls, "_member_mapping", member_mapping)
@@ -182,7 +188,7 @@ class EnumMeta(type):
 
 
 # Generate additional aliases for ranks
-class _RankMeta(EnumMeta):
+class _RankMeta(_EnumMeta):
     def __new__(meta_cls: Type[_RankMeta], *args, **kwargs):
         roman_numerals = {
             "i": 1,
@@ -194,19 +200,61 @@ class _RankMeta(EnumMeta):
         cls: _EnumProt = super().__new__(meta_cls, *args, **kwargs)
         more_aliases: dict[str, _EnumBase] = {}
         # generate additional aliases
-        for k, v in cls._name_mapping.items():
+        for k, m in cls._name_mapping.items():
             if ' ' in k or '_' not in k:
                 # skip the already-existing aliases with spaces
                 # skip members with no underscores in them
                 continue
             name, _, level = k.partition('_')
             level_int = roman_numerals[level]  # change the roman number to int
-            more_aliases[f"{name}_{level_int}"] = v  # roman replaced with integer
-            more_aliases[f"{name} {level_int}"] = v  # same but with a space
-            more_aliases[f"{name}{level_int}"] = v  # no delimiter
+            more_aliases[f"{name}_{level_int}"] = m  # roman replaced with integer
+            more_aliases[f"{name} {level_int}"] = m  # same but with a space
+            more_aliases[f"{name}{level_int}"] = m  # no delimiter
         # add the aliases
         cls._name_mapping.update(more_aliases)
         return cls
+
+
+# Add short2 and short3 methods to an enum
+class _ShortMeta(_EnumMeta):
+    def __new__(meta_cls: Type[_ShortMeta], *args, **kwargs):
+        cls: _EnumProt = super().__new__(meta_cls, *args, **kwargs)
+        short2_mapping: dict[int, str] = {}
+        short3_mapping: dict[int, str] = {}
+        for k, m in cls._name_mapping.items():
+            if len(k) == 2:
+                short2_mapping[m.value] = k.upper()
+            elif len(k) == 3:
+                short3_mapping[m.value] = k.upper()
+        type.__setattr__(cls, "_immutable", False)
+        setattr(cls, "_short2_mapping", short2_mapping)
+        setattr(cls, "_short3_mapping", short3_mapping)
+        delattr(cls, "_immutable")
+        return cls
+
+    @classmethod
+    def short2(cls: _EnumProt, *args) -> str:
+        """
+        Returns a 2-letter short name for a Region.
+
+        If no such short name exists, return the region ``name`` unchanged.
+        """
+        value = int(cls)
+        if value in cls._short2_mapping:
+            return cls._short2_mapping[value]
+        return cls.name
+
+    @classmethod
+    def short3(cls: _EnumProt) -> str:
+        """
+        Returns a 3-letter short name for a Region.
+
+        If no such short name exists, return the region ``name`` unchanged.
+        """
+        value = int(cls)
+        if value in cls._short3_mapping:
+            return cls._short3_mapping[value]
+        return cls.name
 
 
 if TYPE_CHECKING:
@@ -215,11 +263,15 @@ if TYPE_CHECKING:
         def __init__(self, name_or_value: str | int, *, _return_default: bool = False):
             ...
 
-    class _RankEnum(IntEnum):
+    class EnumRank(IntEnum):
+        def __init__(self, name_or_value: str | int, *, _return_default: bool = False):
+            ...
+
+    class EnumShort(IntEnum):
         def __init__(self, name_or_value: str | int, *, _return_default: bool = False):
             ...
 else:
-    class Enum(_EnumBase, metaclass=EnumMeta):
+    class Enum(_EnumBase, metaclass=_EnumMeta):
         """
         Represents a basic enum.
 
@@ -238,7 +290,10 @@ else:
             The matched enum member. `None` is returned if no member could be matched.
         """
 
-    class _RankEnum(_EnumBase, metaclass=_RankMeta):
+    class EnumRank(_EnumBase, metaclass=_RankMeta):
+        pass
+
+    class EnumShort(_EnumBase, metaclass=_ShortMeta):
         pass
 
 
@@ -300,7 +355,7 @@ class Platform(Enum, default_value=0):
     luna            = 30
 
 
-class Region(Enum, default_value=0):
+class Region(EnumShort, default_value=0):
     """
     Region enum. Represents player's region.
 
@@ -311,43 +366,49 @@ class Region(Enum, default_value=0):
     Unknown
         Unknown region. You can sometimes get this when the information isn't available.
     North_America
-        Aliases: ``na``.
+        Aliases: ``na``, ``nam``.
     Europe
-        Aliases: ``eu``.
+        Aliases: ``eu``, ``eur``.
     Australia
-        Aliases: ``oceania``, ``au``, ``aus``, ``oce``.
+        Aliases: ``au``, ``aus``, ``oc``, ``oce``, ``oceania``.
     Brazil
         Aliases: ``br``, ``bra``.
     Latin_America_North
-        Aliases: ``latam``.
+        Aliases: ``la``, ``lan``, ``latam``.
     Southeast_Asia
-        Aliases: ``sea``.
+        Aliases: ``sa``, ``sea``.
     Japan
         Aliases: ``jp``, ``jpn``.
     """
     Unknown             = 0
     North_America       = 1
     na                  = 1
+    nam                 = 1
     Europe              = 2
     eu                  = 2
+    eur                 = 2
     Australia           = 3
-    oceania             = 3
     au                  = 3
     aus                 = 3
+    oc                  = 3
     oce                 = 3
+    oceania             = 3
     Brazil              = 4
     br                  = 4
     bra                 = 4
     Latin_America_North = 5
+    la                  = 5
+    lan                 = 5
     latam               = 5
     Southeast_Asia      = 6
+    sa                  = 6
     sea                 = 6
     Japan               = 7
     jp                  = 7
     jpn                 = 7
 
 
-class Language(Enum):
+class Language(EnumShort):
     """
     Language enum. Represents the response language.
 
@@ -658,7 +719,7 @@ class Queue(Enum, default_value=0):
         )
 
 
-class Rank(_RankEnum):
+class Rank(EnumRank):
     """
     Rank enum. Represents player's rank.
 

@@ -170,8 +170,7 @@ def test_enum_meta():
 @pytest.mark.order(after="test_enum_meta")
 def test_enum():
     # rank special aliases
-    r = arez.Rank("bronze5")
-    assert r is arez.Rank.Bronze_V
+    assert arez.Rank("bronze5") is arez.Rank.Bronze_V
     # rank alt_name, tier, division and alt_division
     assert arez.Rank.Bronze_V.alt_name == "Bronze 5"
     assert arez.Rank.Master.alt_name == "Master"
@@ -190,6 +189,8 @@ def test_enum():
     assert arez.Queue.Onslaught.is_onslaught()
     assert arez.Queue.Team_Deathmatch.is_tdm()
     assert arez.Queue.Custom_Magistrates_Archives_KotH.is_koth()
+    # check region short names
+    assert arez.Region("na").short2 == "NA"
 
 
 @pytest.mark.api()
