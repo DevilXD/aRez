@@ -430,6 +430,24 @@ class _LookupBase(Sequence[LookupType], Generic[LookupKeyType, LookupType]):
             return self._name_lookup.get(name_or_id.lower())
         raise TypeError("Argument has to be of either int or str type")
 
+    @overload
+    def get_fuzzy(
+        self, name: str, *, cutoff: float = 0.6, with_cached: Literal[True]
+    ) -> LookupType | CacheObject | list[LookupType] | list[LookupType | CacheObject] | None:
+        ...
+
+    @overload
+    def get_fuzzy(
+        self, name: str, *, cutoff: float = 0.6, with_cached: Literal[False] = False
+    ) -> LookupType | list[LookupType] | None:
+        ...
+
+    @overload
+    def get_fuzzy(
+        self, name: str, *, cutoff: float = 0.6, with_cached: bool = False
+    ) -> LookupType | CacheObject | list[LookupType] | list[LookupType | CacheObject] | None:
+        ...
+
     def get_fuzzy(
         self, name: str, *, cutoff: float = 0.6, with_cached: bool = False
     ) -> LookupType | CacheObject | list[LookupType] | list[LookupType | CacheObject] | None:
@@ -643,6 +661,24 @@ class Lookup(_LookupBase[LookupKeyType, LookupType]):
             `None` is returned if the requested element couldn't be found.
         """
         return cast(Optional[LookupType], super().get(name_or_id, with_cached=with_cached))
+
+    @overload
+    def get_fuzzy(
+        self, name: str, *, cutoff: float = 0.6, with_cached: Literal[True]
+    ) -> LookupType | CacheObject | None:
+        ...
+
+    @overload
+    def get_fuzzy(
+        self, name: str, *, cutoff: float = 0.6, with_cached: Literal[False] = False
+    ) -> LookupType | None:
+        ...
+
+    @overload
+    def get_fuzzy(
+        self, name: str, *, cutoff: float = 0.6, with_cached: bool = False
+    ) -> LookupType | CacheObject | None:
+        ...
 
     def get_fuzzy(
         self, name: str, *, cutoff: float = 0.6, with_cached: bool = False
@@ -966,6 +1002,24 @@ class LookupGroup(_LookupBase[LookupKeyType, LookupType]):
                 name, limit=limit, cutoff=cutoff, with_cached=with_cached, with_scores=with_scores
             ),
         )
+
+    @overload
+    def get_fuzzy(
+        self, name: str, *, cutoff: float = 0.6, with_cached: Literal[True]
+    ) -> list[LookupType] | list[LookupType | CacheObject] | None:
+        ...
+
+    @overload
+    def get_fuzzy(
+        self, name: str, *, cutoff: float = 0.6, with_cached: Literal[False] = False
+    ) -> list[LookupType] | None:
+        ...
+
+    @overload
+    def get_fuzzy(
+        self, name: str, *, cutoff: float = 0.6, with_cached: bool = False
+    ) -> list[LookupType] | list[LookupType | CacheObject] | None:
+        ...
 
     def get_fuzzy(
         self, name: str, *, cutoff: float = 0.6, with_cached: bool = False
