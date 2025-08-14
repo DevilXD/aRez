@@ -331,7 +331,7 @@ class PaladinsAPI(DataCache):
         async def _status_callback(before: ServerStatus, after: ServerStatus):
             try:
                 args = (before, after) if pass_before else (after,)
-                ret = callback(*args)  # type: ignore
+                ret = callback(*args)
                 if is_coro:
                     await ret
             except Exception:

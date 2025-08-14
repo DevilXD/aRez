@@ -23,7 +23,7 @@ __all__ = [
 
 def _card_ability_sort(card: Device) -> str:
     ability = card.ability
-    if type(ability) == CacheObject:
+    if type(ability) is CacheObject:
         return f"z{ability.name}"  # push the card to the very end
     return ability.name
 
