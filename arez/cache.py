@@ -65,6 +65,11 @@ class DataCache(Endpoint, CacheClient):
     loop : asyncio.AbstractEventLoop | None
         The event loop you want to use for this data cache.\n
         Default loop is used when not provided.
+    ssl : bool
+        Controls if the API connection is made over secure HTTPS or not.\n
+        Defaults to `True`, meaning that the connection will be made securely over HTTPS.\n
+        Set this to `False` if you want to use HTTP instead
+        (useful when the certificate expires, for example).
     """
     def __init__(
         self,
@@ -72,11 +77,12 @@ class DataCache(Endpoint, CacheClient):
         dev_id: int | str,
         auth_key: str,
         *,
+        ssl: bool = True,
         enabled: bool = True,
         initialize: bool | Language = False,
         loop: asyncio.AbstractEventLoop | None = None,
     ):
-        super().__init__(url, dev_id, auth_key, loop=loop)
+        super().__init__(url, dev_id, auth_key, loop=loop, ssl=ssl)
         CacheClient.__init__(self, self)  # assign CacheClient recursively here
         self._default_language: Language
         if isinstance(initialize, Language):  # pragma: no cover

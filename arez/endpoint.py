@@ -84,6 +84,11 @@ class Endpoint:
     loop : asyncio.AbstractEventLoop | None
         The event loop you want to use for this Endpoint.\n
         Default loop is used when not provided.
+    ssl : bool
+        Controls if the API connection is made over secure HTTPS or not.\n
+        Defaults to `True`, meaning that the connection will be made securely over HTTPS.\n
+        Set this to `False` if you want to use HTTP instead
+        (useful when the certificate expires, for example).
     """
     def __init__(
         self,
@@ -91,6 +96,7 @@ class Endpoint:
         dev_id: int | str,
         auth_key: str,
         *,
+        ssl: bool = True,
         loop: asyncio.AbstractEventLoop | None = None,
     ):
         if loop is None:  # pragma: no cover
@@ -101,7 +107,10 @@ class Endpoint:
         self._session_lock = asyncio.Lock()
         self._session_expires = datetime.utcnow()
         self._http_session = aiohttp.ClientSession(
-            headers={"User-Agent": USER_AGENT}, timeout=DEFAULT_TIMEOUT, loop=loop
+            connector=aiohttp.TCPConnector(limit=50, ssl=ssl, loop=loop),
+            headers={"User-Agent": USER_AGENT},
+            timeout=DEFAULT_TIMEOUT,
+            loop=loop,
         )
         self.__dev_id = str(dev_id)
         self.__auth_key = auth_key.upper()

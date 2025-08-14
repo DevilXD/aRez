@@ -76,12 +76,18 @@ class PaladinsAPI(DataCache):
     loop : asyncio.AbstractEventLoop | None
         The event loop you want to use for this API.\n
         Default loop is used when not provided.
+    ssl : bool
+        Controls if the API connection is made over secure HTTPS or not.\n
+        Defaults to `True`, meaning that the connection will be made securely over HTTPS.\n
+        Set this to `False` if you want to use HTTP instead
+        (useful when the certificate expires, for example).
     """
     def __init__(
         self,
         dev_id: int | str,
         auth_key: str,
         *,
+        ssl: bool = True,
         cache: bool = True,
         initialize: bool | Language = False,
         loop: asyncio.AbstractEventLoop | None = None,
@@ -92,6 +98,7 @@ class PaladinsAPI(DataCache):
             "https://api.paladins.com/paladinsapi.svc",
             dev_id,
             auth_key,
+            ssl=ssl,
             loop=loop,
             enabled=cache,
             initialize=initialize,
