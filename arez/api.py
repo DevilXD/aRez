@@ -805,7 +805,9 @@ class PaladinsAPI(DataCache):
             raise NotFound("Match")
         players_dict: dict[int, Player] = {}
         if expand_players:
-            players_dict = await _get_players(self, (int(p["playerId"]) for p in response))
+            players_dict = await _get_players(
+                self, (int(p["playerId"]) for p in response if p["playerId"] is not None)
+            )
         return Match(self, cache_entry, response, players_dict)
 
     async def get_matches(

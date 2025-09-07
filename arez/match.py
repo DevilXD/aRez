@@ -260,7 +260,9 @@ class MatchPlayer(MatchPlayerMixin):
         parties: dict[int, int],
         players: dict[int, Player],
     ):
-        player: PartialPlayer | Player | None = players.get(int(player_data["playerId"]))
+        player: PartialPlayer | Player | None = None
+        if player_data["playerId"] is not None:
+            player = players.get(int(player_data["playerId"]))
         if player is None:
             # if no full player was found
             from .player import PartialPlayer  # cyclic imports
@@ -388,6 +390,9 @@ class Match(CacheClient, MatchMixin):
                     parties[pid] = next(party_count)
         # iterate over a second time, now that we have the party numbers sorted out
         for player_data in match_data:
+            if player_data["ret_msg"]:
+                # skip players with errors
+                continue
             match_player = MatchPlayer(self, cache_entry, player_data, parties, players)
             team_number = player_data["TaskForce"]
             if team_number == 1:
@@ -471,7 +476,9 @@ class LivePlayer(WinLoseMixin, CacheClient):
         )
         self.match: LiveMatch = match
         # Player
-        player: PartialPlayer | Player | None = players.get(int(player_data["playerId"]))
+        player: PartialPlayer | Player | None = None
+        if player_data["playerId"] is not None:
+            player = players.get(int(player_data["playerId"]))
         if player is None:
             # if no full player was found
             from .player import PartialPlayer  # cyclic imports
